@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shree RBSK Pro | आर.बी.एस.के. पोर्टल ऑटोमेशन टूल - काम मिनटों में</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #ecfdf5;
+            --secondary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --light-bg: #f8fafc;
+            --border: #e2e8f0;
+            --wa-green: #25D366;
+            --accent-orange: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Hind', 'Plus Jakarta Sans', sans-serif;
+            background: #ffffff;
+            color: #1e293b;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Top Announcement Bar */
+        .top-bar {
+            background: #064e3b;
+            color: #d1fae5;
+            font-size: 14px;
+            padding: 10px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .top-bar strong {
+            color: #ffffff;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #059669, #047857);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .brand-sub {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+            display: block;
+            margin-top: -3px;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-wa {
+            background: var(--wa-green);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
+        }
+
+        .btn-wa:hover {
+            background: #1ebd5b;
+            transform: translateY(-2px);
+        }
+
+        .btn-voice {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #bfdbfe;
+        }
+
+        .btn-voice:hover, .btn-voice.speaking {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .btn-outline {
+            background: #fff;
+            color: #334155;
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: #f8fafc;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 50px 0 30px;
+            text-align: center;
+            background: radial-gradient(circle at 50% 0%, #ecfdf5 0%, #ffffff 75%);
+        }
+
+        .friendly-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #047857;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 700;
+            border: 1px solid #a7f3d0;
+            margin-bottom: 20px;
+        }
+
+        .hero-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.3;
+            max-width: 900px;
+            margin: 0 auto 16px;
+        }
+
+        .hero-title span {
+            color: var(--primary);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            color: #475569;
+            max-width: 780px;
+            margin: 0 auto 30px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        /* Voiceover Player Bar */
+        .voice-bar {
+            background: #ffffff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 14px 20px;
+            max-width: 740px;
+            margin: 0 auto 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+            text-align: left;
+        }
+
+        .voice-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .voice-icon {
+            width: 40px;
+            height: 40px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .voice-text-title {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 15px;
+        }
+
+        .voice-text-sub {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        /* Problem vs Solution Comparison Card */
+        .comparison-section {
+            padding: 30px 0 50px;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .card-problem {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .card-problem h3 {
+            color: #b91c1c;
+            font-size: 20px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-solution {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(5, 150, 105, 0.08);
+        }
+
+        .card-solution h3 {
+            color: #047857;
+            font-size: 20px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .compare-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .compare-list li {
+            padding: 8px 0;
+            font-size: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        /* LIVE INTERACTIVE SIMULATOR (Built From Scratch!) */
+        .simulator-section {
+            padding: 50px 0;
+            background: #0f172a;
+            color: #ffffff;
+            border-radius: 20px;
+            margin: 40px auto;
+        }
+
+        .simulator-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+
+        .simulator-header h2 {
+            font-size: 30px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .simulator-header p {
+            color: #94a3b8;
+            font-size: 15px;
+        }
+
+        .sim-container {
+            max-width: 840px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 14px;
+            border: 1px solid #334155;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .sim-topbar {
+            background: #111827;
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .sim-body {
+            padding: 24px;
+        }
+
+        .sim-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .sim-field {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+
+        .sim-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .sim-val {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f8fafc;
+            height: 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sim-val.highlight {
+            color: #34d399;
+            animation: pulseText 1s infinite alternate;
+        }
+
+        @keyframes pulseText {
+            from { color: #34d399; }
+            to { color: #a7f3d0; }
+        }
+
+        .sim-log-bar {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #34d399;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Short Video Highlights */
+        .video-highlight-section {
+            padding: 50px 0;
+        }
+
+        .section-center-head {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .section-center-head h2 {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .section-center-head p {
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .video-box-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+            align-items: center;
+        }
+
+        .video-screen-wrap {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+        }
+
+        .video-screen-wrap video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .clip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .clip-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .clip-btn:hover, .clip-btn.active {
+            background: #064e3b;
+            border-color: #059669;
+            color: #ffffff;
+        }
+
+        .clip-title {
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .clip-sub {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        /* 4 Key Modules Cards */
+        .modules-section {
+            padding: 50px 0;
+            background: var(--light-bg);
+        }
+
+        .module-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .human-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .human-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .module-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #ecfdf5;
+            color: #047857;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .human-card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .human-card-text {
+            color: #475569;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+
+        .card-bullet-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .card-bullet-list li {
+            padding: 5px 0;
+            font-size: 14px;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-bullet-list li::before {
+            content: "✓";
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        /* Contact & CTA Section */
+        .contact-section {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            color: #ffffff;
+            padding: 60px 30px;
+            border-radius: 20px;
+            margin: 60px auto;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(4, 120, 87, 0.25);
+        }
+
+        .contact-title {
+            font-size: 34px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .contact-desc {
+            font-size: 17px;
+            opacity: 0.95;
+            max-width: 650px;
+            margin: 0 auto 28px;
+        }
+
+        .contact-btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Footer */
+        .footer {
+            background: #0f172a;
+            color: #94a3b8;
+            padding: 40px 0 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @media (max-width: 860px) {
+            .comparison-grid, .module-row, .video-box-layout, .sim-grid { grid-template-columns: 1fr; }
+            .hero-title { font-size: 30px; }
+            .voice-bar { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Announcement Bar -->
+    <div class="top-bar">
+        <span>🚀 <strong>Shree RBSK Pro:</strong> पूरे देश के RBSK डॉक्टर्स एवं MHT टीम का सबसे भरोसेमंद साथी | हेल्पलाइन: <strong>+91 9628496477</strong></span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-inner">
+            <a href="#" class="brand">
+                <div class="brand-logo">🛡️</div>
+                <div>
+                    <span class="brand-name">Shree RBSK Pro</span>
+                    <span class="brand-sub">RBSK Portal Automation System</span>
+                </div>
+            </a>
+            <div class="nav-actions">
+                <button onclick="playVoiceIntro()" id="btnVoiceGlobal" class="btn btn-voice">
+                    🔊 आवाज में समझें (Listen Voice)
+                </button>
+                <a href="promo_video_showcase.html" class="btn btn-outline" style="border-color: #3b82f6; color: #2563eb; background: #eff6ff;">
+                    🎬 वीडियो शोकेस
+                </a>
+                <a href="Shree_RBSK_Pro_Manual_Hindi.pdf" download class="btn btn-outline">
+                    📥 PDF गाइड
+                </a>
+                <a href="https://wa.me/919628496477?text=नमस्ते%20Shree%20RBSK%20टीम,%20मुझे%20सॉफ्टवेयर%20एक्टिवेट%20कराना%20है" target="_blank" class="btn btn-wa">
+                    💬 WhatsApp
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="container">
+            <div class="friendly-badge">
+                <span>❤️ RBSK MHT टीम और डाटा ऑपरेटर्स के लिए विशेष रूप से निर्मित</span>
+            </div>
+
+            <h1 class="hero-title">
+                RBSK पोर्टल पर बच्चों की डाटा एंट्री करते-करते थक गए हैं? <br>
+                <span>अब घंटों का काम सिर्फ 10 मिनट में खत्म करें!</span>
+            </h1>
+
+            <p class="hero-desc">
+                हाइट-वेट कैलकुलेट करने, बीएमआई निकालने, विजन और आधार लिंक करने की सिरदर्दी खत्म। 
+                Shree RBSK Pro एक्सटेंशन 1-क्लिक में बिना किसी गलती के पूरा पोर्टल ऑटोमेट करता है।
+            </p>
+
+            <div class="hero-buttons">
+                <a href="https://wa.me/919628496477?text=नमस्ते%20Shree%20RBSK%20टीम,%20कृपया%20मेरा%20लाइसेंस%20एक्टिवेट%20करें" target="_blank" class="btn btn-primary" style="font-size: 16px; padding: 12px 28px;">
+                    🚀 अभी एक्टिवेट कराएं
+                </a>
+                <a href="promo_video_showcase.html" class="btn btn-outline" style="font-size: 16px; padding: 12px 24px; border-color: #2563eb; color: #1d4ed8; background: #eff6ff;">
+                    🎬 वीडियो शोकेस देखें
+                </a>
+                <button onclick="runLiveSimulator()" class="btn btn-outline" style="font-size: 16px; padding: 12px 24px;">
+                    ⚡ लाइव सिमुलेटर चलाकर देखें
+                </button>
+                <a href="Shree_RBSK_Pro_Manual_Hindi.pdf" download class="btn btn-outline" style="font-size: 16px; padding: 12px 24px;">
+                    📄 सम्पूर्ण PDF गाइड
+                </a>
+            </div>
+
+            <!-- Voiceover Banner -->
+            <div class="voice-bar">
+                <div class="voice-info">
+                    <div class="voice-icon">🎙️</div>
+                    <div>
+                        <div class="voice-text-title">क्या आप पढ़ना नहीं चाहते? सीधे हिंदी में सुनें!</div>
+                        <div class="voice-text-sub">क्लिक करें और हमारा दोस्ताना ऑडियो वॉइसओवर आपको पूरा सॉफ्टवेयर समझाएगा।</div>
+                    </div>
+                </div>
+                <button onclick="playVoiceIntro()" id="voicePlayBtn" class="btn btn-voice">
+                    ▶️ वॉइसओवर सुनें
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Comparison Section: Problem vs Solution -->
+    <section class="comparison-section">
+        <div class="container">
+            <div class="section-center-head">
+                <h2>पुरानी परेशानी बनाम Shree RBSK Pro का जादू</h2>
+                <p>देखिए कि कैसे आपका और आपकी टीम का बहुमूल्य समय बचेगा।</p>
+            </div>
+
+            <div class="comparison-grid">
+                <!-- Old Way -->
+                <div class="card-problem">
+                    <h3>❌ पहले बिना एक्सटेंशन के (मैनुअल तरीका)</h3>
+                    <ul class="compare-list">
+                        <li>⏱️ एक बच्चे की स्क्रीनिंग में 3 से 4 मिनट बर्बाद होते हैं।</li>
+                        <li>🤯 उम्र के हिसाब से वजन-ऊंचाई और बीएमआई खुद कैलकुलेटर पर सोचना पड़ता है।</li>
+                        <li>⌨️ हर बच्चे का विजन (6/6), बीपी और डिफेक्ट बार-बार हाथ से सेलेक्ट करना पड़ता है।</li>
+                        <li>📑 आधार और आभा कार्ड लिंक करने में पोर्टल धीमा पड़ जाता है।</li>
+                        <li>🛑 रेफरल में ड्रॉपडाउन लोड होने में समय लगता है और गलतियां हो जाती हैं।</li>
+                    </ul>
+                </div>
+
+                <!-- New Way -->
+                <div class="card-solution">
+                    <h3>✅ अब Shree RBSK Pro के साथ (ऑटोमैटिक तरीका)</h3>
+                    <ul class="compare-list">
+                        <li>⚡ सिर्फ 2 से 3 सेकंड में एक बच्चे का पूरा फॉर्म सबमिट!</li>
+                        <li>📊 WHO गाइडलाइन अनुसार ऑटोमैटिक सही वजन, ऊंचाई और BMI वर्गीकरण।</li>
+                        <li>🎯 6/6 विजन, बीपी, और हीमोग्लोबिन ऑटोमैटिक 1-क्लिक में भरा जाता है।</li>
+                        <li>📑 एक्सेल शीट से 500 बच्चों का आधार और आभा कार्ड एक साथ लिंक!</li>
+                        <li>🚨 F1 बटन दबाते ही आपातकालीन फ्रीज (Instant Stop) सुरक्षा।</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LIVE INTERACTIVE SIMULATOR (Built From Scratch!) -->
+    <section class="container">
+        <div class="simulator-section">
+            <div class="simulator-header">
+                <h2>⚡ लाइव ऑटोमेशन टेस्ट ड्राइव (Live Simulator)</h2>
+                <p>नीचे '▶ सिमुलेशन शुरू करें' दबाएं और अपनी आंखों से देखें कि एक्सटेंशन पोर्टल पर फॉर्म कैसे भरता है!</p>
+            </div>
+
+            <div class="sim-container">
+                <div class="sim-topbar">
+                    <div style="display: flex; gap: 8px;">
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 700; color: #94a3b8;">
+                        RBSK पोर्टल - ऑटो फॉर्म सिमुलेशन (Priyanka, Age: 14 Yrs)
+                    </div>
+                    <button onclick="runLiveSimulator()" class="btn btn-primary" style="padding: 5px 14px; font-size: 12px;">
+                        ▶ सिमुलेशन शुरू करें
+                    </button>
+                </div>
+
+                <div class="sim-body">
+                    <div class="sim-grid">
+                        <div class="sim-field">
+                            <div class="sim-label">विद्यार्थी का नाम</div>
+                            <div class="sim-val" id="simName">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">उम्र / लिंग</div>
+                            <div class="sim-val" id="simAge">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">वजन (Weight)</div>
+                            <div class="sim-val" id="simWeight">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">ऊंचाई (Height)</div>
+                            <div class="sim-val" id="simHeight">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">BMI & स्थिति</div>
+                            <div class="sim-val" id="simBmi">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">रक्तचाप (Blood Pressure)</div>
+                            <div class="sim-val" id="simBp">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">दृष्टि (Vision)</div>
+                            <div class="sim-val" id="simVision">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">हीमोग्लोबिन (Hb)</div>
+                            <div class="sim-val" id="simHb">---</div>
+                        </div>
+                        <div class="sim-field">
+                            <div class="sim-label">स्वास्थ्य स्थिति</div>
+                            <div class="sim-val" id="simStatus">---</div>
+                        </div>
+                    </div>
+
+                    <div class="sim-log-bar">
+                        <span id="simLogText">👉 सिमुलेशन देखने के लिए ऊपर '▶ सिमुलेशन शुरू करें' बटन पर क्लिक करें।</span>
+                        <span id="simTimerBadge" style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px;">तैयार</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bite-Sized Video Clips Showcase -->
+    <section class="video-highlight-section">
+        <div class="container">
+            <div class="section-center-head">
+                <h2>🎥 काम के हिस्से सीधे वीडियो में देखें</h2>
+                <p>पूरा 3 मिनट का वीडियो देखने की ज़रूरत नहीं — बस जिस फीचर को देखना चाहते हैं उस पर क्लिक करें!</p>
+            </div>
+
+            <div class="video-box-layout">
+                <div class="video-screen-wrap">
+                    <video id="miniVideoPlayer" controls playsinline>
+                        <source src="video.mp4" type="video/mp4">
+                    </video>
+                </div>
+
+                <div class="clip-list">
+                    <button class="clip-btn active" onclick="playClip(45, 65, 'चाइल्ड स्क्रीनिंग ऑटोमेशन')">
+                        <span class="clip-title">👶 1. चाइल्ड स्क्रीनिंग डेमो</span>
+                        <span class="clip-sub">फॉर्म अपने आप कैसे भरता है (20s)</span>
+                    </button>
+                    <button class="clip-btn" onclick="playClip(84, 115, 'स्टूडेंट मास्टर एवं आधार')">
+                        <span class="clip-title">📋 2. स्टूडेंट मास्टर & ABHA</span>
+                        <span class="clip-sub">एक्सेल एक्सपोर्ट और आधार लिंकिंग (30s)</span>
+                    </button>
+                    <button class="clip-btn" onclick="playClip(157, 180, 'रेफरल मैनेजमेंट')">
+                        <span class="clip-title">🏥 3. रेफरल मैनेजमेंट</span>
+                        <span class="clip-sub">500 रिकॉर्ड्स और फैसिलिटी चयन (23s)</span>
+                    </button>
+                    <button class="clip-btn" onclick="playClip(188, 208, 'स्मार्ट एक्सेल ड्रॉपडाउन')">
+                        <span class="clip-title">📊 4. स्मार्ट एक्सेल ड्रॉपडाउन</span>
+                        <span class="clip-sub">एक्सेल में इन-बिल्ट डिफेक्ट लिस्ट (20s)</span>
+                    </button>
+                    <button class="clip-btn" onclick="playClip(19, 32, 'डैशबोर्ड एवं स्पीड सेटिंग्स')">
+                        <span class="clip-title">⚙️ 5. डैशबोर्ड & स्पीड सेटिंग्स</span>
+                        <span class="clip-sub">0.5x, 1x, 2x स्पीड कंट्रोल (13s)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 Key Modules Detailed -->
+    <section class="modules-section">
+        <div class="container">
+            <div class="section-center-head">
+                <h2>चारों मॉड्यूल्स की पूरी जानकारी</h2>
+                <p>हर एक मॉड्यूल आपकी दैनिक समस्याओं को ध्यान में रखकर बनाया गया है।</p>
+            </div>
+
+            <div class="module-row">
+                <!-- Mod 1 -->
+                <div class="human-card">
+                    <div>
+                        <div class="human-card-header">
+                            <div class="module-icon-circle">1</div>
+                            <h3 class="human-card-title">चाइल्ड स्क्रीनिंग (Child Screening)</h3>
+                        </div>
+                        <p class="human-card-text">
+                            स्कूलों और आंगनवाड़ियों में बच्चों की जांच के बाद पोर्टल पर चढ़ाना सबसे मुश्किल काम होता है। Shree RBSK Pro में सिर्फ Start दबाएं, यह उम्र के मुताबिक सही वजन-ऊंचाई चुनकर फॉर्म सबमिट कर देगा।
+                        </p>
+                        <ul class="card-bullet-list">
+                            <li>WHO ग्रोथ मानकों के अनुसार ऑटो वेट और हाइट</li>
+                            <li>बीएमआई और बीएमआई क्लासिफिकेशन खुद कैलकुलेट</li>
+                            <li>विजन 6/6, सामान्य बीपी और Hb खुद भरेगा</li>
+                            <li>1-क्लिक प्रिव्यू और फाइनल सबमिट</li>
+                        </ul>
+                    </div>
+                    <button onclick="speakText('चाइल्ड स्क्रीनिंग मॉड्यूल में सॉफ्टवेयर उम्र और लिंग के हिसाब से सही वजन, ऊंचाई, बीएमआई और विजन खुद भर देता है और बिना रुके सबमिट कर देता है।')" class="btn btn-voice">
+                        🔊 इसके बारे में सुनें
+                    </button>
+                </div>
+
+                <!-- Mod 2 -->
+                <div class="human-card">
+                    <div>
+                        <div class="human-card-header">
+                            <div class="module-icon-circle">2</div>
+                            <h3 class="human-card-title">स्टूडेंट मास्टर & आभा लिंकिंग (ABHA)</h3>
+                        </div>
+                        <p class="human-card-text">
+                            सभी बच्चों का आधार नंबर पोर्टल पर दर्ज करना और ABHA आईडी बनाना अब बेहद आसान है। एक क्लिक में स्कूल का एक्सेल डाउनलोड करें, आधार नंबर भरें और सॉफ्टवेयर से ऑटो-लिंक कराएं।
+                        </p>
+                        <ul class="card-bullet-list">
+                            <li>पूरे स्कूल का एक्सेल एक क्लिक में एक्सपोर्ट</li>
+                            <li>एक्सेल में सिर्फ आधार नंबर दर्ज करके Feed दबाएं</li>
+                            <li>ऑटोमेटिक आधार वेरिफिकेशन और आभा कार्ड जेनरेशन</li>
+                            <li>गलत आधार वाले बच्चे को स्वतः स्किप करके अगले पर बढ़ना</li>
+                        </ul>
+                    </div>
+                    <button onclick="speakText('स्टूडेंट मास्टर में आप पूरे स्कूल का एक्सेल डाउनलोड कर सकते हैं, आधार नंबर भरकर अपलोड करें और सॉफ्टवेयर खुद आभा कार्ड लिंक कर देगा।')" class="btn btn-voice">
+                        🔊 इसके बारे में सुनें
+                    </button>
+                </div>
+
+                <!-- Mod 3 -->
+                <div class="human-card">
+                    <div>
+                        <div class="human-card-header">
+                            <div class="module-icon-circle">3</div>
+                            <h3 class="human-card-title">रेफरल मैनेजमेंट (Referral Management)</h3>
+                        </div>
+                        <p class="human-card-text">
+                            रेफर किए गए बच्चों के उपचार की स्थिति अपडेट करना। यह टूल टेबल को 500 रिकॉर्ड्स तक खुद बड़ा करता है, सही अस्पताल चुनता है और 15-20 दिन आगे की तारीख खुद डालता है।
+                        </p>
+                        <ul class="card-bullet-list">
+                            <li>500 रो तक ऑटो एक्सपैंड (बार-बार पेज बदलने की जरूरत नहीं)</li>
+                            <li>Referred चुनने पर ब्लॉक/डिस्ट्रिक्ट फैसिलिटी का ऑटो-चयन</li>
+                            <li>ट्रीटमेंट की तारीख अपने आप 15 से 20 दिन आगे सेट</li>
+                            <li>जीरो एरर के साथ सुरक्षित रेफरल अपडेट</li>
+                        </ul>
+                    </div>
+                    <button onclick="speakText('रेफरल मैनेजमेंट में टेबल 500 रो तक अपने आप खुलती है और एक्सेल से फैसिलिटी टाइप, नाम और तारीख खुद सेलेक्ट होकर अपडेट हो जाती है।')" class="btn btn-voice">
+                        🔊 इसके बारे में सुनें
+                    </button>
+                </div>
+
+                <!-- Mod 4 -->
+                <div class="human-card">
+                    <div>
+                        <div class="human-card-header">
+                            <div class="module-icon-circle">4</div>
+                            <h3 class="human-card-title">स्मार्ट एक्सेल ड्रॉपडाउन (Smart Excel)</h3>
+                        </div>
+                        <p class="human-card-text">
+                            यह साधारण एक्सेल नहीं, बल्कि स्मार्ट वर्कबुक है। जब आप एक्सेल खोलते हैं, तो हर कॉलम में आपको ड्रॉपडाउन मिलता है, जिससे टाइपिंग की कोई गलती नहीं होती।
+                        </p>
+                        <ul class="card-bullet-list">
+                            <li>डिफेक्ट ड्रॉपडाउन: Healthy, Skin, Dental, Vit A, Vit D आदि</li>
+                            <li>लोकेशन ड्रॉपडाउन: Own Facility या Referred</li>
+                            <li>स्पेलिंग की गलतियों से 100% सुरक्षा</li>
+                            <li>1-क्लिक एक्सपोर्ट और इम्पोर्ट सुविधा</li>
+                        </ul>
+                    </div>
+                    <button onclick="speakText('स्मार्ट एक्सेल में आपको इन-बिल्ट ड्रॉपडाउन मिलता है, जहां आप सीधे हेल्दी या डिफेक्ट सेलेक्ट कर सकते हैं और गलती की कोई गुंजाइश नहीं रहती।')" class="btn btn-voice">
+                        🔊 इसके बारे में सुनें
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Support and Contact CTA -->
+    <section class="container">
+        <div class="contact-section">
+            <h2 class="contact-title">क्या आपके मन में कोई सवाल है? सीधे बात कीजिए!</h2>
+            <p class="contact-desc">
+                हमारी टीम हमेशा आपकी सहायता के लिए उपलब्ध है। सॉफ्टवेयर का एक्टिवेशन कराने, डेमो लेने या किसी भी समस्या के समाधान के लिए सीधे कॉल या व्हाट्सएप करें।
+            </p>
+            <div style="font-size: 26px; font-weight: 800; margin-bottom: 24px;">
+                📞 +91 9628496477
+            </div>
+            <div class="contact-btn-group">
+                <a href="https://wa.me/919628496477?text=नमस्ते%20Shree%20RBSK%20टीम,%20मुझे%20सॉफ्टवेयर%20एक्टिवेट%20कराना%20है" target="_blank" class="btn btn-wa" style="font-size: 16px; padding: 12px 28px;">
+                    💬 WhatsApp पर चैट करें
+                </a>
+                <a href="tel:+919628496477" class="btn btn-outline" style="font-size: 16px; padding: 12px 24px; color: #fff; border-color: rgba(255,255,255,0.4); background: transparent;">
+                    📞 सीधे कॉल करें
+                </a>
+                <a href="Shree_RBSK_Pro_Manual_Hindi.pdf" download class="btn btn-outline" style="font-size: 16px; padding: 12px 24px;">
+                    📄 पूरी गाइड PDF डाउनलोड करें
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p style="font-weight: 700; color: #fff; margin-bottom: 6px;">Shree RBSK Pro | राष्ट्रीय बाल स्वास्थ्य कार्यक्रम ऑटोमेशन टूल</p>
+            <p>समस्त RBSK MHT टीम, डॉक्टरों और डाटा एंट्री ऑपरेटरों के काम को आसान बनाने हेतु समर्पित।</p>
+            <p style="margin-top: 15px; font-size: 13px;">हेल्पलाइन: +91 9628496477 | समय: प्रातः 9:00 से रात्रि 9:00 बजे तक</p>
+        </div>
+    </footer>
+
+    <!-- Voiceover & Simulator Scripts -->
+    <script>
+        // Natural Human Voiceover function via Web Speech API
+        let isSpeaking = false;
+
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) {
+                alert("आपके ब्राउज़र में स्पीच सपोर्ट उपलब्ध नहीं है। कृपया Google Chrome में खोलें।");
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'hi-IN';
+            u.rate = 0.95; // Friendly conversational speed
+            u.pitch = 1.0;
+
+            const voices = window.speechSynthesis.getVoices();
+            const hiVoice = voices.find(v => v.lang.includes('hi') || v.name.includes('Hindi') || v.name.includes('Swara') || v.name.includes('Madhur'));
+            if (hiVoice) u.voice = hiVoice;
+
+            u.onstart = () => {
+                isSpeaking = true;
+                const b = document.getElementById("voicePlayBtn");
+                if (b) b.innerText = "⏹️ वॉइसओवर रोकें";
+                const gb = document.getElementById("btnVoiceGlobal");
+                if (gb) gb.classList.add("speaking");
+            };
+
+            u.onend = () => {
+                isSpeaking = false;
+                const b = document.getElementById("voicePlayBtn");
+                if (b) b.innerText = "▶️ वॉइसओवर सुनें";
+                const gb = document.getElementById("btnVoiceGlobal");
+                if (gb) gb.classList.remove("speaking");
+            };
+
+            window.speechSynthesis.speak(u);
+        }
+
+        function playVoiceIntro() {
+            if (isSpeaking) {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+                const b = document.getElementById("voicePlayBtn");
+                if (b) b.innerText = "▶️ वॉइसओवर सुनें";
+                return;
+            }
+
+            const speechScript = "नमस्ते दोस्तों! अगर आप भी RBSK की MHT टीम में डॉक्टर, फार्मासिस्ट या डाटा ऑपरेटर हैं, तो आप जानते ही होंगे कि पोर्टल पर हर दिन 80-100 बच्चों की स्क्रीनिंग चढ़ाना कितना सिरदर्द का काम है। उम्र के हिसाब से वजन-ऊंचाई सोचो, फिर बीएमआई निकालो, विजन 6/6 डालो, बीपी डालो... दिनभर में आंखें और कमर दोनों दुखने लगती हैं। इसी परेशानी को हमेशा के लिए खत्म करने के लिए हमने बनाया है Shree RBSK Pro एक्सटेंशन। यह आपके पूरे काम को 10 गुना तेज और पूरी तरह ऑटोमैटिक कर देता है। आपको बस स्टार्ट बटन दबाना है, और यह खुद-ब-खुद बच्चों का फॉर्म भरता चला जाएगा। किसी भी सहायता के लिए हमारे नंबर 9628496477 पर संपर्क करें।";
+            speakText(speechScript);
+        }
+
+        // Clip Player
+        const miniPlayer = document.getElementById("miniVideoPlayer");
+        let clipEndTimer = null;
+
+        function playClip(startSec, endSec, label) {
+            if (clipEndTimer) clearTimeout(clipEndTimer);
+            miniPlayer.currentTime = startSec;
+            miniPlayer.play();
+
+            const duration = (endSec - startSec) * 1000;
+            clipEndTimer = setTimeout(() => {
+                miniPlayer.pause();
+            }, duration);
+
+            // Update button styles
+            const btns = document.querySelectorAll(".clip-btn");
+            btns.forEach(b => {
+                if (b.innerText.includes(label)) b.classList.add("active");
+                else b.classList.remove("active");
+            });
+        }
+
+        // Live Interactive Simulator (Pure Frontend Magic)
+        let simRunning = false;
+        async function runLiveSimulator() {
+            if (simRunning) return;
+            simRunning = true;
+
+            const nameEl = document.getElementById("simName");
+            const ageEl = document.getElementById("simAge");
+            const weightEl = document.getElementById("simWeight");
+            const heightEl = document.getElementById("simHeight");
+            const bmiEl = document.getElementById("simBmi");
+            const bpEl = document.getElementById("simBp");
+            const visionEl = document.getElementById("simVision");
+            const hbEl = document.getElementById("simHb");
+            const statusEl = document.getElementById("simStatus");
+            const logEl = document.getElementById("simLogText");
+            const timerEl = document.getElementById("simTimerBadge");
+
+            // Reset
+            [weightEl, heightEl, bmiEl, bpEl, visionEl, hbEl, statusEl].forEach(e => {
+                e.innerText = "---";
+                e.classList.remove("highlight");
+            });
+
+            logEl.innerText = "⏳ छात्र Priyanka का फॉर्म खोला जा रहा है...";
+            timerEl.innerText = "0.0s";
+            nameEl.innerText = "PRIYANKA";
+            ageEl.innerText = "14 वर्ष / बालिका";
+
+            await new Promise(r => setTimeout(r, 600));
+            timerEl.innerText = "0.6s";
+            logEl.innerText = "⚡ WHO चार्ट से वजन (Weight) और ऊंचाई (Height) ऑटो-कैलकुलेट हो रही है...";
+            weightEl.innerText = "43 kg";
+            weightEl.classList.add("highlight");
+            heightEl.innerText = "146 cm";
+            heightEl.classList.add("highlight");
+
+            await new Promise(r => setTimeout(r, 700));
+            timerEl.innerText = "1.3s";
+            logEl.innerText = "📊 BMI और क्लासिफिकेशन ऑटो-फिल हो रहा है...";
+            bmiEl.innerText = "20.17 (Normal)";
+            bmiEl.classList.add("highlight");
+
+            await new Promise(r => setTimeout(r, 500));
+            timerEl.innerText = "1.8s";
+            logEl.innerText = "🩺 ब्लड प्रेशर और विजन (6/6) दर्ज किया जा रहा है...";
+            bpEl.innerText = "105 / 66 mmHg";
+            visionEl.innerText = "6/6 (Normal)";
+            hbEl.innerText = "12.4 gm/dL";
+
+            await new Promise(r => setTimeout(r, 500));
+            timerEl.innerText = "2.3s";
+            logEl.innerText = "✅ हेल्थ स्टेटस Healthy मार्क हुआ। ऑटो सबमिट किया जा रहा है...";
+            statusEl.innerText = "Healthy (स्वस्थ)";
+            statusEl.classList.add("highlight");
+
+            await new Promise(r => setTimeout(r, 600));
+            timerEl.innerText = "✓ सबमिट (2.9s)";
+            logEl.innerText = "🎉 छात्र Priyanka सफलतापूर्वक सबमिट! ऑटोमेशन अगले छात्र Ragini पर बढ़ गया...";
+            simRunning = false;
+        }
+
+        // Auto initialize voice recognition/voices
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shree RBSK Pro | इंटरएक्टिव वीडियो प्रोमो प्लेयर (Enhanced Showcase)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-light: #34d399;
+            --dark-bg: #0b0f19;
+            --card-bg: #151d30;
+            --border: #232f48;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --wa-green: #25D366;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Hind', 'Plus Jakarta Sans', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(21, 29, 48, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .brand-badge {
+            background: var(--primary);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-wa { background: var(--wa-green); color: #fff; }
+        .btn-wa:hover { background: #1ebd5b; }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-outline { background: transparent; color: #cbd5e1; border: 1px solid var(--border); }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); }
+
+        /* Main Showcase Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        /* Video Container Card */
+        .video-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .player-frame {
+            position: relative;
+            background: #000;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%;
+            overflow: hidden;
+        }
+
+        .player-frame video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Clean Bottom Mask to Cover Poindeo Bar */
+        .player-bottom-mask {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 48px;
+            background: linear-gradient(to top, rgba(11, 15, 25, 0.95), transparent);
+            pointer-events: none;
+        }
+
+        /* Live Overlay Callout Card */
+        .live-promo-callout {
+            padding: 16px 20px;
+            background: linear-gradient(90deg, rgba(5, 150, 105, 0.2) 0%, rgba(21, 29, 48, 0.9) 100%);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .callout-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .callout-badge {
+            font-size: 11px;
+            background: rgba(52, 211, 153, 0.2);
+            color: var(--primary-light);
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            font-weight: 700;
+        }
+
+        /* Video Controls Bar */
+        .custom-controls-bar {
+            padding: 14px 20px;
+            background: #111827;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .speed-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: #94a3b8;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .speed-btn.active, .speed-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* Sidebar Tabs */
+        .sidebar-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: #111827;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            border-bottom-color: var(--primary);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .tab-content {
+            padding: 18px;
+            overflow-y: auto;
+            flex-grow: 1;
+            max-height: 600px;
+        }
+
+        /* Chapter List */
+        .chapter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chapter-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .chapter-item:hover, .chapter-item.active {
+            background: rgba(5, 150, 105, 0.15);
+            border-color: var(--primary);
+        }
+
+        .chapter-time {
+            font-family: monospace;
+            font-size: 12px;
+            background: #0b0f19;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--primary-light);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .chapter-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        /* Script Card */
+        .script-box {
+            background: #0b0f19;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.8;
+            margin-bottom: 14px;
+        }
+
+        .script-time-tag {
+            color: var(--primary-light);
+            font-weight: 700;
+            font-family: monospace;
+            margin-right: 6px;
+        }
+
+        /* WhatsApp Share Box */
+        .wa-box {
+            background: #0b0f19;
+            border: 1px solid #166534;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #dcfce7;
+            white-space: pre-wrap;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <a href="index.html" class="brand">
+            <span style="font-size: 20px;">🛡️</span>
+            <span style="font-weight: 800; font-size: 17px;">Shree RBSK Pro</span>
+            <span class="brand-badge">PROMO SHOWCASE</span>
+        </a>
+        <div class="header-actions">
+            <a href="index.html" class="btn btn-outline">🌐 वेबसाइट</a>
+            <a href="manual.html" class="btn btn-outline">📖 मैन्युअल</a>
+            <a href="Shree_RBSK_Pro_Manual_Hindi.pdf" download class="btn btn-outline">📥 PDF</a>
+            <a href="https://wa.me/919628496477?text=Hello%20Shree%20RBSK%20Team,%20please%20activate%20software" target="_blank" class="btn btn-wa">💬 WhatsApp</a>
+        </div>
+    </header>
+
+    <!-- Main Player Area -->
+    <main class="main-layout">
+
+        <!-- Left: Video Player Card -->
+        <div class="video-card">
+            <!-- Dynamic Highlight Banner -->
+            <div class="live-promo-callout">
+                <div class="callout-title" id="calloutTitle">
+                    <span>⚡</span> <span id="calloutText">चाइल्ड स्क्रीनिंग, स्टूडेंट मास्टर एवं रेफरल ऑटोमेशन लाइव डेमो</span>
+                </div>
+                <div class="callout-badge" id="calloutBadge">10x SPEED</div>
+            </div>
+
+            <!-- Player Frame -->
+            <div class="player-frame">
+                <video id="vPlayer" controls playsinline>
+                    <source src="video.mp4" type="video/mp4">
+                    वीडियो लोड नहीं हो सका।
+                </video>
+                <div class="player-bottom-mask"></div>
+            </div>
+
+            <!-- Custom Controls -->
+            <div class="custom-controls-bar">
+                <div class="control-group">
+                    <span style="font-size: 13px; color: #94a3b8; font-weight: 600;">गति (Speed):</span>
+                    <button class="speed-btn active" onclick="setSpeed(1.0)">1.0x</button>
+                    <button class="speed-btn" onclick="setSpeed(1.25)">1.25x</button>
+                    <button class="speed-btn" onclick="setSpeed(1.5)">1.5x</button>
+                    <button class="speed-btn" onclick="setSpeed(2.0)">2.0x</button>
+                </div>
+                <div class="control-group">
+                    <button id="voiceToggleBtn" class="btn btn-outline" style="padding: 5px 12px; font-size: 12px; border-color: #3b82f6; color: #60a5fa;" onclick="toggleVoiceover()">🔊 हिंदी वॉइसओवर: बंद (Off)</button>
+                    <button class="btn btn-outline" style="padding: 5px 12px; font-size: 12px;" onclick="restartVideo()">⏮️ दोबारा शुरू करें</button>
+                    <button class="btn btn-primary" style="padding: 5px 14px; font-size: 12px;" onclick="togglePlayPause()">⏯️ प्ले / पॉज</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Interactive Chapters & Scripts Sidebar -->
+        <div class="sidebar-card">
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" onclick="switchTab('chapters')">📑 चैप्टर टाइमलाइन</button>
+                <button class="tab-btn" onclick="switchTab('script')">🎙️ वॉयस स्क्रिप्ट</button>
+                <button class="tab-btn" onclick="switchTab('whatsapp')">📲 WhatsApp टेक्स्ट</button>
+            </div>
+
+            <!-- Tab 1: Chapters -->
+            <div id="tab-chapters" class="tab-content">
+                <div class="chapter-list">
+                    <div class="chapter-item active" onclick="jumpTo(0)">
+                        <span class="chapter-time">00:00</span>
+                        <span class="chapter-text">Chrome Web Store इंस्टॉलेशन</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(13)">
+                        <span class="chapter-time">00:13</span>
+                        <span class="chapter-text">गूगल लॉगिन एवं QR एक्टिवेशन</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(19)">
+                        <span class="chapter-time">00:19</span>
+                        <span class="chapter-text">सेंट्रल डैशबोर्ड एवं लाइव एनालिटिक्स</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(25)">
+                        <span class="chapter-time">00:25</span>
+                        <span class="chapter-text">स्पीड कंट्रोल एवं ऑटो ग्रोथ टॉगल</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(33)">
+                        <span class="chapter-time">00:33</span>
+                        <span class="chapter-text">चाइल्ड स्क्रीनिंग: स्कूल सर्च</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(46)">
+                        <span class="chapter-time">00:46</span>
+                        <span class="chapter-text">स्क्रीनिंग टूलबार (Start / Stop)</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(56)">
+                        <span class="chapter-time">00:56</span>
+                        <span class="chapter-text">ऑटोमेटिक फॉर्म भरना (Height, Weight, BP)</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(61)">
+                        <span class="chapter-time">01:01</span>
+                        <span class="chapter-text">1-क्लिक प्रिव्यू एवं कन्फर्म सबमिट</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(84)">
+                        <span class="chapter-time">01:24</span>
+                        <span class="chapter-text">Student Master: स्कूल सर्च</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(107)">
+                        <span class="chapter-time">01:47</span>
+                        <span class="chapter-text">एक्सेल एक्सपोर्ट: आधार व आभा कार्ड</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(157)">
+                        <span class="chapter-time">02:37</span>
+                        <span class="chapter-text">Referral Management: 500 रो ऑटो-लोड</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(188)">
+                        <span class="chapter-time">03:08</span>
+                        <span class="chapter-text">स्मार्ट एक्सेल: इन-बिल्ट डिफेक्ट ड्रॉपडाउन</span>
+                    </div>
+                    <div class="chapter-item" onclick="jumpTo(210)">
+                        <span class="chapter-time">03:30</span>
+                        <span class="chapter-text">लाइव इंपैक्ट समरी एवं हेल्पलाइन</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Voiceover Script -->
+            <div id="tab-script" class="tab-content" style="display: none;">
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>🎙️ किसी भी स्क्रिप्ट को सुनने के लिए 'बोलें' दबाएं:</span>
+                    <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="window.speechSynthesis.cancel()">⏹️ चुप करें</button>
+                </div>
+
+                <div class="script-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="script-time-tag">[00:00] शुरुआत</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="speakCustomText('नमस्ते दोस्तों! आज हम देखने वाले हैं Shree RBSK Pro एक्सटेंशन, जो RBSK पोर्टल पर हमारे घंटों का डाटा एंट्री काम कुछ ही मिनटों में निपटा देता है। सबसे पहले इसे Chrome Web Store से 1 क्लिक में जोड़ें।')">🔊 बोलें</button>
+                    </div>
+                    "नमस्ते दोस्तों! आज हम देखने वाले हैं Shree RBSK Pro एक्सटेंशन, जो RBSK पोर्टल पर हमारे घंटों का डाटा एंट्री काम कुछ ही मिनटों में निपटा देता है। सबसे पहले इसे Chrome Web Store से 1 क्लिक में जोड़ें।"
+                </div>
+
+                <div class="script-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="script-time-tag">[00:13] एक्टिवेशन</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="speakCustomText('इंस्टॉल होते ही अपने गूगल अकाउंट से लॉगिन करें और स्क्रीन पर दिख रहे हेल्पलाइन नंबर या QR कोड से तुरंत एक्टिवेट करा लें।')">🔊 बोलें</button>
+                    </div>
+                    "इंस्टॉल होते ही अपने गूगल अकाउंट से लॉगिन करें और स्क्रीन पर दिख रहे हेल्पलाइन नंबर या QR कोड से तुरंत एक्टिवेट करा लें।"
+                </div>
+
+                <div class="script-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="script-time-tag">[00:19] डैशबोर्ड</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="speakCustomText('यह है हमारा मुख्य डैशबोर्ड। यहां से आप अपनी पसंद अनुसार स्पीड चुन सकते हैं और ऑटो ग्रोथ व हीमोग्लोबिन टॉगल को ऑन कर सकते हैं।')">🔊 बोलें</button>
+                    </div>
+                    "यह है हमारा मुख्य डैशबोर्ड। यहां से आप अपनी पसंद अनुसार स्पीड चुन सकते हैं और ऑटो ग्रोथ व हीमोग्लोबिन टॉगल को ऑन कर सकते हैं।"
+                </div>
+
+                <div class="script-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="script-time-tag">[00:33] ऑटो स्क्रीनिंग</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="speakCustomText('अब चाइल्ड स्क्रीनिंग खोलें। स्कूल सर्च करते ही छात्रों की लिस्ट दिखेगी। बस स्टार्ट बटन दबाइए, सॉफ्टवेयर खुद-ब-खुद छात्र की उम्र के हिसाब से वजन, ऊंचाई, बीएमआई, बीपी और विजन भर देगा और तुरंत सबमिट कर देगा।')">🔊 बोलें</button>
+                    </div>
+                    "अब चाइल्ड स्क्रीनिंग खोलें। स्कूल सर्च करते ही छात्रों की लिस्ट दिखेगी। बस स्टार्ट बटन दबाइए, सॉफ्टवेयर खुद-ब-खुद छात्र की उम्र के हिसाब से वजन, ऊंचाई, बीएमआई, बीपी और विजन भर देगा और तुरंत सबमिट कर देगा।"
+                </div>
+
+                <div class="script-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="script-time-tag">[01:24] स्टूडेंट मास्टर & आभा</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="speakCustomText('स्टूडेंट मास्टर में एक्सपोर्ट दबाकर एक्सेल शीट पाएं, आधार नंबर फीड करें और एक साथ सैकड़ों बच्चों का आभा कार्ड लिंक कराएं।')">🔊 बोलें</button>
+                    </div>
+                    "स्टूडेंट मास्टर में एक्सपोर्ट दबाकर एक्सेल शीट पाएं, आधार नंबर फीड करें और एक साथ सैकड़ों बच्चों का आभा कार्ड लिंक कराएं।"
+                </div>
+
+                <div class="script-box">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <span class="script-time-tag">[02:37] रेफरल मैनेजमेंट</span>
+                        <button class="btn btn-outline" style="padding: 2px 8px; font-size: 11px;" onclick="speakCustomText('रेफरल मैनेजमेंट में 500 बच्चों की टेबल एक बार में लोड होती है और एक्सेल से फैसिलिटी टाइप, नाम और तारीख अपने आप सेलेक्ट हो जाती है। संपर्क करें: 96 28 49 64 77')">🔊 बोलें</button>
+                    </div>
+                    "रेफरल मैनेजमेंट में 500 बच्चों की टेबल एक बार में लोड होती है और एक्सेल से फैसिलिटी टाइप, नाम और तारीख अपने आप सेलेक्ट हो जाती है। संपर्क करें: 96 28 49 64 77"
+                </div>
+            </div>
+
+            <!-- Tab 3: WhatsApp Text -->
+            <div id="tab-whatsapp" class="tab-content" style="display: none;">
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+                    📲 इस संदेश को सीधे कॉपी करके अपने RBSK WhatsApp ग्रुपों में भेजें:
+                </div>
+
+                <div class="wa-box" id="waCopyBox">⚡ *आर.बी.एस.के. (RBSK) पोर्टल ऑटोमेशन सॉफ्टवेयर - Shree RBSK Pro* ⚡
+
+प्रिय RBSK टीम (MHT / डॉक्टर्स / ऑपरेटर्स),
+अब पोर्टल पर सैकड़ों बच्चों की डाटा एंट्री में घंटों बर्बाद करने की ज़रूरत नहीं!
+
+🔥 *मुख्य सुविधाएं:*
+1️⃣ *चाइल्ड स्क्रीनिंग:* ऑटो हाइट, वेट, बीएमआई, बीपी, विजन एवं एचबी कैलकुलेशन। 1-क्लिक में बल्क सबमिशन!
+2️⃣ *स्टूडेंट मास्टर & आभा:* आधार नंबर से ऑटोमेटिक ABHA कार्ड लिंकिंग।
+3️⃣ *रेफरल मैनेजमेंट:* 500 रिकॉर्ड्स ऑटो-लोड, फैसिलिटी टाइप/नाम और डेट ऑटो-चयन।
+4️⃣ *स्मार्ट एक्सेल टेम्प्लेट:* इन-बिल्ट ड्रॉपडाउन (Healthy, Skin, Dental, Vit A आदि)।
+5️⃣ *F1 इमरजेंसी स्टॉप:* आपातकाल में 1 बटन दबाते ही तत्काल स्टॉप।
+
+🚀 100% सटीक, सुपरफास्ट एवं Chrome वेरिफाइड!
+
+📞 *अभी एक्टिवेट कराएं या डेमो लें:*
+व्हाट्सएप / कॉल: *+91 9628496477*
+(सोम - रवि | 9 AM से 9 PM)</div>
+
+                <button class="btn btn-wa" style="width: 100%; justify-content: center;" onclick="copyWaText()">
+                    📋 पूरा मैसेज कॉपी करें (Copy Message)
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const video = document.getElementById("vPlayer");
+        const calloutText = document.getElementById("calloutText");
+        const calloutBadge = document.getElementById("calloutBadge");
+        const chapterItems = document.querySelectorAll(".chapter-item");
+        const speedBtns = document.querySelectorAll(".speed-btn");
+
+        const chapters = [
+            { time: 0, title: "Chrome Web Store इंस्टॉलेशन (1-क्लिक)", badge: "EASY SETUP", voice: "नमस्ते दोस्तों! आज हम देखने वाले हैं Shree RBSK Pro एक्सटेंशन, जो RBSK पोर्टल पर हमारे घंटों का डाटा एंट्री काम कुछ ही मिनटों में निपटा देता है। सबसे पहले इसे Chrome Web Store से 1 क्लिक में जोड़ें।" },
+            { time: 13, title: "गूगल अकाउंट लॉगिन एवं QR एक्टिवेशन", badge: "SECURE", voice: "इंस्टॉल होते ही अपने गूगल अकाउंट से लॉगिन करें और स्क्रीन पर दिख रहे हेल्पलाइन नंबर या क्यू आर कोड से तुरंत एक्टिवेट करा लें।" },
+            { time: 19, title: "सेंट्रल डैशबोर्ड: लाइव स्टैट्स एवं स्पीड कंट्रोल", badge: "DASHBOARD", voice: "यह है हमारा मुख्य डैशबोर्ड। यहां से आप अपनी पसंद अनुसार स्पीड चुन सकते हैं और ऑटो ग्रोथ व हीमोग्लोबिन टॉगल को ऑन कर सकते हैं।" },
+            { time: 25, title: "स्पीड सेटिंग्स (0.5x, 1x, 2x) & ऑटो ग्रोथ टॉगल", badge: "SETTINGS", voice: "स्पीड को 0.5x सेफ, 1x नॉर्मल या 2x सुपरफास्ट पर सेट कर सकते हैं।" },
+            { time: 33, title: "चाइल्ड स्क्रीनिंग: स्कूल सर्च एवं स्टार्ट स्क्रीनिंग", badge: "SCREENING", voice: "अब चाइल्ड स्क्रीनिंग खोलते हैं। जैसे ही स्कूल सर्च करेंगे, छात्रों की लिस्ट के ऊपर हमारा स्मार्ट टूलबार आ जाता है।" },
+            { time: 46, title: "स्क्रीनिंग कंट्रोल टूलबार (Start / Stop / Feed)", badge: "CONTROLS", voice: "बस स्टार्ट बटन दबाना है, और सिस्टम एक-एक करके बच्चे का फॉर्म खोलना शुरू कर देता है।" },
+            { time: 56, title: "ऑटोमेटिक फॉर्म भरना (Height, Weight, BMI, BP, Vision)", badge: "AUTO-FILL", voice: "यहां देखिए! बच्चे की उम्र के हिसाब से वजन, ऊंचाई, बीएमआई, बीपी और विजन अपने आप भर गया।" },
+            { time: 61, title: "1-क्लिक प्रिव्यू एवं कन्फर्म सबमिट", badge: "1-CLICK SUBMIT", voice: "और एक ही क्लिक में बिना किसी गलती के फॉर्म सेव हो जाता है।" },
+            { time: 84, title: "Student Master: स्कूल सर्च एवं टूलबार", badge: "STUDENT MASTER", voice: "स्टूडेंट मास्टर में भी आप पूरे स्कूल का डाटा सीधे एक्सेल में एक्सपोर्ट कर सकते हैं।" },
+            { time: 107, title: "एक्सेल एक्सपोर्ट: आधार फीडिंग एवं आभा जेनरेशन", badge: "ABHA LINKING", voice: "आधार नंबर फीड करके एक साथ आभा कार्ड लिंक और जनरेट कर सकते हैं, जिससे पोर्टल पर बार-बार क्लिक नहीं करना पड़ता।" },
+            { time: 157, title: "Referral Management: 500 रो एवं फैसिलिटी ऑटो-चयन", badge: "REFERRALS", voice: "रेफरल मैनेजमेंट में 500 रिकॉर्ड्स तक एक साथ लोड होते हैं और एक्सेल से फैसिलिटी टाइप और नाम अपने आप सेलेक्ट हो जाते हैं।" },
+            { time: 188, title: "स्मार्ट एक्सेल: इन-बिल्ट डिफेक्ट ड्रॉपडाउन (Skin, Dental)", badge: "SMART EXCEL", voice: "स्मार्ट एक्सेल शीट में सभी डिफेक्ट जैसे स्किन, डेंटल, विटामिन के ड्रॉपडाउन पहले से बने मिलते हैं, तो गलत एंट्री की कोई गुंजाइश नहीं रहती।" },
+            { time: 210, title: "लाइव इंपैक्ट समरी एवं हेल्पलाइन सपोर्ट", badge: "SUPPORT", voice: "तो देर किस बात की! स्क्रीन पर दिए गए नंबर 96 28 49 64 77 पर व्हाट्सएप या कॉल करें और आज ही अपना समय बचाएं।" }
+        ];
+
+        let voiceEnabled = false;
+        let lastSpokenIndex = -1;
+
+        function getHindiVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            return voices.find(v => v.lang && v.lang.startsWith("hi")) ||
+                   voices.find(v => v.lang && v.lang.startsWith("en-IN")) ||
+                   voices[0];
+        }
+
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                getHindiVoice();
+            };
+        }
+
+        function speakCustomText(text) {
+            if (!('speechSynthesis' in window)) {
+                alert("आपके ब्राउज़र में वॉइसओवर सपोर्ट नहीं है। कृपया Chrome या Edge का उपयोग करें।");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utt = new SpeechSynthesisUtterance(text);
+            const voice = getHindiVoice();
+            if (voice) utt.voice = voice;
+            utt.rate = 1.0;
+            utt.pitch = 1.05;
+            window.speechSynthesis.speak(utt);
+        }
+
+        function toggleVoiceover() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById("voiceToggleBtn");
+            if (voiceEnabled) {
+                btn.style.background = "#2563eb";
+                btn.style.color = "#ffffff";
+                btn.innerHTML = "🔊 हिंदी वॉइसओवर: चालू (Active)";
+                const curIdx = getCurrentChapterIndex(video.currentTime);
+                if (curIdx >= 0) {
+                    lastSpokenIndex = curIdx;
+                    speakCustomText(chapters[curIdx].voice);
+                }
+            } else {
+                window.speechSynthesis.cancel();
+                btn.style.background = "transparent";
+                btn.style.color = "#60a5fa";
+                btn.innerHTML = "🔊 हिंदी वॉइसओवर: बंद (Off)";
+            }
+        }
+
+        function getCurrentChapterIndex(curTime) {
+            for (let i = chapters.length - 1; i >= 0; i--) {
+                if (curTime >= chapters[i].time) {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        function jumpTo(sec) {
+            video.currentTime = sec;
+            video.play();
+            updateTimeline(sec, true);
+        }
+
+        function setSpeed(s) {
+            video.playbackRate = s;
+            speedBtns.forEach(btn => {
+                if (btn.innerText.includes(s + "x")) btn.classList.add("active");
+                else btn.classList.remove("active");
+            });
+        }
+
+        function togglePlayPause() {
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+                if (voiceEnabled) window.speechSynthesis.pause();
+            }
+        }
+
+        function restartVideo() {
+            video.currentTime = 0;
+            lastSpokenIndex = -1;
+            video.play();
+            updateTimeline(0, true);
+        }
+
+        function updateTimeline(curTime, forceVoice = false) {
+            const activeIdx = getCurrentChapterIndex(curTime);
+
+            chapterItems.forEach((item, idx) => {
+                if (idx === activeIdx) item.classList.add("active");
+                else item.classList.remove("active");
+            });
+
+            if (chapters[activeIdx]) {
+                calloutText.innerText = chapters[activeIdx].title;
+                calloutBadge.innerText = chapters[activeIdx].badge;
+
+                if (voiceEnabled && (activeIdx !== lastSpokenIndex || forceVoice)) {
+                    lastSpokenIndex = activeIdx;
+                    speakCustomText(chapters[activeIdx].voice);
+                }
+            }
+        }
+
+        video.addEventListener("timeupdate", () => {
+            updateTimeline(video.currentTime);
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(c => c.style.display = "none");
+
+            if (tabId === "chapters") {
+                document.querySelectorAll(".tab-btn")[0].classList.add("active");
+                document.getElementById("tab-chapters").style.display = "block";
+            } else if (tabId === "script") {
+                document.querySelectorAll(".tab-btn")[1].classList.add("active");
+                document.getElementById("tab-script").style.display = "block";
+            } else if (tabId === "whatsapp") {
+                document.querySelectorAll(".tab-btn")[2].classList.add("active");
+                document.getElementById("tab-whatsapp").style.display = "block";
+            }
+        }
+
+        function copyWaText() {
+            const text = document.getElementById("waCopyBox").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("WhatsApp मैसेज कॉपी हो गया! अब आप इसे किसी भी ग्रुप में पेस्ट कर सकते हैं।");
+            });
+        }
+    </script>
+</body>
+</html>

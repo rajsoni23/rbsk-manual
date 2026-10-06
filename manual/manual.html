@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shree RBSK Pro - दोस्ताना यूजर एवं ट्रेनिंग गाइड</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #ecfdf5;
+            --secondary: #2563eb;
+            --dark: #0f172a;
+            --gray: #64748b;
+            --border: #e2e8f0;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Hind', 'Poppins', sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .container {
+            max-width: 880px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 48px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .top-action-bar {
+            position: sticky;
+            top: 0;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            border: none;
+        }
+
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-outline { background: #fff; color: #334155; border: 1px solid var(--border); }
+
+        /* Header */
+        .doc-header {
+            text-align: center;
+            padding: 30px 10px;
+            border-bottom: 2px solid var(--primary-light);
+            margin-bottom: 30px;
+        }
+
+        .badge-friendly {
+            display: inline-block;
+            background: #ecfdf5;
+            color: #047857;
+            padding: 5px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid #a7f3d0;
+            margin-bottom: 12px;
+        }
+
+        .doc-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+
+        .doc-desc {
+            font-size: 16px;
+            color: #475569;
+            max-width: 680px;
+            margin: 0 auto 16px;
+        }
+
+        /* Intro Box */
+        .intro-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 35px;
+            font-size: 15px;
+        }
+
+        .intro-box h3 {
+            font-size: 17px;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        /* Module Sections */
+        .chapter-box {
+            margin-bottom: 40px;
+            padding-top: 25px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .chapter-heading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .ch-num {
+            width: 34px;
+            height: 34px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .ch-title {
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .screenshot-wrap {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 18px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .screenshot-wrap img {
+            width: 100%;
+            display: block;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .screenshot-tag {
+            padding: 8px 16px;
+            font-size: 13px;
+            color: #64748b;
+            background: #f8fafc;
+            font-weight: 600;
+        }
+
+        .steps-numbered {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+
+        .steps-numbered li {
+            margin-bottom: 10px;
+            color: #334155;
+        }
+
+        .pro-tip {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #065f46;
+        }
+
+        .faq-item {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .faq-q {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .faq-a {
+            color: #475569;
+            font-size: 14px;
+        }
+
+        /* Helpline Box */
+        .helpline-box {
+            background: linear-gradient(135deg, #065f46, #047857);
+            color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        @media print {
+            body { background: #fff; }
+            .top-action-bar { display: none; }
+            .container { box-shadow: none; padding: 0; }
+            .screenshot-wrap { break-inside: avoid; }
+            .chapter-box { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-action-bar">
+        <div style="font-weight: 800; color: #047857;">🛡️ Shree RBSK Pro - यूजर गाइड</div>
+        <div style="display: flex; gap: 10px;">
+            <a href="index.html" class="btn btn-outline">🌐 वेबसाइट खोलें</a>
+            <button onclick="window.print()" class="btn btn-primary">🖨️ PDF सेव करें / प्रिंट</button>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <header class="doc-header">
+            <span class="badge-friendly">❤️ RBSK MHT टीम के लिए सरल व सहज गाइड</span>
+            <h1 class="doc-title">Shree RBSK Pro - सम्पूर्ण यूजर एवं ट्रेनिंग गाइड</h1>
+            <p class="doc-desc">अब बिना किसी परेशानी के बच्चों की स्क्रीनिंग, आभा लिंकिंग और रेफरल का काम मिनटों में पूरा करें।</p>
+            <div style="font-size: 13px; color: #64748b;">
+                आधिकारिक हेल्पलाइन: <strong>+91 9628496477</strong> (सोम-रवि, 9 AM - 9 PM)
+            </div>
+        </header>
+
+        <!-- Intro -->
+        <div class="intro-box">
+            <h3>👋 नमस्ते साथियों!</h3>
+            <p>
+                यह गाइड खास आप सभी के लिए बहुत आसान भाषा में तैयार की गई है। अगर आप RBSK की टीम में डॉक्टर, फार्मासिस्ट, ANM या डाटा ऑपरेटर हैं, तो आप जानते ही होंगे कि पोर्टल पर सैकड़ों बच्चों का डाटा चढ़ाने में कितनी कमर टूट जाती है। यह टूल आपके उसी काम को आसान, सुरक्षित और 10 गुना तेज बनाने के लिए तैयार किया गया है। आइए समझते हैं इसे कैसे चलाना है:
+            </p>
+        </div>
+
+        <!-- Chapter 1 -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">1</div>
+                <h2 class="ch-title">इंस्टॉल कैसे करें और चालू (Activate) कैसे करें?</h2>
+            </div>
+            <p>इसे अपने कंप्यूटर में लगाना सिर्फ 1 मिनट का काम है:</p>
+            <ol class="steps-numbered">
+                <li><strong>Chrome Web Store से जोड़ें:</strong> हमारे दिए गए लिंक पर जाएं और नीले बटन <code>Add to Chrome</code> पर क्लिक करें। फिर <code>Add extension</code> दबाएं।</li>
+                <li><strong>पिन (Pin) करें:</strong> ब्राउज़र में ऊपर दाईं ओर पजल आइकन पर क्लिक करके 'Shree RBSK' को पिन कर लें ताकि उसका आइकन हमेशा सामने दिखे।</li>
+                <li><strong>लॉगिन करें:</strong> एक्सटेंशन अपने आप लॉगिन पेज खोलेगा। अपने गूगल अकाउंट से <code>Continue</code> करें।</li>
+                <li><strong>एक्टिवेशन:</strong> स्क्रीन पर दिए गए QR कोड या हेल्पलाइन नंबर <strong>9628496477</strong> पर संपर्क करें। आपका अकाउंट चालू होते ही 'Active License' लिखकर डैशबोर्ड खुल जाएगा।</li>
+            </ol>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/01_webstore_install.png" alt="Installation">
+                <div class="screenshot-tag">📷 चित्र 1: Chrome Web Store से एक्सटेंशन जोड़ना।</div>
+            </div>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/02_google_login_activation.png" alt="Login and Activation">
+                <div class="screenshot-tag">📷 चित्र 2: गूगल लॉगिन और एक्टिवेशन स्क्रीन।</div>
+            </div>
+        </div>
+
+        <!-- Chapter 2 -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">2</div>
+                <h2 class="ch-title">डैशबोर्ड की ज़रूरी सेटिंग्स (अपनी सुविधा अनुसार सेट करें)</h2>
+            </div>
+            <p>डैशबोर्ड से आप तय कर सकते हैं कि टूल किस स्पीड में काम करेगा:</p>
+            <ol class="steps-numbered">
+                <li><strong>Screening Speed:</strong> यदि आपके ब्लॉक में इंटरनेट थोड़ा धीमा चलता है, तो <code>0.5x (Slow / Safe)</code> चुनें ताकि कोई भी पेज ड्रॉप न हो। सामान्य नेट पर <code>1x</code> या तेज़ नेट पर <code>2x</code> रखें।</li>
+                <li><strong>Auto Growth (Weight & Height):</strong> इसे ऑन रखें! यह बच्चे की उम्र और लिंग के हिसाब से WHO के मानकों के तहत वजन और ऊंचाई खुद भर देगा।</li>
+                <li><strong>Auto Hemoglobin (Hb):</strong> 6 साल से बड़े बच्चों में 11 से 13 gm/dL के बीच सामान्य हीमोग्लोबिन खुद दर्ज हो जाएगा।</li>
+                <li><strong>Auto Submit:</strong> ऑन रखने पर फॉर्म भरने के बाद बिना किसी क्लिक के खुद-ब-खुद 'Confirm & Submit' हो जाएगा।</li>
+            </ol>
+
+            <div class="pro-tip">
+                💡 <strong>सलाह:</strong> सेटिंग्स बदलने के बाद नीचे नीला बटन <strong>Save Screening Settings</strong> दबाना न भूलें।
+            </div>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/04_screening_speed_settings.png" alt="Dashboard Settings">
+                <div class="screenshot-tag">📷 चित्र 3: ऑटोमेशन स्पीड और ऑटो ग्रोथ / एचबी टॉगल सेटिंग्स।</div>
+            </div>
+        </div>
+
+        <!-- Chapter 3 -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">3</div>
+                <h2 class="ch-title">चाइल्ड स्क्रीनिंग (Child Screening) — सबसे बड़ा काम, सबसे आसान!</h2>
+            </div>
+            <p>स्कूल या आंगनवाड़ी के बच्चों की स्क्रीनिंग कैसे करें:</p>
+            <ol class="steps-numbered">
+                <li>RBSK पोर्टल पर <code>Child Screening</code> में जाकर जिला, ब्लॉक, वित्तीय वर्ष और माह चुनकर <code>Search</code> करें।</li>
+                <li>स्कूल के सामने हरे रंग के <code>Start Screening</code> आइकन पर क्लिक करें।</li>
+                <li>छात्रों की लिस्ट के ऊपर आपको एक्सटेंशन का कंट्रोल बार दिखेगा — <code>[Clear]</code> <code>[▶ Start]</code> <code>[■ Stop]</code> <code>[Export]</code> <code>[Feed]</code>।</li>
+                <li>बस <strong>▶ Start</strong> दबा दीजिए! इसके बाद आराम से बैठिए। सॉफ्टवेयर खुद हर बच्चे का फॉर्म खोलेगा, वजन, ऊंचाई, BMI, विजन (6/6), बीपी और हेल्थ स्टेटस भरकर 2-3 सेकंड में सबमिट करता जाएगा।</li>
+                <li><strong>अगर किसी बच्चे को डिफेक्ट है:</strong> तो पहले <code>Export</code> बटन दबाएं, एक्सेल में उस बच्चे के आगे डिफेक्ट (जैसे Dental, Skin आदि) चुनें, <code>Feed</code> करें और Start दबाएं!</li>
+            </ol>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/05_child_screening_table_controls.png" alt="Screening Table Controls">
+                <div class="screenshot-tag">📷 चित्र 4: स्टूडेंट लिस्ट पर एक्सटेंशन का स्टार्ट/स्टॉप टूलबार।</div>
+            </div>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/06_auto_growth_form_filling.png" alt="Form Filling">
+                <div class="screenshot-tag">📷 चित्र 5: फॉर्म का अपने आप सटीक भरना (हाइट 146cm, वजन 43kg, BMI 20.17, विजन 6/6)।</div>
+            </div>
+        </div>
+
+        <!-- Chapter 4 -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">4</div>
+                <h2 class="ch-title">स्टूडेंट मास्टर और आभा कार्ड लिंकिंग (ABHA ID)</h2>
+            </div>
+            <p>पूरे स्कूल के बच्चों का आधार नंबर चढ़ाना और आभा कार्ड लिंक करना:</p>
+            <ol class="steps-numbered">
+                <li>RBSK पोर्टल पर <code>Child/Student Master</code> खोलें और स्कूल सर्च करें।</li>
+                <li>एक्सटेंशन के <strong>Export</strong> बटन पर क्लिक करें। पूरे स्कूल के बच्चों की एक्सेल फाइल तुरंत डाउनलोड हो जाएगी।</li>
+                <li>उस एक्सेल में बच्चों का आधार नंबर और मोबाइल नंबर दर्ज करें और सेव करें।</li>
+                <li>अब <strong>Feed</strong> बटन से उस एक्सेल को अपलोड करें और <strong>Start</strong> दबाएं।</li>
+                <li>सॉफ्टवेयर हर बच्चे का फॉर्म खोलकर आधार वेरीफाई करेगा और ABHA कार्ड लिंक कर देगा। यदि किसी बच्चे का आधार मिसमैच हुआ, तो यह अटकेगा नहीं, उसे छोड़कर सीधे अगले बच्चे पर चला जाएगा!</li>
+            </ol>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/09_student_master_excel_template.png" alt="Excel Template">
+                <div class="screenshot-tag">📷 चित्र 6: एक्सेल शीट जिसमें आधार नंबर और मोबाइल नंबर भरा जाता है।</div>
+            </div>
+        </div>
+
+        <!-- Chapter 5 -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">5</div>
+                <h2 class="ch-title">रेफरल मैनेजमेंट (Referral Management Module)</h2>
+            </div>
+            <p>रेफरल वाले बच्चों का रिकॉर्ड अपडेट करना:</p>
+            <ol class="steps-numbered">
+                <li>रेफरल पेज खोलते ही एक्सटेंशन टेबल को खुद-ब-खुद <strong>500 रिकॉर्ड्स</strong> तक बड़ा कर देता है ताकि बार-बार पेज न बदलना पड़े।</li>
+                <li><strong>Export</strong> दबाकर एक्सेल डाउनलोड करें। एक्सेल में आपको ड्रॉपडाउन मिलेगा जहां आप <code>Own Facility</code> या <code>Referred</code> चुन सकते हैं।</li>
+                <li>अगर आपने 'Referred' चुना है, तो फैसिलिटी टाइप (Block Level, District Level आदि) और अस्पताल का नाम अपने आप सेट हो जाता है।</li>
+                <li>एक्सेल को <strong>Feed</strong> करके <strong>Start</strong> दबाएं। सॉफ्टवेयर मोडल खोलकर सही अस्पताल और तारीख खुद सेलेक्ट करके सबमिट कर देगा!</li>
+            </ol>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/10_referral_management_portal.png" alt="Referral Portal">
+                <div class="screenshot-tag">📷 चित्र 7: रेफरल मैनेजमेंट पोर्टल — 500 रो तक ऑटो एक्सपैंड।</div>
+            </div>
+
+            <div class="screenshot-wrap">
+                <img src="screenshots/11_smart_screening_excel_dropdowns.png" alt="Smart Dropdowns">
+                <div class="screenshot-tag">📷 चित्र 8: एक्सेल में इन-बिल्ट ड्रॉपडाउन (Healthy, Skin, Dental, Vit A आदि)।</div>
+            </div>
+        </div>
+
+        <!-- Chapter 6: Safety -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">6</div>
+                <h2 class="ch-title">🚨 F1 इमरजेंसी स्टॉप — आपकी पूरी सुरक्षा</h2>
+            </div>
+            <p>
+                यदि ऑटोमेशन चलते समय किसी भी समय आपको लगे कि कुछ जांचना है या तुरंत रोकना है, तो बस अपने कीबोर्ड पर <strong>F1</strong> बटन दबाएं!
+            </p>
+            <div class="pro-tip" style="background: #fef2f2; border-color: #fca5a5; color: #991b1b;">
+                🛑 <strong>F1 कीबोर्ड शॉर्टकट:</strong> F1 दबाते ही पूरा ऑटोमेशन उसी मिलीसेकंड में फ्रीज हो जाएगा। जब आप सब कुछ चेक कर लें, तब फिर से Start दबाकर आगे बढ़ा सकते हैं।
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="chapter-box">
+            <div class="chapter-heading">
+                <div class="ch-num">7</div>
+                <h2 class="ch-title">अक्सर पूछे जाने वाले सवाल (FAQ)</h2>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">प्र. क्या इससे मेरा पोर्टल का पासवर्ड या आईडी सुरक्षित रहेगी?</div>
+                <div class="faq-a">उ. 100% सुरक्षित! यह एक्सटेंशन सिर्फ आपके ब्राउज़र में काम करता है। आपका पासवर्ड या संवेदनशील डाटा कभी भी किसी सर्वर पर नहीं जाता।</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">प्र. अगर किसी बच्चे का आधार नंबर गलत हो, तो क्या सॉफ्टवेयर रुक जाएगा?</div>
+                <div class="faq-a">उ. बिल्कुल नहीं! सॉफ्टवेयर उस बच्चे को सुरक्षित रूप से स्किप करेगा और बिना रुके तुरंत अगले बच्चे पर बढ़ जाएगा। आपका समय बिल्कुल बर्बाद नहीं होगा।</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">प्र. अगर इंटरनेट बीच में कट जाए तो क्या होगा?</div>
+                <div class="faq-a">उ. जब नेट वापस आए, तो पेज रिफ्रेश करके दोबारा Start दबाएं। जो बच्चे पहले सबमिट हो चुके हैं, वे सुरक्षित रहेंगे और बाकी बच्चे प्रोसेस हो जाएंगे।</div>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="helpline-box">
+            <h2 style="font-size: 24px; margin-bottom: 8px;">📞 कोई भी सवाल या सहायता के लिए संपर्क करें</h2>
+            <p style="font-size: 15px; opacity: 0.9; margin-bottom: 16px;">
+                लाइसेंस एक्टिवेट कराने या किसी भी समस्या के समाधान के लिए सीधे कॉल या व्हाट्सएप करें:
+            </p>
+            <div style="font-size: 26px; font-weight: 800; letter-spacing: 1px;">
+                +91 9628496477
+            </div>
+            <div style="font-size: 13px; opacity: 0.8; margin-top: 10px;">
+                समय: सोमवार से रविवार | सुबह 9:00 बजे से रात 9:00 बजे तक
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

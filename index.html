@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBSK Screening Auto-Filler • Height, Weight & Hb</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Local SheetJS and JSZip with CDN fallback for 100% offline & online support -->
+    <script src="xlsx.full.min.js"></script>
+    <script>
+        if (typeof XLSX === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+        }
+    </script>
+    <script src="jszip.min.js"></script>
+    <script>
+        if (typeof JSZip === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-badge">
+            <span>🛡️</span> 100% Client-Side • Secure & Private • No Server Uploads
+        </div>
+        <h1 class="header-title">RBSK Screening <span>Auto-Filler</span></h1>
+        <p class="header-subtitle">
+            RBSK स्क्रीनिंग एक्सेल टेम्पलेट (.xlsx) को यहाँ अपलोड करें। यह पोर्टल एवं WHO ग्रोथ चार्ट के अनुसार 
+            <strong>Height</strong>, <strong>Weight</strong> और <strong>Hemoglobin (Hb)</strong> को स्वतः भर देगा।
+        </p>
+    </header>
+
+    <!-- File Upload Section (Dropzone) -->
+    <div class="dropzone-container" id="dropZone">
+        <div class="dropzone-icon">📊</div>
+        <h3 class="dropzone-title">Upload RBSK Screening Template</h3>
+        <p class="dropzone-desc">Drag & drop your downloaded Excel file (.xlsx / .xls) here or click to browse</p>
+        <button type="button" class="btn-select-file">Choose Excel File</button>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display: none;">
+    </div>
+
+    <!-- Active File Info Bar (Hidden by default) -->
+    <div class="file-info-bar" id="fileInfoSection" style="display: none;">
+        <div class="file-info-details">
+            <span class="file-icon">📄</span>
+            <div>
+                <div class="file-name" id="fileNameDisplay">template.xlsx</div>
+                <div style="margin-top: 4px;">
+                    <span class="meta-badge school" id="fileMetaBadge">School Template • 0 Students</span>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn-reset" id="resetBtn">Change File</button>
+    </div>
+
+    <!-- Live Stats Grid (Hidden until file loaded) -->
+    <div class="stats-grid" id="statsContainer"></div>
+
+    <!-- Configuration Controls Card (Hidden by default) -->
+    <div class="config-card" id="controlsSection" style="display: none;">
+        <div class="config-header">
+            <h2 class="config-title">⚙️ Auto-Fill Settings (सेटिंग्स)</h2>
+            <span style="font-size: 13px; color: var(--text-muted);">Adjust parameters according to your requirement</span>
+        </div>
+
+        <div class="config-grid">
+            <!-- 1. Height & Weight -->
+            <div class="config-group">
+                <div class="config-group-title">📏 Height & Weight (ऊंचाई एवं वजन)</div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="optFillGrowth" checked>
+                    <span>
+                        Fill Height & Weight automatically
+                        <span class="control-sublabel">Calculates from Age & Gender (WHO / Indian RBSK Standards)</span>
+                    </span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="optNaturalVar" checked>
+                    <span>
+                        Realistic Natural Variance
+                        <span class="control-sublabel">Adds slight healthy variations (so values don't look robotic)</span>
+                    </span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="optDecimals">
+                    <span>
+                        Allow 1 Decimal Place (e.g. 18.2 kg, 110.5 cm)
+                        <span class="control-sublabel">Leave unchecked for standard Whole Numbers</span>
+                    </span>
+                </label>
+            </div>
+
+            <!-- 2. Hemoglobin (Hb) -->
+            <div class="config-group">
+                <div class="config-group-title">🩸 Hemoglobin (Hb - हीमोग्लोबिन)</div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="optFillHb" checked>
+                    <span>
+                        Fill Hemoglobin (Hb) automatically
+                        <span class="control-sublabel">Fills realistic Hb for School / AWC students</span>
+                    </span>
+                </label>
+                <div style="margin-top: 10px;">
+                    <label style="font-size: 12px; font-weight: 600; color: #475569;">Target Hb Range:</label>
+                    <select class="select-input" id="optHbRange">
+                        <option value="normal" selected>Normal Healthy (11.5 - 13.8 g/dL)</option>
+                        <option value="mild">Mild Anemia Range (10.0 - 11.4 g/dL)</option>
+                        <option value="custom">Custom Range...</option>
+                    </select>
+                </div>
+                <div class="custom-range-row" id="customHbContainer" style="display: none;">
+                    <input type="number" step="0.1" id="customHbMin" class="number-input" value="11.5" placeholder="Min Hb">
+                    <span>to</span>
+                    <input type="number" step="0.1" id="customHbMax" class="number-input" value="13.5" placeholder="Max Hb">
+                </div>
+            </div>
+
+            <!-- 3. Safe Mode & Preservation -->
+            <div class="config-group">
+                <div class="config-group-title">🛡️ Data Safety (डेटा सुरक्षा)</div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="optSafeOnlyBlank" checked>
+                    <span>
+                        <strong>Only fill blank / empty cells</strong>
+                        <span class="control-sublabel">Never overwrites pre-existing weights, heights, or Hb in Excel</span>
+                    </span>
+                </label>
+            </div>
+
+            <!-- 4. AWC Extra Settings (Shown if AWC detected) -->
+            <div class="config-group" id="awcSettingsGroup" style="display: none;">
+                <div class="config-group-title">👶 Anganwadi (AWC) Specific</div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="optAwcExtra" checked>
+                    <span>
+                        Fill Birth Weight, Head & MUAC
+                        <span class="control-sublabel">Birth Weight (2.6-3.1 kg), Head & MUAC for 0-5 yrs</span>
+                    </span>
+                </label>
+                <div style="margin-top: 8px;">
+                    <label style="font-size: 12px; font-weight: 600; color: #475569;">AWC Hb Action:</label>
+                    <select class="select-input" id="optAwcHb">
+                        <option value="skip" selected>Skip Hb for AWC (RBSK Standard Protocol)</option>
+                        <option value="fill">Fill Hb for AWC (11.0 - 12.5 g/dL)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar">
+            <button type="button" class="btn-primary" id="processBtn">
+                <span>⚡ Re-Calculate & Preview</span>
+            </button>
+            <button type="button" class="btn-success" id="downloadBtn">
+                <span>📥 Download Auto-Filled Excel (.xlsx)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Preview Table Section (Hidden by default) -->
+    <div class="preview-card" id="previewSection" style="display: none;">
+        <div class="preview-header">
+            <h3 class="preview-title">
+                <span>👁️ Live Preview</span>
+                <span style="font-size: 12px; color: #059669; font-weight: 600;">(Highlighted cells were auto-filled)</span>
+            </h3>
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search by Student Name or ID...">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="preview-table">
+                <thead id="previewThead"></thead>
+                <tbody id="previewTbody"></tbody>
+            </table>
+        </div>
+
+        <div class="preview-footer">
+            <span class="page-indicator" id="pageIndicator">Page 1 of 1</span>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="pagination-btn" id="prevPageBtn" disabled>◀ Previous</button>
+                <button type="button" class="pagination-btn" id="nextPageBtn" disabled>Next ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step by Step Workflow Guide -->
+    <div class="guide-card">
+        <h3 class="guide-title">📖 How To Use (इस्तेमाल करने का सरल तरीका)</h3>
+        <div class="steps-grid">
+            <div class="step-item">
+                <div class="step-num">Step 1</div>
+                <div class="step-heading">Export Template</div>
+                <div class="step-desc">
+                    RBSK एक्सटेंशन से स्क्रीनिंग पेज पर <strong>"Export"</strong> बटन दबाकर स्कूल या AWC का एक्सेल टेम्पलेट डाउनलोड करें।
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">Step 2</div>
+                <div class="step-heading">Upload & Auto-Fill</div>
+                <div class="step-desc">
+                    डाउनलोड की गई उस एक्सेल फाइल को यहाँ ड्रैग या सेलेक्ट करके अपलोड करें। सिस्टम सभी बच्चों की उम्र एवं लिंग के अनुसार वज़न, लंबाई व Hb स्वतः भर देगा।
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">Step 3</div>
+                <div class="step-heading">Download & Feed</div>
+                <div class="step-desc">
+                    <strong>"Download Auto-Filled Excel"</strong> पर क्लिक करें। फिर इस फाइल को सीधे RBSK एक्सटेंशन में <strong>"Feed"</strong> कर दें!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>RBSK Smart Screening Tool • Built for RBSK Medical Teams • Runs 100% in your browser</p>
+    </footer>
+</div>
+
+<!-- Scripts -->
+<script src="growthCore.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
