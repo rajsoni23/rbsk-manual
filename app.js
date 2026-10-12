@@ -19,6 +19,119 @@
     let currentPage = 1;
     const rowsPerPage = 20;
 
+    // RBSK Disease / Condition Reference List
+    const DEFECT_OPTIONS = [
+        { val: "healthy", label: "Healthy", color: "rgb(107, 114, 128)" },
+        { val: "skin", label: "Skin", color: "rgb(220, 38, 38)" },
+        { val: "dental", label: "Dental", color: "rgb(220, 38, 38)" },
+        { val: "otitis", label: "Otitis", color: "rgb(220, 38, 38)" },
+        { val: "vision", label: "Vision", color: "rgb(220, 38, 38)" },
+        { val: "vitaminA", label: "Vit A", color: "rgb(220, 38, 38)" },
+        { val: "vitaminB", label: "B Complex", color: "rgb(220, 38, 38)" },
+        { val: "vitaminD", label: "Vit D", color: "rgb(220, 38, 38)" },
+        { val: "mildAnaemia", label: "Mild Anaemia", color: "rgb(220, 38, 38)" },
+        { val: "moderateAnaemia", label: "Moderate Anaemia", color: "rgb(220, 38, 38)" },
+        { val: "severeAnemia", label: "Severe Anemia", color: "rgb(220, 38, 38)" },
+        { val: "reactiveAirway", label: "Reactive Airway Disease", color: "rgb(220, 38, 38)" },
+        { val: "growingUpConcerns", label: "Growing up concerns", color: "rgb(220, 38, 38)" },
+        { val: "painUrination", label: "Pain/Burning Urinating", color: "rgb(220, 38, 38)" },
+        { val: "painMenstruation", label: "Pain during menstruation", color: "rgb(220, 38, 38)" }
+    ];
+
+    const DEFECT_LABELS = {
+        healthy: "Healthy",
+        skin: "Skin",
+        dental: "Dental",
+        otitis: "Otitis",
+        vision: "Vision",
+        vitaminA: "Vit A",
+        vitaminB: "B Complex",
+        vitaminD: "Vit D",
+        mildAnaemia: "Mild Anaemia",
+        moderateAnaemia: "Moderate Anaemia",
+        severeAnemia: "Severe Anemia",
+        reactiveAirway: "Reactive Airway Disease",
+        growingUpConcerns: "Growing up concerns",
+        painUrination: "Pain/Burning Urinating",
+        painMenstruation: "Pain during menstruation"
+    };
+
+    function normalizeDefectKey(raw) {
+        const s = String(raw || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (!s || s === "healthy" || s === "nil" || s === "none" || s === "normal" || s === "no" || s === "0" || s === "fit") {
+            return "healthy";
+        }
+        if (s.includes("severeanemia") || s.includes("severeanaemia") || s.includes("severeanem")) return "severeAnemia";
+        if (s.includes("moderateanaemia") || s.includes("moderateanemia") || s.includes("modanemia")) return "moderateAnaemia";
+        if (s.includes("mildanaemia") || s.includes("mildanemia") || s.includes("anaemia") || s.includes("anemia")) return "mildAnaemia";
+        if (s.includes("skin") || s.includes("scabies") || s.includes("leprosy")) return "skin";
+        if (s.includes("dent") || s.includes("teeth") || s.includes("caries")) return "dental";
+        if (s.includes("otit") || s.includes("ear")) return "otitis";
+        if (s.includes("vis") || s.includes("eye") || s.includes("blind")) return "vision";
+        if (s.includes("vita") || s.includes("vitamina") || s.includes("bitot")) return "vitaminA";
+        if (s.includes("vitb") || s.includes("bcomp") || s.includes("complex")) return "vitaminB";
+        if (s.includes("vitd") || s.includes("vitamind") || s.includes("rickets")) return "vitaminD";
+        if (s.includes("reactiveairway") || s.includes("airway") || s.includes("asthma") || s.includes("rad")) return "reactiveAirway";
+        if (s.includes("growingup") || s.includes("growingconcern")) return "growingUpConcerns";
+        if (s.includes("urinat") || s.includes("burningurine")) return "painUrination";
+        if (s.includes("menstruat") || s.includes("periodpain")) return "painMenstruation";
+        return "healthy";
+    }
+
+    /**
+     * Automatic Disease / Anaemia Determination based on Hb value:
+     * - Severe Anemia: Hb 4.0 to 7.9 g/dL
+     * - Moderate Anaemia: Hb 8.0 to 10.9 g/dL
+     * - Mild Anaemia: Hb 11.0 to 11.4 g/dL
+     * - Healthy: Hb >= 11.5 g/dL (or retains pre-existing non-anemic condition)
+     */
+    function determineDefectFromHb(hbVal, fallbackDefect = "") {
+        const num = parseFloat(hbVal);
+        if (!isNaN(num) && num > 0) {
+            if (num < 8.0) {
+                return "severeAnemia";
+            } else if (num >= 8.0 && num <= 10.99) {
+                return "moderateAnaemia";
+            } else if (num >= 11.0 && num <= 11.49) {
+                return "mildAnaemia";
+            }
+        }
+        if (fallbackDefect) {
+            const norm = normalizeDefectKey(fallbackDefect);
+            if (norm && !norm.toLowerCase().includes("anaemia") && !norm.toLowerCase().includes("anemia") && norm !== "healthy") {
+                return norm;
+            }
+        }
+        return "healthy";
+    }
+
+    function renderDiseaseSelectHtml(currentVal, rowIdx) {
+        const isHealthy = currentVal === "healthy";
+        const borderStyle = isHealthy ? "border: 1px solid #d1d5db;" : "border: 1px solid rgb(249, 115, 22);";
+        const colorStyle = isHealthy ? "color: rgb(107, 114, 128);" : "color: rgb(234, 88, 12);";
+
+        let html = `<select class="rbsk-disease-select" data-row-idx="${rowIdx}" style="padding: 1px 4px; font-size: 11px; border-radius: 4px; ${borderStyle} outline: none; background: transparent; cursor: pointer; ${colorStyle} font-weight: 600; font-family: inherit; width: 100%; min-width: 130px; display: block;">`;
+
+        DEFECT_OPTIONS.forEach((opt) => {
+            const sel = opt.val === currentVal ? " selected" : "";
+            html += `<option value="${opt.val}" style="color: ${opt.color};"${sel}>${opt.label}</option>`;
+        });
+
+        html += `</select>`;
+        return html;
+    }
+
+    function updateSelectStyle(sel, val) {
+        if (!sel) return;
+        if (val === "healthy") {
+            sel.style.borderColor = "#d1d5db";
+            sel.style.color = "rgb(107, 114, 128)";
+        } else {
+            sel.style.borderColor = "rgb(249, 115, 22)";
+            sel.style.color = "rgb(234, 88, 12)";
+        }
+    }
+
     // DOM Elements Cache
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
@@ -256,6 +369,15 @@
             mother: findColIdx("mothersname", "mothername", "mother")
         };
 
+        // Guarantee a Defect column exists in headerKeys and rawGrid
+        if (colIndexMap.defect < 0) {
+            colIndexMap.defect = headerKeys.length;
+            headerKeys.push("Defect Name");
+            if (rawGrid[headerRowIdx]) {
+                rawGrid[headerRowIdx][colIndexMap.defect] = "Defect Name";
+            }
+        }
+
         console.log("[RBSK AutoFill] Header Row:", headerRowIdx, "Column Index Mapping:", colIndexMap);
 
         const awcSettings = document.getElementById("awcSettingsGroup");
@@ -283,6 +405,10 @@
             if (!nameVal && !idVal) continue;
             if (nameVal.toLowerCase() === "name" || nameVal.toLowerCase() === "student details") continue;
 
+            const rawDefect = colIndexMap.defect >= 0 ? String(row[colIndexMap.defect] || "").trim() : "";
+            const rawHb = colIndexMap.hb >= 0 ? String(row[colIndexMap.hb] || "").trim() : "";
+            const initialDefectKey = determineDefectFromHb(rawHb, rawDefect);
+
             studentRowsData.push({
                 rowIndex: r,
                 sn: colIndexMap.sn >= 0 ? String(row[colIndexMap.sn] || "") : String(studentRowsData.length + 1),
@@ -292,10 +418,13 @@
                 dob: colIndexMap.dob >= 0 ? row[colIndexMap.dob] : "",
                 age: colIndexMap.age >= 0 ? String(row[colIndexMap.age] || "") : "",
                 class: colIndexMap.class >= 0 ? String(row[colIndexMap.class] || "") : "",
-                defect: colIndexMap.defect >= 0 ? String(row[colIndexMap.defect] || "") : "",
+                originalDefect: rawDefect,
+                defect: DEFECT_LABELS[initialDefectKey] || "Healthy",
+                currentDefectKey: initialDefectKey,
+                manualDefect: null,
                 originalWeight: colIndexMap.weight >= 0 ? String(row[colIndexMap.weight] || "").trim() : "",
                 originalHeight: colIndexMap.height >= 0 ? String(row[colIndexMap.height] || "").trim() : "",
-                originalHb: colIndexMap.hb >= 0 ? String(row[colIndexMap.hb] || "").trim() : "",
+                originalHb: rawHb,
                 originalBirthWeight: colIndexMap.birthWeight >= 0 ? String(row[colIndexMap.birthWeight] || "").trim() : "",
                 originalHead: colIndexMap.head >= 0 ? String(row[colIndexMap.head] || "").trim() : "",
                 originalMuac: colIndexMap.muac >= 0 ? String(row[colIndexMap.muac] || "").trim() : "",
@@ -389,13 +518,24 @@
                 }
             }
 
+            // Automatic Condition / Defect determination based on Hb
+            let finalDefectKey = "healthy";
+            if (st.manualDefect) {
+                finalDefectKey = st.manualDefect;
+            } else {
+                finalDefectKey = determineDefectFromHb(finalHb, st.originalDefect);
+            }
+            st.currentDefectKey = finalDefectKey;
+            st.defect = DEFECT_LABELS[finalDefectKey] || "Healthy";
+
             st.computed = {
                 weight: finalWeight,
                 height: finalHeight,
                 hb: finalHb,
                 birthWeight: finalBirthWeight,
                 head: finalHead,
-                muac: finalMuac
+                muac: finalMuac,
+                defect: st.defect
             };
             st.autoFlags = autoFlags;
 
@@ -408,6 +548,7 @@
                 if (colIndexMap.birthWeight >= 0) rawGrid[rIdx][colIndexMap.birthWeight] = finalBirthWeight;
                 if (colIndexMap.head >= 0) rawGrid[rIdx][colIndexMap.head] = finalHead;
                 if (colIndexMap.muac >= 0) rawGrid[rIdx][colIndexMap.muac] = finalMuac;
+                if (colIndexMap.defect >= 0) rawGrid[rIdx][colIndexMap.defect] = st.defect;
             }
         });
 
@@ -499,7 +640,7 @@
                 <th>Weight (kg)</th>
                 <th>Hb (g/dL)</th>
                 ${detectedType === "AWC" ? "<th>Birth Wt</th><th>Head</th><th>MUAC</th>" : ""}
-                <th>Defect</th>
+                <th>Defect / Condition</th>
             </tr>
         `;
         previewThead.innerHTML = theadHtml;
@@ -541,12 +682,30 @@
                     ${cell(comp.weight, flags.weight)}
                     ${cell(comp.hb, flags.hb)}
                     ${detectedType === "AWC" ? `${cell(comp.birthWeight, flags.birthWeight)}${cell(comp.head, flags.head)}${cell(comp.muac, flags.muac)}` : ""}
-                    <td>${st.defect || "Healthy"}</td>
+                    <td>${renderDiseaseSelectHtml(st.currentDefectKey || "healthy", st.rowIndex)}</td>
                 </tr>
             `;
         });
 
         previewTbody.innerHTML = tbodyHtml;
+
+        // Attach live interactive change listeners to all defect dropdowns
+        previewTbody.querySelectorAll(".rbsk-disease-select").forEach((sel) => {
+            sel.addEventListener("change", (e) => {
+                const rIdx = parseInt(e.target.getAttribute("data-row-idx"), 10);
+                const selectedVal = e.target.value;
+                const st = studentRowsData.find((s) => s.rowIndex === rIdx);
+                if (st) {
+                    st.manualDefect = selectedVal;
+                    st.currentDefectKey = selectedVal;
+                    st.defect = DEFECT_LABELS[selectedVal] || "Healthy";
+                    if (colIndexMap.defect >= 0 && rawGrid[rIdx]) {
+                        rawGrid[rIdx][colIndexMap.defect] = st.defect;
+                    }
+                    updateSelectStyle(sel, selectedVal);
+                }
+            });
+        });
 
         if (pageIndicator) {
             pageIndicator.textContent = `Page ${currentPage} of ${totalPages} (${filtered.length} students)`;
@@ -591,13 +750,14 @@
             if (typeof JSZip !== "undefined" && defectColIdx >= 0) {
                 const defectColLetter = XLSX.utils.encode_col(defectColIdx);
                 const maxRow = Math.max(rawGrid.length + 1, 500);
+                const dvOptions = DEFECT_OPTIONS.map((o) => o.label).join(",");
 
                 const xlsxArray = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
                 JSZip.loadAsync(xlsxArray).then((zip) => {
                     zip.file("xl/worksheets/sheet1.xml")
                         .async("text")
                         .then((sheetXml) => {
-                            const dvXml = `<dataValidations count="1"><dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${defectColLetter}2:${defectColLetter}${maxRow}"><formula1>&quot;Healthy,Skin,Dental,Otitis,Vision,Vit A,Vit D,B Complex,Mild Anaemia&quot;</formula1></dataValidation></dataValidations>`;
+                            const dvXml = `<dataValidations count="1"><dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${defectColLetter}2:${defectColLetter}${maxRow}"><formula1>&quot;${dvOptions}&quot;</formula1></dataValidation></dataValidations>`;
 
                             if (sheetXml.includes("<ignoredErrors>")) {
                                 sheetXml = sheetXml.replace("<ignoredErrors>", dvXml + "<ignoredErrors>");
