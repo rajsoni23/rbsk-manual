@@ -4,7 +4,7 @@
  */
 
 const RBSK_GROWTH_BOYS = {
-    // Months (2m to 11m) - WHO Standards
+    // Months (2m to 11m) - WHO Standards (Whole Numbers, No BP, No Hb)
     "2m": { h: 56, w: 6, head: 39, muac: 13, bp: "", hb: "" },
     "3m": { h: 57, w: 6, head: 41, muac: 13, bp: "", hb: "" },
     "4m": { h: 62, w: 7, head: 42, muac: 13, bp: "", hb: "" },
@@ -16,33 +16,33 @@ const RBSK_GROWTH_BOYS = {
     "10m": { h: 70, w: 9, head: 45, muac: 13, bp: "", hb: "" },
     "11m": { h: 73, w: 9, head: 46, muac: 13, bp: "", hb: "" },
 
-    // Years 1 to 5 - RBSK / Indian Reference Standards (AWC)
+    // Years 1 to 5 - RBSK / Indian Reference Standards (AWC - Whole Numbers)
     1: { h: 76, w: 10, head: 46, muac: 13, bp: "", hb: "" },
     2: { h: 87, w: 12, head: 48, muac: 13, bp: "", hb: "" },
     3: { h: 96, w: 14, head: 49, muac: 13, bp: "", hb: "" },
     4: { h: 103, w: 16, head: 50, muac: 13, bp: "", hb: "" },
     5: { h: 110, w: 18, head: 51, muac: 13, bp: "", hb: "" },
 
-    // Years 6 to 20 - School Students (Hb 12-14)
-    6: { h: 110, w: 16, head: null, muac: null, bp: "90/70", hb: 12 },
-    7: { h: 119, w: 18, head: null, muac: null, bp: "90/70", hb: 12 },
-    8: { h: 124, w: 22, head: null, muac: null, bp: "100/70", hb: 12 },
-    9: { h: 129, w: 28, head: null, muac: null, bp: "105/70", hb: 13 },
-    10: { h: 131, w: 29, head: null, muac: null, bp: "110/70", hb: 13 },
-    11: { h: 133, w: 33, head: null, muac: null, bp: "100/80", hb: 13 },
-    12: { h: 139, w: 36, head: null, muac: null, bp: "105/80", hb: 13 },
-    13: { h: 142, w: 40, head: null, muac: null, bp: "105/75", hb: 13 },
-    14: { h: 164, w: 52, head: null, muac: null, bp: "105/75", hb: 13 },
-    15: { h: 170, w: 58, head: null, muac: null, bp: "100/75", hb: 14 },
-    16: { h: 173, w: 63, head: null, muac: null, bp: "105/80", hb: 14 },
-    17: { h: 175, w: 67, head: null, muac: null, bp: "110/80", hb: 14 },
-    18: { h: 176, w: 69, head: null, muac: null, bp: "110/80", hb: 14 },
-    19: { h: 177, w: 70, head: null, muac: null, bp: "120/80", hb: 14 },
-    20: { h: 177, w: 68, head: null, muac: null, bp: "120/80", hb: 14 }
+    // Years 6 to 20 - School Students (Realistic Moderate Heights & Weights, Normal BP <120/<80, Hb 12-14)
+    6: { h: 110, w: 18, head: null, muac: null, bp: "95/65", hb: 12 },
+    7: { h: 115, w: 20, head: null, muac: null, bp: "98/65", hb: 12 },
+    8: { h: 120, w: 23, head: null, muac: null, bp: "100/68", hb: 12 },
+    9: { h: 125, w: 26, head: null, muac: null, bp: "102/68", hb: 13 },
+    10: { h: 130, w: 29, head: null, muac: null, bp: "105/70", hb: 13 },
+    11: { h: 138, w: 33, head: null, muac: null, bp: "108/70", hb: 13 },
+    12: { h: 143, w: 37, head: null, muac: null, bp: "110/72", hb: 13 },
+    13: { h: 149, w: 41, head: null, muac: null, bp: "110/72", hb: 13 },
+    14: { h: 155, w: 45, head: null, muac: null, bp: "112/74", hb: 13 },
+    15: { h: 160, w: 49, head: null, muac: null, bp: "114/74", hb: 14 },
+    16: { h: 164, w: 53, head: null, muac: null, bp: "115/75", hb: 14 },
+    17: { h: 166, w: 55, head: null, muac: null, bp: "115/75", hb: 14 },
+    18: { h: 168, w: 57, head: null, muac: null, bp: "116/76", hb: 14 },
+    19: { h: 169, w: 58, head: null, muac: null, bp: "118/76", hb: 14 },
+    20: { h: 170, w: 59, head: null, muac: null, bp: "118/76", hb: 14 }
 };
 
 const RBSK_GROWTH_GIRLS = {
-    // Months (2m to 11m) - WHO Standards
+    // Months (2m to 11m) - WHO Standards (Whole Numbers, No BP, No Hb)
     "2m": { h: 53, w: 5, head: 38, muac: 13, bp: "", hb: "" },
     "3m": { h: 55, w: 6, head: 40, muac: 13, bp: "", hb: "" },
     "4m": { h: 57, w: 6, head: 41, muac: 13, bp: "", hb: "" },
@@ -54,29 +54,29 @@ const RBSK_GROWTH_GIRLS = {
     "10m": { h: 70, w: 9, head: 44, muac: 13, bp: "", hb: "" },
     "11m": { h: 71, w: 9, head: 45, muac: 13, bp: "", hb: "" },
 
-    // Years 1 to 5 - RBSK / Indian Reference Standards (AWC)
+    // Years 1 to 5 - RBSK / Indian Reference Standards (AWC - Whole Numbers)
     1: { h: 74, w: 9, head: 45, muac: 13, bp: "", hb: "" },
     2: { h: 86, w: 12, head: 47, muac: 13, bp: "", hb: "" },
     3: { h: 95, w: 14, head: 48, muac: 13, bp: "", hb: "" },
     4: { h: 103, w: 16, head: 49, muac: 13, bp: "", hb: "" },
     5: { h: 109, w: 18, head: 50, muac: 13, bp: "", hb: "" },
 
-    // Years 6 to 20 - School Students (Hb 12-14)
-    6: { h: 108, w: 15, head: null, muac: null, bp: "90/70", hb: 12 },
-    7: { h: 115, w: 17, head: null, muac: null, bp: "90/70", hb: 12 },
-    8: { h: 122, w: 20, head: null, muac: null, bp: "90/70", hb: 12 },
-    9: { h: 126, w: 25, head: null, muac: null, bp: "105/70", hb: 13 },
-    10: { h: 130, w: 28, head: null, muac: null, bp: "110/70", hb: 13 },
-    11: { h: 132, w: 32, head: null, muac: null, bp: "100/75", hb: 13 },
-    12: { h: 139, w: 35, head: null, muac: null, bp: "105/80", hb: 13 },
-    13: { h: 140, w: 38, head: null, muac: null, bp: "100/75", hb: 13 },
-    14: { h: 143, w: 40, head: null, muac: null, bp: "105/70", hb: 13 },
-    15: { h: 145, w: 42, head: null, muac: null, bp: "100/70", hb: 13 },
-    16: { h: 149, w: 43, head: null, muac: null, bp: "105/80", hb: 13 },
-    17: { h: 151, w: 44, head: null, muac: null, bp: "110/75", hb: 13 },
-    18: { h: 153, w: 46, head: null, muac: null, bp: "110/75", hb: 13 },
-    19: { h: 155, w: 47, head: null, muac: null, bp: "120/80", hb: 14 },
-    20: { h: 160, w: 49, head: null, muac: null, bp: "120/80", hb: 14 }
+    // Years 6 to 20 - School Students (Realistic Moderate Heights & Weights, Normal BP <120/<80, Hb 12-14)
+    6: { h: 109, w: 17, head: null, muac: null, bp: "95/65", hb: 12 },
+    7: { h: 114, w: 19, head: null, muac: null, bp: "98/65", hb: 12 },
+    8: { h: 119, w: 22, head: null, muac: null, bp: "100/68", hb: 12 },
+    9: { h: 124, w: 25, head: null, muac: null, bp: "102/68", hb: 13 },
+    10: { h: 129, w: 28, head: null, muac: null, bp: "105/70", hb: 13 },
+    11: { h: 135, w: 32, head: null, muac: null, bp: "108/70", hb: 13 },
+    12: { h: 141, w: 36, head: null, muac: null, bp: "110/72", hb: 13 },
+    13: { h: 146, w: 40, head: null, muac: null, bp: "110/72", hb: 13 },
+    14: { h: 150, w: 43, head: null, muac: null, bp: "112/74", hb: 13 },
+    15: { h: 152, w: 46, head: null, muac: null, bp: "114/74", hb: 13 },
+    16: { h: 153, w: 48, head: null, muac: null, bp: "115/75", hb: 13 },
+    17: { h: 154, w: 49, head: null, muac: null, bp: "115/75", hb: 13 },
+    18: { h: 155, w: 50, head: null, muac: null, bp: "116/76", hb: 13 },
+    19: { h: 155, w: 50, head: null, muac: null, bp: "118/76", hb: 14 },
+    20: { h: 156, w: 51, head: null, muac: null, bp: "118/76", hb: 14 }
 };
 
 /**
@@ -86,6 +86,9 @@ function normalizeGenderValue(g) {
     const s = String(g || "").toLowerCase().trim();
     if (s.startsWith("f") || s.includes("girl") || s.includes("fem") || s.includes("stri") || s.includes("female") || s.includes("mahila")) {
         return "female";
+    }
+    if (s.startsWith("t") || s.includes("trans")) {
+        return "transgender";
     }
     return "male";
 }
@@ -137,7 +140,7 @@ function parseDateFlexible(val) {
 }
 
 /**
- * Calculate age in years & months from DOB or text
+ * Calculate age in years & months from DOB, age text or class
  */
 function computeStudentAge(dobVal, ageText, classText) {
     // 1. Try DOB first
@@ -203,16 +206,19 @@ function computeRbskParameters(student, options = {}) {
         naturalVariation = true,
         fillHb = true,
         fillGrowth = true,
+        fillBp = true,
         fillAwcExtra = true,
-        hbRange = "normal", // 'normal' (11.5 - 13.5), 'mild' (10.0 - 11.4), 'custom'
+        hbRange = "normal", // 'normal' (11.5 - 13.8), 'mild' (10.0 - 11.4), 'custom'
         customHbMin = 11.5,
         customHbMax = 13.5,
         fillBirthWeight = true,
+        birthWeightFormat = "grams", // 'grams' (2600 to 3100) or 'kg' (2.6 to 3.1)
         awcHbMode = "skip" // 'skip' or 'fill'
     } = options;
 
-    const gender = normalizeGenderValue(student.gender);
-    const table = gender === "female" ? RBSK_GROWTH_GIRLS : RBSK_GROWTH_BOYS;
+    const rawGender = normalizeGenderValue(student.gender);
+    const tableGender = rawGender === "female" ? "female" : "male";
+    const table = tableGender === "female" ? RBSK_GROWTH_GIRLS : RBSK_GROWTH_BOYS;
     const { years, months } = computeStudentAge(student.dob, student.age, student.class);
 
     let isUnderSix = false;
@@ -236,7 +242,7 @@ function computeRbskParameters(student, options = {}) {
         isUnderSix = true;
     }
 
-    // Variation helpers
+    // Variation helper: [-1, 0, 1]
     const getOffset = (range = 1) => {
         if (!naturalVariation) return 0;
         return (Math.floor(Math.random() * (range * 2 + 1)) - range);
@@ -250,27 +256,62 @@ function computeRbskParameters(student, options = {}) {
         return String(Math.round(val));
     };
 
-    // 1. Height & Weight
+    // 1. Height, Weight & BMI
     let calculatedHeight = "";
     let calculatedWeight = "";
+    let calculatedBmi = "";
 
     if (fillGrowth) {
         const baseH = Number(data.h) || 100;
         const baseW = Number(data.w) || 16;
-        const finalH = Math.max(45, baseH + getOffset(1));
-        const finalW = Math.max(4, baseW + getOffset(1));
+        let finalH = Math.max(45, baseH + getOffset(1));
+        let finalW = Math.max(4, baseW + getOffset(1));
+
+        // Natural bounds check: avoid extreme overweight
+        if (!isUnderSix && finalH > 0 && finalW > 0) {
+            const hM = finalH / 100;
+            const currentBmi = finalW / (hM * hM);
+            if (currentBmi >= 24.5) {
+                finalW = Math.min(finalW, Math.floor(23.5 * hM * hM));
+            }
+        }
 
         calculatedHeight = formatNumber(finalH);
         calculatedWeight = formatNumber(finalW);
+
+        const hM = parseFloat(calculatedHeight) / 100;
+        const wKg = parseFloat(calculatedWeight);
+        if (hM > 0 && wKg > 0) {
+            calculatedBmi = (wKg / (hM * hM)).toFixed(2);
+        }
     }
 
-    // 2. Hemoglobin (Hb)
+    // 2. Blood Pressure (BP): Only for school students (6-20 years)
+    let calculatedBp = "";
+    if (fillBp && !isUnderSix && data.bp) {
+        const bpStr = String(data.bp).trim();
+        if (bpStr.includes("/")) {
+            const parts = bpStr.split("/");
+            let s = parseInt(parts[0], 10);
+            let d = parseInt(parts[1], 10);
+            if (isNaN(s) || isNaN(d)) {
+                calculatedBp = "110/72";
+            } else {
+                s = Math.min(s, 118);
+                d = Math.min(d, 76);
+                calculatedBp = `${s}/${d}`;
+            }
+        } else {
+            calculatedBp = "110/72";
+        }
+    }
+
+    // 3. Hemoglobin (Hb)
     let calculatedHb = "";
     if (fillHb) {
         if (isUnderSix) {
             // AWC child Hb
             if (awcHbMode === "fill") {
-                const awcHbBase = 11.2;
                 const awcVal = allowDecimal
                     ? (10.8 + Math.random() * 1.4).toFixed(1)
                     : String(Math.round(11 + getOffset(1)));
@@ -281,7 +322,6 @@ function computeRbskParameters(student, options = {}) {
         } else {
             // School Student (6-20 years)
             if (hbRange === "mild") {
-                // Mild anemia (10.0 - 11.4)
                 const val = (10.0 + Math.random() * 1.4);
                 calculatedHb = allowDecimal ? val.toFixed(1) : String(Math.round(val));
             } else if (hbRange === "custom") {
@@ -303,7 +343,7 @@ function computeRbskParameters(student, options = {}) {
         }
     }
 
-    // 3. AWC Specific (Head, MUAC, Birth Weight)
+    // 4. AWC Specific (Head, MUAC, Birth Weight)
     let calculatedHead = "";
     let calculatedMuac = "";
     let calculatedBirthWeight = "";
@@ -316,9 +356,15 @@ function computeRbskParameters(student, options = {}) {
             calculatedMuac = String(Math.round(Number(data.muac) || 13));
         }
         if (fillBirthWeight) {
-            // Realistic birth weight in India: 2.6 to 3.1 kg
-            const bWeights = ["2.6", "2.7", "2.8", "2.9", "3.0", "3.1"];
-            calculatedBirthWeight = bWeights[Math.floor(Math.random() * bWeights.length)];
+            if (birthWeightFormat === "grams") {
+                // Realistic birth weight in India: 2600 to 3100 grams
+                const gramsList = ["2600", "2700", "2800", "2900", "3000", "3100"];
+                calculatedBirthWeight = gramsList[Math.floor(Math.random() * gramsList.length)];
+            } else {
+                // In kg: 2.6 to 3.1 kg
+                const bWeights = ["2.6", "2.7", "2.8", "2.9", "3.0", "3.1"];
+                calculatedBirthWeight = bWeights[Math.floor(Math.random() * bWeights.length)];
+            }
         }
     }
 
@@ -326,9 +372,14 @@ function computeRbskParameters(student, options = {}) {
         ageYears: years,
         ageMonths: months,
         isUnderSix: isUnderSix,
-        gender: gender,
+        gender: rawGender,
         height: calculatedHeight,
         weight: calculatedWeight,
+        bmi: calculatedBmi,
+        bmiClass: "Normal",
+        bmiResult: "Normal",
+        bp: calculatedBp,
+        bpClass: isUnderSix ? "" : "Normal",
         hb: calculatedHb,
         head: calculatedHead,
         muac: calculatedMuac,
@@ -336,7 +387,7 @@ function computeRbskParameters(student, options = {}) {
     };
 }
 
-// Export for window or module
+// Exports for Browser or Node
 if (typeof window !== "undefined") {
     window.RBSK_GROWTH_BOYS = RBSK_GROWTH_BOYS;
     window.RBSK_GROWTH_GIRLS = RBSK_GROWTH_GIRLS;
@@ -344,4 +395,15 @@ if (typeof window !== "undefined") {
     window.parseDateFlexible = parseDateFlexible;
     window.computeStudentAge = computeStudentAge;
     window.computeRbskParameters = computeRbskParameters;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        RBSK_GROWTH_BOYS,
+        RBSK_GROWTH_GIRLS,
+        normalizeGenderValue,
+        parseDateFlexible,
+        computeStudentAge,
+        computeRbskParameters
+    };
 }
