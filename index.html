@@ -22,15 +22,27 @@
 <body>
 
 <div class="container">
-    <!-- Header -->
-    <header class="app-header">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav-bar">
         <div class="header-badge">
             <span>🛡️</span> 100% Client-Side • Secure & Private • No Server Uploads
         </div>
+        <div class="top-nav-links">
+            <a href="formatabha.html" class="top-nav-btn abha-btn" title="School to ABHA Excel Converter & Editor">
+                <span>🆔</span> ABHA Formatter (formatabha.html) ↗
+            </a>
+            <a href="https://rbsk-manual.vercel.app/manual/index.html" class="top-nav-btn manual-btn" target="_blank" title="RBSK User Manual">
+                <span>📖</span> User Manual ↗
+            </a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="app-header">
         <h1 class="header-title">RBSK Screening <span>Auto-Filler</span></h1>
         <p class="header-subtitle">
             RBSK स्क्रीनिंग एक्सेल टेम्पलेट (.xlsx) को यहाँ अपलोड करें। यह पोर्टल एवं WHO ग्रोथ चार्ट के अनुसार 
-            <strong>Height</strong>, <strong>Weight</strong>, <strong>Vision</strong>, <strong>Hb</strong> और <strong>Defect</strong> को आपकी पसंद के अनुसार भर देगा।
+            <strong>Height</strong>, <strong>Weight</strong>, <strong>Vision</strong>, <strong>Hb</strong> और <strong>Referred Facility</strong> को सीधे भर देगा।
         </p>
     </header>
 
@@ -49,9 +61,11 @@
             <span class="file-icon">📄</span>
             <div>
                 <div class="file-name" id="fileNameDisplay">template.xlsx</div>
-                <div style="margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                <div style="margin-top: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span class="meta-badge school" id="fileMetaBadge">School Template • 0 Students</span>
-                    <span class="meta-badge" id="dropdownBadge" style="background: #eef2ff; color: #4338ca;">Dropdowns Enabled</span>
+                    <span class="meta-badge" id="dropdownBadge" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;">
+                        ✓ Defect, Vision & Facility Dropdowns Active
+                    </span>
                 </div>
             </div>
         </div>
@@ -61,267 +75,129 @@
     <!-- Live Stats Grid (Hidden until file loaded) -->
     <div class="stats-grid" id="statsContainer"></div>
 
-    <!-- Configuration Controls Card (Hidden by default) -->
+    <!-- Simplified, One-Click Auto-Fill Controls Card (Hidden by default) -->
     <div class="config-card" id="controlsSection" style="display: none;">
-        <div class="config-header">
+        <div class="config-top-row">
             <div>
-                <h2 class="config-title">⚙️ Auto-Fill Settings (सेटिंग्स एवं विकल्प)</h2>
+                <h2 class="config-title">⚡ Quick Auto-Fill Controls (सरल बटन)</h2>
                 <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
-                    हर कॉलम को भरने या न भरने के लिए रेडियो बटन चुनें (हर फील्ड पर आपका 100% नियंत्रण)
+                    जिस फील्ड को भरना है उस बटन पर क्लिक करें। (Active = नीला, Off = धूसर)
                 </div>
             </div>
-            <!-- Preset Toolbar -->
-            <div class="preset-toolbar">
-                <button type="button" class="btn-preset active" id="presetStandardBtn" title="Fill all standard fields per RBSK guidelines">
-                    ⚡ Standard Preset
-                </button>
-                <button type="button" class="btn-preset" id="presetAllBtn" title="Enable filling for all fields">
-                    ✓ Select All
-                </button>
-                <button type="button" class="btn-preset" id="presetNoneBtn" title="Skip filling all fields">
-                    ✗ Deselect All
-                </button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="meta-badge" id="activeModeBadge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">School Mode</span>
             </div>
         </div>
 
-        <div class="config-grid">
-            <!-- 1. Height -->
-            <div class="config-group">
-                <div class="config-group-title">
-                    <span>📏 Height (ऊंचाई - cm)</span>
-                </div>
-                <div class="radio-pill-group">
-                    <label class="radio-pill">
-                        <input type="radio" name="radioHeight" id="radioHeightFill" value="fill" checked>
-                        <span>Fill Height (भरें)</span>
-                    </label>
-                    <label class="radio-pill">
-                        <input type="radio" name="radioHeight" id="radioHeightSkip" value="skip">
-                        <span>Skip (न भरें)</span>
-                    </label>
-                </div>
-                <div class="sub-controls-box" id="heightSubControls">
-                    <label class="checkbox-label" style="margin-bottom: 0;">
-                        <input type="checkbox" id="optDecimals">
-                        <span>
-                            Allow 1 Decimal (e.g. 110.5 cm, 18.2 kg)
-                            <span class="control-sublabel">Leave unchecked for standard Whole Numbers</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
+        <!-- School Action Bar (Visible in School Mode) -->
+        <div class="buttons-bar" id="schoolButtonsBar">
+            <button type="button" class="btn-toggle active" id="btnToggleHeight" data-field="height">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">📏 Fill Height</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleWeight" data-field="weight">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">⚖️ Fill Weight</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleVision" data-field="vision">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">👁️ Fill Vision (6/6)</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleHb" data-field="hb">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">🩸 Fill Hb</span>
+            </button>
 
-            <!-- 2. Weight -->
-            <div class="config-group">
-                <div class="config-group-title">
-                    <span>⚖️ Weight (वजन - kg)</span>
-                </div>
-                <div class="radio-pill-group">
-                    <label class="radio-pill">
-                        <input type="radio" name="radioWeight" id="radioWeightFill" value="fill" checked>
-                        <span>Fill Weight (भरें)</span>
-                    </label>
-                    <label class="radio-pill">
-                        <input type="radio" name="radioWeight" id="radioWeightSkip" value="skip">
-                        <span>Skip (न भरें)</span>
-                    </label>
-                </div>
-                <div class="sub-controls-box" id="weightSubControls">
-                    <label class="checkbox-label" style="margin-bottom: 0;">
-                        <input type="checkbox" id="optNaturalVar" checked>
-                        <span>
-                            Realistic Natural Variance
-                            <span class="control-sublabel">Slight variation so values look authentic & natural</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 3. Hemoglobin (Hb) -->
-            <div class="config-group">
-                <div class="config-group-title">
-                    <span>🩸 Hemoglobin (Hb - g/dL)</span>
-                </div>
-                <div class="radio-pill-group">
-                    <label class="radio-pill">
-                        <input type="radio" name="radioHb" id="radioHbFill" value="fill" checked>
-                        <span>Fill Hb (भरें)</span>
-                    </label>
-                    <label class="radio-pill">
-                        <input type="radio" name="radioHb" id="radioHbSkip" value="skip">
-                        <span>Skip (न भरें)</span>
-                    </label>
-                </div>
-                <div class="sub-controls-box" id="hbSubControls">
-                    <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Target Hb Range:</label>
-                    <select class="select-input" id="optHbRange">
-                        <option value="normal" selected>Normal Healthy (11.5 - 13.8 g/dL)</option>
-                        <option value="mild">Mild Anemia Range (10.0 - 11.4 g/dL)</option>
-                        <option value="custom">Custom Range...</option>
-                    </select>
-                    <div class="custom-range-row" id="customHbContainer" style="display: none;">
-                        <input type="number" step="0.1" id="customHbMin" class="number-input" value="11.5" placeholder="Min Hb">
-                        <span style="font-size: 12px; color: #64748b;">to</span>
-                        <input type="number" step="0.1" id="customHbMax" class="number-input" value="13.5" placeholder="Max Hb">
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. Vision (Left & Right) -->
-            <div class="config-group">
-                <div class="config-group-title">
-                    <span>👁️ Vision (दृष्टि - Left & Right)</span>
-                </div>
-                <div class="radio-pill-group">
-                    <label class="radio-pill">
-                        <input type="radio" name="radioVision" id="radioVisionFill" value="fill" checked>
-                        <span>Fill Vision (भरें)</span>
-                    </label>
-                    <label class="radio-pill">
-                        <input type="radio" name="radioVision" id="radioVisionSkip" value="skip">
-                        <span>Skip (न भरें)</span>
-                    </label>
-                </div>
-                <div class="sub-controls-box" id="visionSubControls">
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; white-space: nowrap;">Default Vision:</label>
-                        <select class="select-input" id="optDefaultVision" style="margin-top: 0;">
-                            <option value="6/6" selected>6/6 (Normal)</option>
-                            <option value="6/9">6/9</option>
-                            <option value="6/12">6/12</option>
-                            <option value="6/18">6/18</option>
-                            <option value="6/24">6/24</option>
-                            <option value="6/36">6/36</option>
-                            <option value="6/60">6/60</option>
-                            <option value="No vision">No vision</option>
-                        </select>
-                    </div>
-                    <label class="checkbox-label" style="margin-top: 8px; margin-bottom: 0;">
-                        <input type="checkbox" id="optAwcVision">
-                        <span>
-                            Also fill vision for 0-5 yrs (AWC)
-                            <span class="control-sublabel">RBSK Rule: 0-5 yr vision is skipped automatically unless checked</span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 5. Defect / Health Status -->
-            <div class="config-group">
-                <div class="config-group-title">
-                    <span>🩺 Defect / Health Status (रोग / स्थिति)</span>
-                </div>
-                <div class="radio-pill-group">
-                    <label class="radio-pill">
-                        <input type="radio" name="radioDefect" id="radioDefectFill" value="fill" checked>
-                        <span>Fill / Update (भरें)</span>
-                    </label>
-                    <label class="radio-pill">
-                        <input type="radio" name="radioDefect" id="radioDefectSkip" value="skip">
-                        <span>Keep Original (यथावत)</span>
-                    </label>
-                </div>
-                <div class="sub-controls-box" id="defectSubControls">
-                    <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Determination Mode:</label>
-                    <select class="select-input" id="optDefectMode">
-                        <option value="auto_hb" selected>Auto by Hb (Hb &lt; 11.5 = Anaemia, ≥ 11.5 = Healthy)</option>
-                        <option value="healthy">Set All to Healthy (सबको Healthy सेट करें)</option>
-                        <option value="specific">Set Specific Defect for All (विशिष्ट रोग चुनें...)</option>
-                    </select>
-                    <div id="specificDefectContainer" style="display: none; margin-top: 8px;">
-                        <select class="select-input" id="optSpecificDefect" style="margin-top: 0; border-color: #f97316;">
-                            <option value="healthy">Healthy</option>
-                            <option value="skin">Skin</option>
-                            <option value="dental">Dental</option>
-                            <option value="otitis">Otitis</option>
-                            <option value="vision">Vision</option>
-                            <option value="vitaminA">Vit A</option>
-                            <option value="vitaminB">B Complex</option>
-                            <option value="vitaminD">Vit D</option>
-                            <option value="mildAnaemia">Mild Anaemia</option>
-                            <option value="moderateAnaemia">Moderate Anaemia</option>
-                            <option value="severeAnemia">Severe Anemia</option>
-                            <option value="reactiveAirway">Reactive Airway Disease</option>
-                            <option value="growingUpConcerns">Growing up concerns</option>
-                            <option value="painUrination">Pain/Burning Urinating</option>
-                            <option value="painMenstruation">Pain during menstruation</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 6. Safe Overwrite Mode -->
-            <div class="config-group">
-                <div class="config-group-title">
-                    <span>🛡️ Data Preservation (डेटा सुरक्षा)</span>
-                </div>
-                <div class="radio-pill-group">
-                    <label class="radio-pill">
-                        <input type="radio" name="radioSafeMode" id="radioSafeOnlyBlank" value="safe" checked>
-                        <span>Only Blank Cells (सुरक्षित मोड)</span>
-                    </label>
-                    <label class="radio-pill">
-                        <input type="radio" name="radioSafeMode" id="radioSafeOverwrite" value="overwrite">
-                        <span>Overwrite All (सभी बदलें)</span>
-                    </label>
-                </div>
-                <div class="sub-controls-box">
-                    <span style="font-size: 11px; color: var(--text-muted); line-height: 1.4; display: block;">
-                        <strong>सुरक्षित मोड:</strong> यदि एक्सेल में पहले से किसी बच्चे का वजन, लंबाई या Hb मौजूद है, तो उसे बिल्कुल नहीं बदलेगा।
-                    </span>
-                </div>
-            </div>
-
-            <!-- 7. Anganwadi (AWC) Specific Fields (Shown for AWC) -->
-            <div class="config-group" id="awcSettingsGroup" style="display: none; grid-column: 1 / -1;">
-                <div class="config-group-title">
-                    <span>👶 Anganwadi (AWC / 0-5 Years) Parameters</span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">Head Circumference (सिर की परिधि)</div>
-                        <div class="radio-pill-group">
-                            <label class="radio-pill">
-                                <input type="radio" name="radioHead" id="radioHeadFill" value="fill" checked>
-                                <span>Fill Head (WHO Normal)</span>
-                            </label>
-                            <label class="radio-pill">
-                                <input type="radio" name="radioHead" id="radioHeadSkip" value="skip">
-                                <span>Skip</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">MUAC (मध्य ऊपरी भुजा माप)</div>
-                        <div class="radio-pill-group">
-                            <label class="radio-pill">
-                                <input type="radio" name="radioMuac" id="radioMuacFill" value="fill" checked>
-                                <span>Fill MUAC (Green 13.5cm)</span>
-                            </label>
-                            <label class="radio-pill">
-                                <input type="radio" name="radioMuac" id="radioMuacSkip" value="skip">
-                                <span>Skip</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;">Birth Weight (जन्म का वजन - DOB आधारित)</div>
-                        <div class="radio-pill-group">
-                            <label class="radio-pill">
-                                <input type="radio" name="radioBirthWeight" id="radioBirthWeightFill" value="fill" checked>
-                                <span>Fill Birth Wt (2.6-3.1 kg)</span>
-                            </label>
-                            <label class="radio-pill">
-                                <input type="radio" name="radioBirthWeight" id="radioBirthWeightSkip" value="skip">
-                                <span>Skip</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+            <!-- Quick Defect Mode Selector -->
+            <div class="quick-defect-box">
+                <label style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase;">Defect:</label>
+                <select class="select-input-sm" id="optDefectMode">
+                    <option value="auto_hb" selected>Auto by Hb (Normal = Healthy, &lt;11.5 = Anaemia)</option>
+                    <option value="healthy">All Healthy</option>
+                    <option value="specific">Pick Specific Defect...</option>
+                </select>
+                <select class="select-input-sm" id="optSpecificDefect" style="display: none; border-color: #f97316;">
+                    <option value="healthy">Healthy</option>
+                    <option value="skin">Skin</option>
+                    <option value="dental">Dental</option>
+                    <option value="otitis">Otitis</option>
+                    <option value="vision">Vision</option>
+                    <option value="vitaminA">Vit A</option>
+                    <option value="vitaminB">B Complex</option>
+                    <option value="vitaminD">Vit D</option>
+                    <option value="sam">SAM</option>
+                    <option value="mildAnaemia">Mild Anaemia</option>
+                    <option value="moderateAnaemia">Moderate Anaemia</option>
+                    <option value="severeAnemia">Severe Anemia</option>
+                    <option value="reactiveAirway">Reactive Airway Disease</option>
+                    <option value="growingUpConcerns">Growing up concerns</option>
+                    <option value="painUrination">Pain/Burning Urinating</option>
+                    <option value="painMenstruation">Pain during menstruation</option>
+                    <option value="neuralTubeDefect">Neural Tube Defect</option>
+                    <option value="cleftLip">Cleft Lip/Palate</option>
+                    <option value="clubFoot">Club Foot</option>
+                    <option value="chd">Congenital Heart Disease</option>
+                    <option value="downSyndrome">Down Syndrome</option>
+                    <option value="convulsive">Convulsive Disorders</option>
+                </select>
             </div>
         </div>
 
-        <div class="action-bar">
+        <!-- AWC Action Bar (Visible in AWC Mode) -->
+        <div class="buttons-bar" id="awcButtonsBar" style="display: none;">
+            <button type="button" class="btn-toggle active" id="btnToggleAwcHeight" data-field="height">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">📏 Fill Height (WHO Medians)</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleAwcWeight" data-field="weight">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">⚖️ Fill Weight (WHO Medians)</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleAwcHead" data-field="head">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">👶 Fill Head Circumference</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleAwcMuac" data-field="muac">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">💪 Fill MUAC (Green 13.5cm)</span>
+            </button>
+            <button type="button" class="btn-toggle active" id="btnToggleAwcBirthWeight" data-field="birthWeight">
+                <span class="toggle-icon">✓</span>
+                <span class="toggle-label">🍼 Fill Birth Weight (DOB)</span>
+            </button>
+            <button type="button" class="btn-toggle" id="btnToggleAwcHb" data-field="hb">
+                <span class="toggle-icon">✕</span>
+                <span class="toggle-label">🩸 Fill Hb (Optional)</span>
+            </button>
+        </div>
+
+        <!-- Minimal Sub-options Row -->
+        <div class="sub-options-row">
+            <label class="checkbox-label-sm">
+                <input type="checkbox" id="optSafeOnlyBlank" checked>
+                <span><strong>Safe Mode:</strong> Only fill blank cells (Don't overwrite existing data)</span>
+            </label>
+            <label class="checkbox-label-sm">
+                <input type="checkbox" id="optDecimals">
+                <span>Allow 1 Decimal Place (e.g. 110.5 cm, 18.2 kg)</span>
+            </label>
+            <label class="checkbox-label-sm" id="hbRangeContainer">
+                <span style="font-weight: 700; color: #475569;">Hb Target:</span>
+                <select id="optHbRange" class="select-mini">
+                    <option value="normal" selected>Normal (11.5 - 13.8 g/dL)</option>
+                    <option value="mild">Mild Anemia (10.0 - 11.4 g/dL)</option>
+                    <option value="custom">Custom (11.5 - 13.5)</option>
+                </select>
+            </label>
+            <div id="customHbRow" style="display: none; align-items: center; gap: 4px;">
+                <input type="number" step="0.1" id="customHbMin" class="select-mini" style="width: 55px;" value="11.5">
+                <span style="font-size: 11px;">to</span>
+                <input type="number" step="0.1" id="customHbMax" class="select-mini" style="width: 55px;" value="13.5">
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar" style="margin-top: 16px;">
             <button type="button" class="btn-primary" id="processBtn">
                 <span>⚡ Re-Calculate & Preview</span>
             </button>
@@ -334,7 +210,7 @@
     <!-- Preview Table Section (Hidden by default) -->
     <div class="preview-card" id="previewSection" style="display: none;">
         <div class="preview-header">
-            <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <h3 class="preview-title">
                     <span>👁️ Live Preview & Edit</span>
                 </h3>
@@ -377,16 +253,16 @@
             </div>
             <div class="step-item">
                 <div class="step-num">Step 2</div>
-                <div class="step-heading">Upload & Choose Options</div>
+                <div class="step-heading">Upload & Toggle</div>
                 <div class="step-desc">
-                    डाउनलोड की गई उस एक्सेल फाइल को यहाँ अपलोड करें। अपनी आवश्यकतानुसार रेडियो बटन चुनें कि क्या भरना है (Height, Weight, Hb, Vision, Defect आदि)।
+                    डाउनलोड की गई उस एक्सेल फाइल को यहाँ अपलोड करें। जो-जो चीजें भरनी हैं (Height, Weight, Vision, Hb आदि) उनके बटन ऑन रखें।
                 </div>
             </div>
             <div class="step-item">
                 <div class="step-num">Step 3</div>
                 <div class="step-heading">Download & Feed</div>
                 <div class="step-desc">
-                    <strong>"Download Auto-Filled Excel"</strong> पर क्लिक करें। डाउनलोड की गई एक्सेल में भी <strong>ड्रॉपडाउन (Defect, Vision) एक्टिव रहेंगे</strong> और आप एक्सेल में भी बदलाव कर सकते हैं!
+                    <strong>"Download Auto-Filled Excel"</strong> पर क्लिक करें। डाउनलोड की गई एक्सेल में <strong>Defect, Vision, और Referred Facility</strong> के ड्रॉपडाउन एक्टिव रहेंगे!
                 </div>
             </div>
         </div>
@@ -395,7 +271,6 @@
     <!-- Footer -->
     <footer class="app-footer">
         <p>RBSK Smart Screening Tool • Built for RBSK Medical Teams • Runs 100% in your browser • No Data Leaves Your Machine</p>
-        <button onclick="window.location.href='https://rbsk-manual.vercel.app/manual/index.html'" style="margin-top: 8px; background: transparent; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer;">User Manual</button>
     </footer>
 </div>
 
