@@ -638,8 +638,8 @@ body {
     }
 }
 
-/* Inline RBSK Disease Select */
-.rbsk-disease-select {
+/* Inline RBSK Disease & Vision Selects */
+.rbsk-disease-select, .rbsk-vision-select {
     padding: 1px 4px;
     font-size: 11px;
     border-radius: 4px;
@@ -649,11 +649,100 @@ body {
     font-weight: 600;
     font-family: inherit;
     width: 100%;
-    min-width: 130px;
+    min-width: 80px;
     display: block;
     transition: all 0.15s ease;
 }
 
-.rbsk-disease-select:focus {
-    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+.rbsk-disease-select:focus, .rbsk-vision-select:focus {
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
 }
+
+/* Preset Toolbar */
+.preset-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-preset {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.btn-preset:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+.btn-preset.active {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+}
+
+/* Radio Pill Groups */
+.radio-pill-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.radio-pill {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+    margin: 0;
+}
+
+.radio-pill input[type="radio"] {
+    accent-color: var(--primary);
+    cursor: pointer;
+    margin: 0;
+}
+
+.radio-pill:has(input[type="radio"]:checked) {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.radio-pill:hover {
+    background: #f8fafc;
+}
+
+.radio-pill:has(input[type="radio"]:checked):hover {
+    background: #bae6fd;
+}
+
+/* Sub-controls box under radio choices */
+.sub-controls-box {
+    background: #ffffff;
+    border: 1px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 4px;
+}
+

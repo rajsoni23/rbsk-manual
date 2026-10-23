@@ -1,6 +1,13 @@
 /**
  * RBSK Screening Template Auto-Filler Web App Logic
  * Enhanced 2D Grid Preservation Engine for 100% Excel Template Compatibility
+ * 
+ * Features:
+ * - Granular Radio Button Toggles for every field (Height, Weight, Hb, Vision, Defect, Head, MUAC, Birth Weight)
+ * - Calibrated WHO 0-60m Medians to naturally avoid Stunting/Wasting on Portal
+ * - Dynamic Excel Download with Dropdowns (Defect & Vision Left/Right) preserved via JSZip
+ * - Text formatting preservation to avoid 6/6 becoming Date format
+ * - Live Interactive In-Table Defect and Vision dropdowns
  */
 
 (function () {
@@ -12,9 +19,9 @@
     let rawGrid = []; // Full 2D array representation of the sheet
     let headerRowIdx = 0;
     let headerKeys = [];
-    let studentRowsData = []; // [{ rowIndex, originalData, student, computed, autoFlags }]
+    let studentRowsData = []; // [{ rowIndex, sn, id, name, gender, dob, age, class, ... }]
     let detectedType = "School"; // "School" or "AWC"
-    let colIndexMap = {}; // name -> colIdx
+    let colIndexMap = {}; // field name -> colIdx
     let activeFilter = "";
     let currentPage = 1;
     const rowsPerPage = 20;
@@ -56,6 +63,18 @@
         painMenstruation: "Pain during menstruation"
     };
 
+    // Vision Options
+    const VISION_OPTIONS = [
+        "6/6",
+        "6/9",
+        "6/12",
+        "6/18",
+        "6/24",
+        "6/36",
+        "6/60",
+        "No vision"
+    ];
+
     function normalizeDefectKey(raw) {
         const s = String(raw || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
         if (!s || s === "healthy" || s === "nil" || s === "none" || s === "normal" || s === "no" || s === "0" || s === "fit") {
@@ -80,9 +99,9 @@
 
     /**
      * Automatic Disease / Anaemia Determination based on Hb value:
-     * - Severe Anemia: Hb 4.0 to 7.9 g/dL
-     * - Moderate Anaemia: Hb 8.0 to 10.9 g/dL
-     * - Mild Anaemia: Hb 11.0 to 11.4 g/dL
+     * - Severe Anemia: Hb < 8.0 g/dL
+     * - Moderate Anaemia: Hb 8.0 to 10.99 g/dL
+     * - Mild Anaemia: Hb 11.0 to 11.49 g/dL
      * - Healthy: Hb >= 11.5 g/dL (or retains pre-existing non-anemic condition)
      */
     function determineDefectFromHb(hbVal, fallbackDefect = "") {
@@ -110,13 +129,25 @@
         const borderStyle = isHealthy ? "border: 1px solid #d1d5db;" : "border: 1px solid rgb(249, 115, 22);";
         const colorStyle = isHealthy ? "color: rgb(107, 114, 128);" : "color: rgb(234, 88, 12);";
 
-        let html = `<select class="rbsk-disease-select" data-row-idx="${rowIdx}" style="padding: 1px 4px; font-size: 11px; border-radius: 4px; ${borderStyle} outline: none; background: transparent; cursor: pointer; ${colorStyle} font-weight: 600; font-family: inherit; width: 100%; min-width: 130px; display: block;">`;
+        let html = `<select class="rbsk-disease-select" data-row-idx="${rowIdx}" style="${borderStyle} ${colorStyle}">`;
 
         DEFECT_OPTIONS.forEach((opt) => {
             const sel = opt.val === currentVal ? " selected" : "";
             html += `<option value="${opt.val}" style="color: ${opt.color};"${sel}>${opt.label}</option>`;
         });
 
+        html += `</select>`;
+        return html;
+    }
+
+    function renderVisionSelectHtml(currentVal, rowIdx, eyeSide) {
+        const val = String(currentVal || "").trim();
+        let html = `<select class="rbsk-vision-select" data-row-idx="${rowIdx}" data-eye="${eyeSide}" style="border: 1px solid #d1d5db; color: #1e293b;">`;
+        html += `<option value=""${!val ? " selected" : ""}>-</option>`;
+        VISION_OPTIONS.forEach((opt) => {
+            const sel = opt === val ? " selected" : "";
+            html += `<option value="${opt}"${sel}>${opt}</option>`;
+        });
         html += `</select>`;
         return html;
     }
@@ -151,18 +182,48 @@
     const nextPageBtn = document.getElementById("nextPageBtn");
     const pageIndicator = document.getElementById("pageIndicator");
 
-    // Form Controls
-    const optFillGrowth = document.getElementById("optFillGrowth");
-    const optFillHb = document.getElementById("optFillHb");
+    // Presets
+    const presetStandardBtn = document.getElementById("presetStandardBtn");
+    const presetAllBtn = document.getElementById("presetAllBtn");
+    const presetNoneBtn = document.getElementById("presetNoneBtn");
+
+    // Granular Radio Controls
+    const radioHeightFill = document.getElementById("radioHeightFill");
+    const radioHeightSkip = document.getElementById("radioHeightSkip");
     const optDecimals = document.getElementById("optDecimals");
+
+    const radioWeightFill = document.getElementById("radioWeightFill");
+    const radioWeightSkip = document.getElementById("radioWeightSkip");
     const optNaturalVar = document.getElementById("optNaturalVar");
-    const optSafeOnlyBlank = document.getElementById("optSafeOnlyBlank");
+
+    const radioHbFill = document.getElementById("radioHbFill");
+    const radioHbSkip = document.getElementById("radioHbSkip");
     const optHbRange = document.getElementById("optHbRange");
     const customHbContainer = document.getElementById("customHbContainer");
     const customHbMin = document.getElementById("customHbMin");
     const customHbMax = document.getElementById("customHbMax");
-    const optAwcExtra = document.getElementById("optAwcExtra");
-    const optAwcHb = document.getElementById("optAwcHb");
+
+    const radioVisionFill = document.getElementById("radioVisionFill");
+    const radioVisionSkip = document.getElementById("radioVisionSkip");
+    const optDefaultVision = document.getElementById("optDefaultVision");
+    const optAwcVision = document.getElementById("optAwcVision");
+
+    const radioDefectFill = document.getElementById("radioDefectFill");
+    const radioDefectSkip = document.getElementById("radioDefectSkip");
+    const optDefectMode = document.getElementById("optDefectMode");
+    const specificDefectContainer = document.getElementById("specificDefectContainer");
+    const optSpecificDefect = document.getElementById("optSpecificDefect");
+
+    const radioSafeOnlyBlank = document.getElementById("radioSafeOnlyBlank");
+    const radioSafeOverwrite = document.getElementById("radioSafeOverwrite");
+
+    // AWC Radios
+    const radioHeadFill = document.getElementById("radioHeadFill");
+    const radioHeadSkip = document.getElementById("radioHeadSkip");
+    const radioMuacFill = document.getElementById("radioMuacFill");
+    const radioMuacSkip = document.getElementById("radioMuacSkip");
+    const radioBirthWeightFill = document.getElementById("radioBirthWeightFill");
+    const radioBirthWeightSkip = document.getElementById("radioBirthWeightSkip");
 
     function init() {
         // Drag and drop handlers
@@ -197,12 +258,33 @@
             }
         });
 
+        // Hb range listener
         if (optHbRange) {
             optHbRange.addEventListener("change", () => {
                 if (customHbContainer) {
                     customHbContainer.style.display = optHbRange.value === "custom" ? "flex" : "none";
                 }
             });
+        }
+
+        // Defect mode listener
+        if (optDefectMode) {
+            optDefectMode.addEventListener("change", () => {
+                if (specificDefectContainer) {
+                    specificDefectContainer.style.display = optDefectMode.value === "specific" ? "block" : "none";
+                }
+            });
+        }
+
+        // Preset Toolbar Listeners
+        if (presetStandardBtn) {
+            presetStandardBtn.addEventListener("click", () => applyPreset("standard"));
+        }
+        if (presetAllBtn) {
+            presetAllBtn.addEventListener("click", () => applyPreset("all"));
+        }
+        if (presetNoneBtn) {
+            presetNoneBtn.addEventListener("click", () => applyPreset("none"));
         }
 
         if (processBtn) processBtn.addEventListener("click", executeAutoFill);
@@ -234,6 +316,55 @@
                 }
             });
         }
+    }
+
+    /**
+     * Apply Preset configurations
+     */
+    function applyPreset(preset) {
+        [presetStandardBtn, presetAllBtn, presetNoneBtn].forEach((b) => b && b.classList.remove("active"));
+
+        if (preset === "standard") {
+            if (presetStandardBtn) presetStandardBtn.classList.add("active");
+            if (radioHeightFill) radioHeightFill.checked = true;
+            if (radioWeightFill) radioWeightFill.checked = true;
+            if (radioHbFill) radioHbFill.checked = true;
+            if (optHbRange) optHbRange.value = "normal";
+            if (customHbContainer) customHbContainer.style.display = "none";
+            if (radioVisionFill) radioVisionFill.checked = true;
+            if (optDefaultVision) optDefaultVision.value = "6/6";
+            if (optAwcVision) optAwcVision.checked = false;
+            if (radioDefectFill) radioDefectFill.checked = true;
+            if (optDefectMode) optDefectMode.value = "auto_hb";
+            if (specificDefectContainer) specificDefectContainer.style.display = "none";
+            if (radioSafeOnlyBlank) radioSafeOnlyBlank.checked = true;
+            if (radioHeadFill) radioHeadFill.checked = true;
+            if (radioMuacFill) radioMuacFill.checked = true;
+            if (radioBirthWeightFill) radioBirthWeightFill.checked = true;
+        } else if (preset === "all") {
+            if (presetAllBtn) presetAllBtn.classList.add("active");
+            if (radioHeightFill) radioHeightFill.checked = true;
+            if (radioWeightFill) radioWeightFill.checked = true;
+            if (radioHbFill) radioHbFill.checked = true;
+            if (radioVisionFill) radioVisionFill.checked = true;
+            if (optAwcVision) optAwcVision.checked = true;
+            if (radioDefectFill) radioDefectFill.checked = true;
+            if (radioHeadFill) radioHeadFill.checked = true;
+            if (radioMuacFill) radioMuacFill.checked = true;
+            if (radioBirthWeightFill) radioBirthWeightFill.checked = true;
+            if (radioSafeOverwrite) radioSafeOverwrite.checked = true;
+        } else if (preset === "none") {
+            if (presetNoneBtn) presetNoneBtn.classList.add("active");
+            if (radioHeightSkip) radioHeightSkip.checked = true;
+            if (radioWeightSkip) radioWeightSkip.checked = true;
+            if (radioHbSkip) radioHbSkip.checked = true;
+            if (radioVisionSkip) radioVisionSkip.checked = true;
+            if (radioDefectSkip) radioDefectSkip.checked = true;
+            if (radioHeadSkip) radioHeadSkip.checked = true;
+            if (radioMuacSkip) radioMuacSkip.checked = true;
+            if (radioBirthWeightSkip) radioBirthWeightSkip.checked = true;
+        }
+        executeAutoFill();
     }
 
     /**
@@ -323,7 +454,7 @@
     }
 
     /**
-     * Map column indexes for fast lookup
+     * Map column indexes for fast lookup and detect template type
      */
     function detectColumnsAndType(headers, sheetName = "") {
         const normHeaders = headers.map((h) => normalizeKey(h));
@@ -350,35 +481,53 @@
         };
 
         colIndexMap = {
-            sn: findColIdx("sn", "sno", "srno", "serialnumber", "sno"),
+            sn: findColIdx("sn", "sno", "srno", "serialnumber"),
             id: findColIdx("penid", "awcchildid", "pen", "childid", "studentid", "id"),
             name: findColIdx("studentname", "childname", "name", "student", "child"),
             gender: findColIdx("gender", "sex"),
             dob: findColIdx("dob", "dateofbirth", "birthdate", "birth"),
-            age: findColIdx("age", "childage", "ageinyears"),
+            age: findColIdx("age", "childage", "ageinyears", "ageyears"),
             class: findColIdx("class", "grade", "standard"),
             weight: findColIdx("weightkg", "weight", "wt", "childweight"),
             height: findColIdx("heightlengthcm", "heightcm", "height", "ht", "length"),
             hb: findColIdx("hbcount", "hb", "hemoglobin", "haemoglobin", "hgb", "bloodhb", "hblevel"),
+            visionLeft: findColIdx("visionleft", "leftvision", "visleft", "visionl", "bayeinaankh"),
+            visionRight: findColIdx("visionright", "rightvision", "visright", "visionr", "dayeinaankh"),
+            defect: findColIdx("defectname", "defect", "defects", "healthstatus", "healthdefect", "condition", "disease", "selectdefecttype"),
             birthWeight: findColIdx("birthweight", "birthwt", "bweight"),
             head: findColIdx("headcur", "headcircumference", "head"),
             muac: findColIdx("muac"),
-            defect: findColIdx("defectname", "defect", "defects", "disease", "condition", "selectdefecttype"),
             mobile: findColIdx("mobilenumber", "mobile", "phone", "contact"),
             father: findColIdx("fathersname", "fathername", "father", "guardian"),
             mother: findColIdx("mothersname", "mothername", "mother")
         };
 
-        // Guarantee a Defect column exists in headerKeys and rawGrid
+        // Guarantee Defect column exists
         if (colIndexMap.defect < 0) {
             colIndexMap.defect = headerKeys.length;
-            headerKeys.push("Defect Name");
+            headerKeys.push("Defect / Health Status");
             if (rawGrid[headerRowIdx]) {
-                rawGrid[headerRowIdx][colIndexMap.defect] = "Defect Name";
+                rawGrid[headerRowIdx][colIndexMap.defect] = "Defect / Health Status";
             }
         }
 
-        console.log("[RBSK AutoFill] Header Row:", headerRowIdx, "Column Index Mapping:", colIndexMap);
+        // Guarantee Vision columns exist if missing
+        if (colIndexMap.visionLeft < 0) {
+            colIndexMap.visionLeft = headerKeys.length;
+            headerKeys.push("Vision Left");
+            if (rawGrid[headerRowIdx]) {
+                rawGrid[headerRowIdx][colIndexMap.visionLeft] = "Vision Left";
+            }
+        }
+        if (colIndexMap.visionRight < 0) {
+            colIndexMap.visionRight = headerKeys.length;
+            headerKeys.push("Vision Right");
+            if (rawGrid[headerRowIdx]) {
+                rawGrid[headerRowIdx][colIndexMap.visionRight] = "Vision Right";
+            }
+        }
+
+        console.log("[RBSK AutoFill] Detected Type:", detectedType, "Column Index Mapping:", colIndexMap);
 
         const awcSettings = document.getElementById("awcSettingsGroup");
         if (awcSettings) {
@@ -401,13 +550,16 @@
             const nameVal = String(row[nameIdx] || "").trim();
             const idVal = String(row[idIdx] || "").trim();
 
-            // Ignore blank rows or lookup tables (which usually have no student name)
+            // Ignore blank rows or lookup tables
             if (!nameVal && !idVal) continue;
             if (nameVal.toLowerCase() === "name" || nameVal.toLowerCase() === "student details") continue;
 
             const rawDefect = colIndexMap.defect >= 0 ? String(row[colIndexMap.defect] || "").trim() : "";
             const rawHb = colIndexMap.hb >= 0 ? String(row[colIndexMap.hb] || "").trim() : "";
             const initialDefectKey = determineDefectFromHb(rawHb, rawDefect);
+
+            const rawVl = colIndexMap.visionLeft >= 0 ? String(row[colIndexMap.visionLeft] || "").trim() : "";
+            const rawVr = colIndexMap.visionRight >= 0 ? String(row[colIndexMap.visionRight] || "").trim() : "";
 
             studentRowsData.push({
                 rowIndex: r,
@@ -422,6 +574,10 @@
                 defect: DEFECT_LABELS[initialDefectKey] || "Healthy",
                 currentDefectKey: initialDefectKey,
                 manualDefect: null,
+                originalVisionLeft: rawVl,
+                originalVisionRight: rawVr,
+                manualVisionLeft: null,
+                manualVisionRight: null,
                 originalWeight: colIndexMap.weight >= 0 ? String(row[colIndexMap.weight] || "").trim() : "",
                 originalHeight: colIndexMap.height >= 0 ? String(row[colIndexMap.height] || "").trim() : "",
                 originalHb: rawHb,
@@ -435,29 +591,50 @@
     }
 
     /**
-     * Auto-Fill Calculation Engine
+     * Auto-Fill Calculation Engine based on Granular Radio Toggles
      */
     function executeAutoFill() {
         if (!studentRowsData || !studentRowsData.length) return;
 
+        const fillHeight = radioHeightFill ? radioHeightFill.checked : true;
+        const fillWeight = radioWeightFill ? radioWeightFill.checked : true;
+        const fillHb = radioHbFill ? radioHbFill.checked : true;
+        const fillVision = radioVisionFill ? radioVisionFill.checked : true;
+        const fillDefect = radioDefectFill ? radioDefectFill.checked : true;
+        const safeOnlyBlank = radioSafeOnlyBlank ? radioSafeOnlyBlank.checked : true;
+
+        const defaultVisionVal = optDefaultVision ? optDefaultVision.value : "6/6";
+        const awcVisionEnabled = optAwcVision ? optAwcVision.checked : false;
+
+        const defectMode = optDefectMode ? optDefectMode.value : "auto_hb";
+        const specificDefectVal = optSpecificDefect ? optSpecificDefect.value : "healthy";
+
+        const fillHead = radioHeadFill ? radioHeadFill.checked : true;
+        const fillMuac = radioMuacFill ? radioMuacFill.checked : true;
+        const fillBirthWeight = radioBirthWeightFill ? radioBirthWeightFill.checked : true;
+
         const options = {
+            fillHeight,
+            fillWeight,
+            fillHb,
+            fillVision,
+            defaultVision: defaultVisionVal,
+            awcVision: awcVisionEnabled,
+            fillBirthWeight,
+            fillHead,
+            fillMuac,
             allowDecimal: optDecimals ? optDecimals.checked : false,
             naturalVariation: optNaturalVar ? optNaturalVar.checked : true,
-            fillHb: optFillHb ? optFillHb.checked : true,
-            fillGrowth: optFillGrowth ? optFillGrowth.checked : true,
-            fillAwcExtra: optAwcExtra ? optAwcExtra.checked : true,
             hbRange: optHbRange ? optHbRange.value : "normal",
             customHbMin: customHbMin ? parseFloat(customHbMin.value) || 11.5 : 11.5,
             customHbMax: customHbMax ? parseFloat(customHbMax.value) || 13.5 : 13.5,
-            fillBirthWeight: true,
-            awcHbMode: optAwcHb ? optAwcHb.value : "skip"
+            isAwc: detectedType === "AWC"
         };
-
-        const safeOnlyBlank = optSafeOnlyBlank ? optSafeOnlyBlank.checked : true;
 
         let totalWeightFilled = 0;
         let totalHeightFilled = 0;
         let totalHbFilled = 0;
+        let totalVisionFilled = 0;
 
         studentRowsData.forEach((st) => {
             const studentInfo = {
@@ -465,22 +642,18 @@
                 gender: st.gender,
                 dob: st.dob,
                 age: st.age,
-                class: st.class
+                class: st.class,
+                isAwc: detectedType === "AWC"
             };
 
             const computed = computeRbskParameters(studentInfo, options);
             const autoFlags = {};
 
-            // Weight & Height
-            let finalWeight = st.originalWeight;
+            // 1. Height & Weight
             let finalHeight = st.originalHeight;
+            let finalWeight = st.originalWeight;
 
-            if (options.fillGrowth) {
-                if (!safeOnlyBlank || !finalWeight) {
-                    finalWeight = computed.weight;
-                    autoFlags.weight = true;
-                    totalWeightFilled++;
-                }
+            if (fillHeight && computed.height) {
                 if (!safeOnlyBlank || !finalHeight) {
                     finalHeight = computed.height;
                     autoFlags.height = true;
@@ -488,9 +661,17 @@
                 }
             }
 
-            // Hemoglobin
+            if (fillWeight && computed.weight) {
+                if (!safeOnlyBlank || !finalWeight) {
+                    finalWeight = computed.weight;
+                    autoFlags.weight = true;
+                    totalWeightFilled++;
+                }
+            }
+
+            // 2. Hemoglobin (Hb)
             let finalHb = st.originalHb;
-            if (options.fillHb && computed.hb) {
+            if (fillHb && computed.hb) {
                 if (!safeOnlyBlank || !finalHb) {
                     finalHb = computed.hb;
                     autoFlags.hb = true;
@@ -498,33 +679,58 @@
                 }
             }
 
-            // AWC Parameters
+            // 3. Vision Left & Vision Right
+            let finalVisionLeft = st.manualVisionLeft !== null ? st.manualVisionLeft : st.originalVisionLeft;
+            let finalVisionRight = st.manualVisionRight !== null ? st.manualVisionRight : st.originalVisionRight;
+
+            if (fillVision && computed.visionLeft) {
+                if (!safeOnlyBlank || !finalVisionLeft) {
+                    finalVisionLeft = computed.visionLeft;
+                    autoFlags.visionLeft = true;
+                    totalVisionFilled++;
+                }
+                if (!safeOnlyBlank || !finalVisionRight) {
+                    finalVisionRight = computed.visionRight;
+                    autoFlags.visionRight = true;
+                }
+            }
+
+            // 4. AWC Parameters
             let finalBirthWeight = st.originalBirthWeight;
             let finalHead = st.originalHead;
             let finalMuac = st.originalMuac;
 
-            if (detectedType === "AWC" && options.fillAwcExtra) {
-                if (computed.birthWeight && (!safeOnlyBlank || !finalBirthWeight)) {
-                    finalBirthWeight = computed.birthWeight;
-                    autoFlags.birthWeight = true;
-                }
-                if (computed.head && (!safeOnlyBlank || !finalHead)) {
+            if (detectedType === "AWC" || computed.isUnderFive) {
+                if (fillHead && computed.head && (!safeOnlyBlank || !finalHead)) {
                     finalHead = computed.head;
                     autoFlags.head = true;
                 }
-                if (computed.muac && (!safeOnlyBlank || !finalMuac)) {
+                if (fillMuac && computed.muac && (!safeOnlyBlank || !finalMuac)) {
                     finalMuac = computed.muac;
                     autoFlags.muac = true;
                 }
+                if (fillBirthWeight && computed.birthWeight && (!safeOnlyBlank || !finalBirthWeight)) {
+                    finalBirthWeight = computed.birthWeight;
+                    autoFlags.birthWeight = true;
+                }
             }
 
-            // Automatic Condition / Defect determination based on Hb
+            // 5. Defect / Health Status
             let finalDefectKey = "healthy";
-            if (st.manualDefect) {
+            if (st.manualDefect !== null) {
                 finalDefectKey = st.manualDefect;
+            } else if (fillDefect) {
+                if (defectMode === "auto_hb") {
+                    finalDefectKey = determineDefectFromHb(finalHb, st.originalDefect);
+                } else if (defectMode === "healthy") {
+                    finalDefectKey = "healthy";
+                } else if (defectMode === "specific") {
+                    finalDefectKey = specificDefectVal;
+                }
             } else {
-                finalDefectKey = determineDefectFromHb(finalHb, st.originalDefect);
+                finalDefectKey = normalizeDefectKey(st.originalDefect) || "healthy";
             }
+
             st.currentDefectKey = finalDefectKey;
             st.defect = DEFECT_LABELS[finalDefectKey] || "Healthy";
 
@@ -532,6 +738,8 @@
                 weight: finalWeight,
                 height: finalHeight,
                 hb: finalHb,
+                visionLeft: finalVisionLeft,
+                visionRight: finalVisionRight,
                 birthWeight: finalBirthWeight,
                 head: finalHead,
                 muac: finalMuac,
@@ -545,6 +753,8 @@
                 if (colIndexMap.weight >= 0) rawGrid[rIdx][colIndexMap.weight] = finalWeight;
                 if (colIndexMap.height >= 0) rawGrid[rIdx][colIndexMap.height] = finalHeight;
                 if (colIndexMap.hb >= 0) rawGrid[rIdx][colIndexMap.hb] = finalHb;
+                if (colIndexMap.visionLeft >= 0) rawGrid[rIdx][colIndexMap.visionLeft] = finalVisionLeft;
+                if (colIndexMap.visionRight >= 0) rawGrid[rIdx][colIndexMap.visionRight] = finalVisionRight;
                 if (colIndexMap.birthWeight >= 0) rawGrid[rIdx][colIndexMap.birthWeight] = finalBirthWeight;
                 if (colIndexMap.head >= 0) rawGrid[rIdx][colIndexMap.head] = finalHead;
                 if (colIndexMap.muac >= 0) rawGrid[rIdx][colIndexMap.muac] = finalMuac;
@@ -556,7 +766,8 @@
             total: studentRowsData.length,
             weight: totalWeightFilled,
             height: totalHeightFilled,
-            hb: totalHbFilled
+            hb: totalHbFilled,
+            vision: totalVisionFilled
         });
 
         currentPage = 1;
@@ -602,8 +813,8 @@
             <div class="stat-card">
                 <div class="stat-icon icon-hb">🩸</div>
                 <div class="stat-info">
-                    <span class="stat-value">${stats.hb}</span>
-                    <span class="stat-label">Hb Values Auto-Filled</span>
+                    <span class="stat-value">${stats.hb} Hb / ${stats.vision} Vis</span>
+                    <span class="stat-label">Hb & Vision Auto-Filled</span>
                 </div>
             </div>
         `;
@@ -615,7 +826,8 @@
             const name = String(st.name || "").toLowerCase();
             const id = String(st.id || "").toLowerCase();
             const sn = String(st.sn || "").toLowerCase();
-            return name.includes(activeFilter) || id.includes(activeFilter) || sn.includes(activeFilter);
+            const defect = String(st.defect || "").toLowerCase();
+            return name.includes(activeFilter) || id.includes(activeFilter) || sn.includes(activeFilter) || defect.includes(activeFilter);
         });
     }
 
@@ -639,8 +851,10 @@
                 <th>Height (cm)</th>
                 <th>Weight (kg)</th>
                 <th>Hb (g/dL)</th>
+                <th>Vision (L)</th>
+                <th>Vision (R)</th>
                 ${detectedType === "AWC" ? "<th>Birth Wt</th><th>Head</th><th>MUAC</th>" : ""}
-                <th>Defect / Condition</th>
+                <th>Defect / Health Status</th>
             </tr>
         `;
         previewThead.innerHTML = theadHtml;
@@ -649,7 +863,7 @@
         const pageItems = filtered.slice(startIdx, startIdx + rowsPerPage);
 
         if (pageItems.length === 0) {
-            const cols = detectedType === "AWC" ? 12 : 9;
+            const cols = detectedType === "AWC" ? 14 : 11;
             previewTbody.innerHTML = `<tr><td colspan="${cols}" class="no-records">No students match your search filter.</td></tr>`;
             return;
         }
@@ -681,6 +895,8 @@
                     ${cell(comp.height, flags.height)}
                     ${cell(comp.weight, flags.weight)}
                     ${cell(comp.hb, flags.hb)}
+                    <td>${renderVisionSelectHtml(comp.visionLeft, st.rowIndex, "left")}</td>
+                    <td>${renderVisionSelectHtml(comp.visionRight, st.rowIndex, "right")}</td>
                     ${detectedType === "AWC" ? `${cell(comp.birthWeight, flags.birthWeight)}${cell(comp.head, flags.head)}${cell(comp.muac, flags.muac)}` : ""}
                     <td>${renderDiseaseSelectHtml(st.currentDefectKey || "healthy", st.rowIndex)}</td>
                 </tr>
@@ -689,7 +905,7 @@
 
         previewTbody.innerHTML = tbodyHtml;
 
-        // Attach live interactive change listeners to all defect dropdowns
+        // Attach live listeners to Defect dropdowns
         previewTbody.querySelectorAll(".rbsk-disease-select").forEach((sel) => {
             sel.addEventListener("change", (e) => {
                 const rIdx = parseInt(e.target.getAttribute("data-row-idx"), 10);
@@ -699,10 +915,36 @@
                     st.manualDefect = selectedVal;
                     st.currentDefectKey = selectedVal;
                     st.defect = DEFECT_LABELS[selectedVal] || "Healthy";
+                    if (st.computed) st.computed.defect = st.defect;
                     if (colIndexMap.defect >= 0 && rawGrid[rIdx]) {
                         rawGrid[rIdx][colIndexMap.defect] = st.defect;
                     }
                     updateSelectStyle(sel, selectedVal);
+                }
+            });
+        });
+
+        // Attach live listeners to Vision dropdowns
+        previewTbody.querySelectorAll(".rbsk-vision-select").forEach((sel) => {
+            sel.addEventListener("change", (e) => {
+                const rIdx = parseInt(e.target.getAttribute("data-row-idx"), 10);
+                const eyeSide = e.target.getAttribute("data-eye");
+                const selectedVal = e.target.value;
+                const st = studentRowsData.find((s) => s.rowIndex === rIdx);
+                if (st) {
+                    if (eyeSide === "left") {
+                        st.manualVisionLeft = selectedVal;
+                        if (st.computed) st.computed.visionLeft = selectedVal;
+                        if (colIndexMap.visionLeft >= 0 && rawGrid[rIdx]) {
+                            rawGrid[rIdx][colIndexMap.visionLeft] = selectedVal;
+                        }
+                    } else {
+                        st.manualVisionRight = selectedVal;
+                        if (st.computed) st.computed.visionRight = selectedVal;
+                        if (colIndexMap.visionRight >= 0 && rawGrid[rIdx]) {
+                            rawGrid[rIdx][colIndexMap.visionRight] = selectedVal;
+                        }
+                    }
                 }
             });
         });
@@ -715,16 +957,16 @@
     }
 
     /**
-     * Download Processed Excel preserving all formatting
+     * Download Processed Excel preserving dynamic format, dropdowns, and text columns
      */
-    function downloadProcessedExcel() {
+    async function downloadProcessedExcel() {
         if (!rawGrid || !rawGrid.length) {
             alert("No data available to download.");
             return;
         }
 
         try {
-            // Convert updated 2D rawGrid back to sheet
+            // Convert updated 2D rawGrid to sheet
             const worksheet = XLSX.utils.aoa_to_sheet(rawGrid);
 
             // Auto-fit column widths
@@ -738,57 +980,149 @@
             });
             worksheet["!cols"] = colLengths.map((l) => ({ wch: Math.min(l + 3, 35) }));
 
+            const vlColIdx = colIndexMap.visionLeft;
+            const vrColIdx = colIndexMap.visionRight;
+            const defectColIdx = colIndexMap.defect;
+
+            // Ensure Vision cells have explicit String type 's' and Text format '@'
+            const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:A1");
+            for (let R = 1; R <= range.e.r; R++) {
+                if (vlColIdx >= 0) {
+                    const addrL = XLSX.utils.encode_cell({ r: R, c: vlColIdx });
+                    if (!worksheet[addrL]) worksheet[addrL] = { t: "s", v: "", z: "@" };
+                    else { worksheet[addrL].t = "s"; worksheet[addrL].z = "@"; }
+                }
+                if (vrColIdx >= 0) {
+                    const addrR = XLSX.utils.encode_cell({ r: R, c: vrColIdx });
+                    if (!worksheet[addrR]) worksheet[addrR] = { t: "s", v: "", z: "@" };
+                    else { worksheet[addrR].t = "s"; worksheet[addrR].z = "@"; }
+                }
+            }
+
             const sheetTitle = detectedType === "AWC" ? "AWC Students" : "School Students";
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, sheetTitle);
 
+            // Build comprehensive Instructions guide sheet
+            const screeningInstructions = [
+                ["RBSK SCREENING AUTO-FILLED TEMPLATE - USER GUIDE & INSTRUCTIONS"],
+                [""],
+                ["Column Name", "Required?", "Accepted Values / Format", "Example", "Detailed Instructions / Rules"],
+                ["Defect / Health Status", "Optional", "Healthy / Specific Defect Name", "Dental", "Healthy ya specific bimari chunein: Healthy, Skin, Dental, Otitis, Vision, Vit A, Vit D, B Complex, Mild Anaemia, Severe Anemia, Moderate Anaemia, Reactive Airway Disease, Growing up concerns, Pain/Burning Urinating, Pain during menstruation."],
+                ["Weight (kg)", "Optional", "Number (kg)", "18.5", "Bachhe ka wazan kg me (jaise: 18, 22.5). WHO / RBSK reference ke anusaar auto-calculated."],
+                ["Height (cm)", "Optional", "Number (cm)", "112", "Bachhe ki unchai cm me (jaise: 110, 125.4). WHO / RBSK reference ke anusaar auto-calculated."],
+                ["Hb", "Optional", "Number (g/dL)", "12.0", "Hemoglobin value g/dL me (Anemia cases ke liye)."],
+                ["Vision Left", "Optional", "6/6 / 6/9 / 6/12 / 6/18 / 6/24 / 6/36 / 6/60 / No vision", "6/6", "Left eye (bayein aankh) ka vision dropdown."],
+                ["Vision Right", "Optional", "6/6 / 6/9 / 6/12 / 6/18 / 6/24 / 6/36 / 6/60 / No vision", "6/6", "Right eye (dayein aankh) ka vision dropdown."],
+                ["Head Circumference", "Optional (AWC)", "Number (cm)", "48.5", "Sirf Anganwadi (AWC) bachho ke liye (WHO Normal Range)."],
+                ["MUAC", "Optional (AWC)", "Number (cm)", "13.5", "Mid-Upper Arm Circumference cm me (WHO Green Range)."],
+                ["Birth Weight", "Optional (AWC)", "Number (kg)", "2.8", "Janm ke samay wazan kg me (AWC DOB aadharit)."],
+                ["DOB", "Reference", "DD-MM-YYYY", "15-08-2015", "Student matching ke liye portal se scraped DOB."],
+                ["PEN ID / Child ID", "Reference", "Unique ID", "XXXXXXXXXXX", "Student ka unique ID."],
+                [""],
+                ["IMPORTANT NOTES / KHAAS BAATEIN:"],
+                ["1. Is downloaded Excel file me Defect, Vision Left aur Vision Right ke live dropdowns active hain."],
+                ["2. Aap Excel me bhi kisi bhi bachhe ka wazan, lambai, defect ya vision badal sakte hain, koi restriction nahi hai."],
+                ["3. Badlav ke baad is file ko direct RBSK screening portal me feed kar sakte hain!"]
+            ];
+
+            const guideSheet = XLSX.utils.aoa_to_sheet(screeningInstructions);
+            guideSheet["!cols"] = [
+                { wch: 22 },
+                { wch: 14 },
+                { wch: 35 },
+                { wch: 20 },
+                { wch: 80 }
+            ];
+            XLSX.utils.book_append_sheet(workbook, guideSheet, "Instructions");
+
             const cleanName = originalFileName.replace(/\.(xlsx|xls)$/i, "");
             const outFileName = `AutoFilled_${cleanName}.xlsx`;
 
-            // If JSZip is available, inject Defect dropdown validation
-            const defectColIdx = colIndexMap.defect;
-            if (typeof JSZip !== "undefined" && defectColIdx >= 0) {
-                const defectColLetter = XLSX.utils.encode_col(defectColIdx);
-                const maxRow = Math.max(rawGrid.length + 1, 500);
-                const dvOptions = DEFECT_OPTIONS.map((o) => o.label).join(",");
-
+            // Inject Dropdowns (Defect, Vision Left, Vision Right) and Text Column Format using JSZip
+            if (typeof JSZip !== "undefined") {
+                const maxRow = Math.max(rawGrid.length + 50, 500);
                 const xlsxArray = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
-                JSZip.loadAsync(xlsxArray).then((zip) => {
-                    zip.file("xl/worksheets/sheet1.xml")
-                        .async("text")
-                        .then((sheetXml) => {
-                            const dvXml = `<dataValidations count="1"><dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${defectColLetter}2:${defectColLetter}${maxRow}"><formula1>&quot;${dvOptions}&quot;</formula1></dataValidation></dataValidations>`;
+                const zip = await JSZip.loadAsync(xlsxArray);
 
-                            if (sheetXml.includes("<ignoredErrors>")) {
-                                sheetXml = sheetXml.replace("<ignoredErrors>", dvXml + "<ignoredErrors>");
-                            } else if (sheetXml.includes("<pageMargins>")) {
-                                sheetXml = sheetXml.replace("<pageMargins>", dvXml + "<pageMargins>");
-                            } else {
-                                sheetXml = sheetXml.replace("</worksheet>", dvXml + "</worksheet>");
-                            }
+                let stylesXml = zip.file("xl/styles.xml") ? await zip.file("xl/styles.xml").async("text") : "";
+                let sheetXml = await zip.file("xl/worksheets/sheet1.xml").async("text");
 
-                            zip.file("xl/worksheets/sheet1.xml", sheetXml);
-                            return zip.generateAsync({
-                                type: "blob",
-                                mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                            });
-                        })
-                        .then((blob) => {
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement("a");
-                            a.href = url;
-                            a.download = outFileName;
-                            document.body.appendChild(a);
-                            a.click();
-                            setTimeout(() => {
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);
-                            }, 1500);
-                        })
-                        .catch(() => {
-                            XLSX.writeFile(workbook, outFileName);
-                        });
+                // Ensure Text format (numFmtId="49") in styles.xml
+                let textStyleIdx = 1;
+                if (stylesXml) {
+                    if (!stylesXml.includes('numFmtId="49"')) {
+                        const cellXfsMatch = stylesXml.match(/<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/);
+                        if (cellXfsMatch) {
+                            const oldCount = parseInt(cellXfsMatch[1], 10);
+                            textStyleIdx = oldCount;
+                            const newCellXfs = `<cellXfs count="${oldCount + 1}">${cellXfsMatch[2]}<xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs>`;
+                            stylesXml = stylesXml.replace(cellXfsMatch[0], newCellXfs);
+                            zip.file("xl/styles.xml", stylesXml);
+                        }
+                    }
+                }
+
+                // Apply text format to Vision columns so 6/6 is never parsed as a date
+                if (vlColIdx >= 0 || vrColIdx >= 0) {
+                    const minC = Math.min(vlColIdx >= 0 ? vlColIdx + 1 : 999, vrColIdx >= 0 ? vrColIdx + 1 : 999);
+                    const maxC = Math.max(vlColIdx >= 0 ? vlColIdx + 1 : 0, vrColIdx >= 0 ? vrColIdx + 1 : 0);
+                    const colTag = `<col min="${minC}" max="${maxC}" width="16" style="${textStyleIdx}" customWidth="1"/>`;
+                    if (sheetXml.includes("<cols>")) {
+                        sheetXml = sheetXml.replace("<cols>", `<cols>${colTag}`);
+                    } else if (sheetXml.includes("<sheetData>")) {
+                        sheetXml = sheetXml.replace("<sheetData>", `<cols>${colTag}</cols><sheetData>`);
+                    }
+                }
+
+                // Build Data Validation rules
+                const dvRules = [];
+
+                if (defectColIdx >= 0) {
+                    const colLetter = XLSX.utils.encode_col(defectColIdx);
+                    const dvDefectOptions = DEFECT_OPTIONS.map((o) => o.label).join(",");
+                    dvRules.push(`<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${colLetter}2:${colLetter}${maxRow}"><formula1>&quot;${dvDefectOptions}&quot;</formula1></dataValidation>`);
+                }
+
+                if (vlColIdx >= 0) {
+                    const colLetter = XLSX.utils.encode_col(vlColIdx);
+                    const dvVisionOptions = VISION_OPTIONS.join(",");
+                    dvRules.push(`<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${colLetter}2:${colLetter}${maxRow}"><formula1>&quot;${dvVisionOptions}&quot;</formula1></dataValidation>`);
+                }
+
+                if (vrColIdx >= 0) {
+                    const colLetter = XLSX.utils.encode_col(vrColIdx);
+                    const dvVisionOptions = VISION_OPTIONS.join(",");
+                    dvRules.push(`<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${colLetter}2:${colLetter}${maxRow}"><formula1>&quot;${dvVisionOptions}&quot;</formula1></dataValidation>`);
+                }
+
+                if (dvRules.length) {
+                    const dvXml = `<dataValidations count="${dvRules.length}">${dvRules.join("")}</dataValidations>`;
+                    if (sheetXml.includes("<ignoredErrors>")) {
+                        sheetXml = sheetXml.replace("<ignoredErrors>", dvXml + "<ignoredErrors>");
+                    } else if (sheetXml.includes("<pageMargins>")) {
+                        sheetXml = sheetXml.replace("<pageMargins>", dvXml + "<pageMargins>");
+                    } else {
+                        sheetXml = sheetXml.replace("</worksheet>", dvXml + "</worksheet>");
+                    }
+                }
+
+                zip.file("xl/worksheets/sheet1.xml", sheetXml);
+                const blob = await zip.generateAsync({
+                    type: "blob",
+                    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 });
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = outFileName;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 1500);
             } else {
                 XLSX.writeFile(workbook, outFileName);
             }
