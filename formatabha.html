@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHREE RBSK - School to ABHA Excel Converter & Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --navy: #0f172a;
+      --navy-card: #1e293b;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --danger: #ef4444;
+      --danger-light: #fef2f2;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #cbd5e1;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.12);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding-bottom: 40px;
+    }
+
+    /* HEADER */
+    header {
+      background: linear-gradient(135deg, #091e3a 0%, #174577 50%, #0284c7 100%);
+      color: white;
+      padding: 20px 16px 36px;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .container {
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .header-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+      flex-shrink: 0;
+    }
+
+    .shree-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      color: #78350f;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 4px;
+      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+    }
+
+    h1 {
+      font-size: clamp(20px, 2.5vw, 26px);
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      color: #cbd5e1;
+      font-size: 13px;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-pill {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(8px);
+      padding: 5px 12px;
+      border-radius: 30px;
+      font-size: 11.5px;
+      color: #ffffff;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* MAIN */
+    main {
+      margin-top: -18px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid #e2e8f0;
+      box-shadow: var(--shadow);
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+      border: 1px solid #bae6fd;
+    }
+
+    /* UPLOAD DROP ZONE */
+    .drop-zone {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      border: 2px dashed #93c5fd !important;
+      border-radius: 14px !important;
+      background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%) !important;
+      padding: 24px 18px !important;
+      text-align: center !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--primary) !important;
+      background: #e0f2fe !important;
+      transform: translateY(-1px);
+    }
+
+    .upload-icon-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 8px;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.15);
+    }
+
+    .drop-zone strong {
+      display: block;
+      font-size: 16px;
+      color: var(--navy);
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .drop-zone p {
+      color: var(--text-muted);
+      font-size: 12.5px;
+      margin-bottom: 12px;
+    }
+
+    .file-input { display: none; }
+
+    .btn-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-select:hover {
+      background: #f8fafc;
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .file-info-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      color: #166534;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    }
+
+    .btn-secondary {
+      background: #f8fafc;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+
+    .btn-secondary:hover {
+      background: #f1f5f9;
+      color: var(--navy);
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      padding: 5px 10px;
+      font-size: 11.5px;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+      color: white;
+      border-color: #dc2626;
+    }
+
+    /* STATUS ALERT */
+    .status-alert {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .status-alert.ok {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--success-light);
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-alert.err {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--danger-light);
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    /* TABLE SECTION */
+    #editorSection {
+      display: none;
+    }
+
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 12px;
+    }
+
+    .stats-group {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .stat-badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .edit-hint {
+      font-size: 11.5px;
+      color: #047857;
+      background: #ecfdf5;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      border: 1px solid #a7f3d0;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      padding: 7px 10px 7px 30px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 12.5px;
+      width: 220px;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+
+    .search-box span {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 13px;
+      pointer-events: none;
+    }
+
+    /* FULL-WIDTH RESPONSIVE TABLE WITH STICKY ACTION COLUMN */
+    .table-wrap {
+      overflow-x: auto;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      max-height: 580px;
+      position: relative;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    thead th {
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 800;
+      padding: 10px 10px;
+      border-bottom: 2px solid #cbd5e1;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      transition: background 0.1s;
+    }
+
+    tbody tr:hover {
+      background: #f0fdf4 !important;
+    }
+
+    tbody td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      color: var(--navy);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    td.editable {
+      cursor: text;
+      position: relative;
+      outline: none;
+    }
+
+    td.editable:hover {
+      background: #e0f2fe;
+      box-shadow: inset 0 0 0 1px #7dd3fc;
+    }
+
+    td.editable:focus {
+      background: #ffffff;
+      box-shadow: inset 0 0 0 2px var(--primary);
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .sn-cell {
+      font-weight: 800;
+      color: #64748b;
+      text-align: center;
+      width: 44px;
+      background: #f8fafc;
+    }
+
+    /* STICKY ACTION COLUMN - NEVER GOES OFF-SCREEN */
+    th.col-action {
+      position: sticky;
+      right: 0;
+      background: #f1f5f9;
+      z-index: 5;
+      text-align: center;
+      width: 80px;
+      box-shadow: -2px 0 6px rgba(0, 0, 0, 0.06);
+    }
+
+    td.col-action {
+      position: sticky;
+      right: 0;
+      background: #ffffff;
+      z-index: 3;
+      text-align: center;
+      box-shadow: -2px 0 6px rgba(0, 0, 0, 0.06);
+    }
+
+    tbody tr:hover td.col-action {
+      background: #f0fdf4 !important;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #0f172a;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 9999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="brand-section">
+          <div class="brand-logo">🏥</div>
+          <div>
+            <div class="shree-tag">🏷️ SHREE RBSK OFFICIAL</div>
+            <h1>School to ABHA Excel Converter & Editor</h1>
+            <p class="subtitle">राष्ट्रीय बाल स्वास्थ्य कार्यक्रम (RBSK) - School Student Master to ABHA Excel Format</p>
+          </div>
+        </div>
+
+        <div class="header-badges">
+          <div class="badge-pill">🔒 100% Client-Side Safe</div>
+          <div class="badge-pill">⚡ Instant Live Edit & Delete</div>
+          <div class="badge-pill">📊 Auto DD-MM-YYYY Fix</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- UPLOAD CARD -->
+    <section class="card">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-num">1</span>
+          <span>Upload School Excel File</span>
+        </div>
+      </div>
+
+      <label class="drop-zone" id="dropZone" for="fileInput">
+        <div class="upload-icon-circle">📂</div>
+        <strong>Choose an Excel file or drag & drop here</strong>
+        <p>Supports <b>.xlsx</b> and <b>.xls</b> formats. Columns are auto-detected and mapped to ABHA format.</p>
+        <span class="btn-select">📁 Browse Computer</span>
+      </label>
+      <input id="fileInput" class="file-input" type="file" accept=".xlsx,.xls">
+
+      <div class="file-info-bar" id="fileInfo">
+        <span id="fileNameText">Selected: </span>
+        <button class="btn-danger" id="removeFileBtn" type="button" style="padding:3px 8px;">✕ Remove</button>
+      </div>
+
+      <div id="statusAlert" class="status-alert"></div>
+    </section>
+
+    <!-- LIVE DATA TABLE (SHOWN ONLY WHEN EXCEL IS UPLOADED) -->
+    <section class="card" id="editorSection">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-num">2</span>
+          <span>Student Records (Live Preview & Editor)</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-secondary" id="addRowBtn" type="button">
+            ➕ Add Student
+          </button>
+          <button class="btn btn-primary" id="downloadTopBtn" type="button">
+            📥 Download ABHA Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- TABLE TOOLBAR -->
+      <div class="table-toolbar">
+        <div class="stats-group">
+          <div class="stat-badge" id="recordCountBadge">
+            👥 0 Students
+          </div>
+          <div class="edit-hint">
+            ✏️ Click any cell to edit | 🗑️ Delete button is always visible on right
+          </div>
+        </div>
+
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="Search student, father, mobile...">
+        </div>
+      </div>
+
+      <!-- TABLE WRAPPER -->
+      <div class="table-wrap">
+        <table id="studentsTable">
+          <thead>
+            <tr>
+              <th style="width: 44px; text-align: center;">SN</th>
+              <th>Student Name</th>
+              <th>Birth Date (DD-MM-YYYY)</th>
+              <th>Mother's Name</th>
+              <th>Father's Name</th>
+              <th>Aadhaar Number</th>
+              <th>Mobile Number</th>
+              <th>ABHA Number</th>
+              <th class="col-action">Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span style="font-size: 12.5px; color: var(--text-muted);">
+          All edits are saved in real-time. Serial Numbers (SN) auto-update.
+        </span>
+        <button class="btn btn-primary" id="downloadBottomBtn" type="button">
+          📥 Download ABHA Master Excel File
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast">
+    <span id="toastIcon">✅</span>
+    <span id="toastMsg">Operation successful</span>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p><b>SHREE RBSK</b> — School to ABHA Excel Portal · राष्ट्रीय बाल स्वास्थ्य कार्यक्रम</p>
+      <p style="margin-top: 3px; font-size: 11px; color: #94a3b8;">All processing is done 100% locally in your browser. No data is sent to external servers.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <script>
+    // Pure user data (no dummy/sample data)
+    let students = [];
+    let originalFileName = 'shree_rbsk_student_data';
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileNameText = document.getElementById('fileNameText');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const statusAlert = document.getElementById('statusAlert');
+    const editorSection = document.getElementById('editorSection');
+    const tableBody = document.getElementById('tableBody');
+    const recordCountBadge = document.getElementById('recordCountBadge');
+    const searchInput = document.getElementById('searchInput');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const downloadTopBtn = document.getElementById('downloadTopBtn');
+    const downloadBottomBtn = document.getElementById('downloadBottomBtn');
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    const toastIcon = document.getElementById('toastIcon');
+
+    let toastTimeout;
+    function showToast(message, icon = '✅') {
+      clearTimeout(toastTimeout);
+      toastMsg.textContent = message;
+      toastIcon.textContent = icon;
+      toast.classList.add('show');
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    function showStatus(message, type) {
+      statusAlert.className = 'status-alert ' + type;
+      statusAlert.innerHTML = `<span>${type === 'ok' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
+      statusAlert.style.display = 'flex';
+    }
+
+    function clearStatus() {
+      statusAlert.style.display = 'none';
+      statusAlert.className = 'status-alert';
+      statusAlert.innerHTML = '';
+    }
+
+    function normalize(s) {
+      return String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function findColumn(headers, aliases) {
+      const normHeaders = headers.map(h => normalize(h));
+      for (const a of aliases) {
+        const idx = normHeaders.indexOf(normalize(a));
+        if (idx >= 0) return idx;
+      }
+      for (const a of aliases) {
+        const needle = normalize(a);
+        const idx = normHeaders.findIndex(h => h.includes(needle));
+        if (idx >= 0) return idx;
+      }
+      return -1;
+    }
+
+    function parseDate(value) {
+      if (value === null || value === undefined || value === '') return '';
+      if (value instanceof Date && !isNaN(value)) {
+        return `${String(value.getDate()).padStart(2, '0')}-${String(value.getMonth() + 1).padStart(2, '0')}-${value.getFullYear()}`;
+      }
+      if (typeof value === 'number' && window.XLSX && XLSX.SSF) {
+        const d = XLSX.SSF.parse_date_code(value);
+        if (d && d.y) {
+          return `${String(d.d).padStart(2, '0')}-${String(d.m).padStart(2, '0')}-${d.y}`;
+        }
+      }
+      const s = String(value).trim();
+      let m = s.match(/^(\d{1,2})[-/. ](\d{1,2})[-/. ](\d{4})$/);
+      if (m) {
+        let a = +m[1], b = +m[2], y = +m[3];
+        if (a > 12) return `${String(a).padStart(2, '0')}-${String(b).padStart(2, '0')}-${y}`;
+        if (b > 12) return `${String(b).padStart(2, '0')}-${String(a).padStart(2, '0')}-${y}`;
+        return `${String(a).padStart(2, '0')}-${String(b).padStart(2, '0')}-${y}`;
+      }
+      m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+      if (m) {
+        return `${String(+m[3]).padStart(2, '0')}-${String(+m[2]).padStart(2, '0')}-${m[1]}`;
+      }
+      const parsed = new Date(s);
+      if (!isNaN(parsed.getTime()) && parsed.getFullYear() > 1900) {
+        return `${String(parsed.getDate()).padStart(2, '0')}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${parsed.getFullYear()}`;
+      }
+      return s;
+    }
+
+    function getVal(row, idx) {
+      if (idx < 0 || idx === undefined || row[idx] === null || row[idx] === undefined) return '';
+      return String(row[idx]).trim();
+    }
+
+    function processFile(file) {
+      originalFileName = file.name.replace(/\.(xlsx|xls)$/i, '');
+      fileNameText.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      fileInfo.style.display = 'flex';
+      clearStatus();
+
+      if (!window.XLSX) {
+        showStatus('Excel parser library load nahi ho payi. Kripya refresh karein.', 'err');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
+
+          if (!rows || rows.length < 2) {
+            throw new Error('Is Excel sheet me student data nahi mila.');
+          }
+
+          const headers = rows[0].map(v => String(v ?? '').trim());
+          const dataRows = rows.slice(1).filter(r => r.some(v => String(v ?? '').trim() !== ''));
+
+          const colName = findColumn(headers, [
+            'FullName as on Aadhar Card', 'FullName as on Aadhaar Card', 'Student Name', 'StudentName', 'Name of Student', 'Name', 'विद्यार्थी का नाम'
+          ]);
+          const colDob = findColumn(headers, [
+            'Date of Birth', 'Birth Date', 'DOB', 'DateOfBirth', 'BirthDate', 'जन्म तिथि'
+          ]);
+          const colMother = findColumn(headers, [
+            "Mother's Full Name as on Aadhaar", "Mother's Full Name as on Aadhaar Card", "Mother's Name", "Mother Name", "Mothers Name", "माता का नाम"
+          ]);
+          const colFather = findColumn(headers, [
+            "Father's Full Name aso on Aadhar Card", "Father's Full Name as on Aadhar Card", "Father's Full Name as on Aadhaar Card", "Father's Name", "Father Name", "Fathers Name", "पिता का नाम"
+          ]);
+          const colAadhaar = findColumn(headers, [
+            'Aadhaar Number (If any)', 'Aadhaar Number', 'Aadhar Number', 'Aadhaar', 'Aadhar', 'UID', 'आधार नंबर'
+          ]);
+          const colMobile = findColumn(headers, [
+            "Father's Mobile No", "Father's Mobile Number", "Mobile Number", "Mobile", "Contact No", "Phone", "मोबाइल नंबर"
+          ]);
+          const colAbha = findColumn(headers, [
+            'ABHA Number', 'ABHA', 'Abha Number', 'ABHA ID'
+          ]);
+
+          students = dataRows.map((r, i) => ({
+            id: 'row_' + Date.now() + '_' + i,
+            name: getVal(r, colName),
+            dob: parseDate(r[colDob]),
+            mother: getVal(r, colMother),
+            father: getVal(r, colFather),
+            aadhaar: getVal(r, colAadhaar),
+            mobile: getVal(r, colMobile),
+            abha: colAbha >= 0 ? getVal(r, colAbha) : ''
+          }));
+
+          editorSection.style.display = 'block';
+          renderTable();
+          showStatus(`सफलतापूर्वक लोड हुआ! <b>${students.length}</b> छात्रों का डाटा मिला। अब आप नीचे इसे एडिट या डिलीट कर सकते हैं।`, 'ok');
+          showToast(`${students.length} Records Loaded!`);
+
+        } catch (err) {
+          showStatus(err.message || 'Excel फ़ाइल पढ़ने में त्रुटि हुई।', 'err');
+        }
+      };
+
+      reader.onerror = () => showStatus('फ़ाइल पढ़ने में असमर्थ। कृपया पुनः प्रयास करें।', 'err');
+      reader.readAsArrayBuffer(file);
+    }
+
+    function renderTable() {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      tableBody.innerHTML = '';
+
+      const filtered = students.filter(st => {
+        if (!searchTerm) return true;
+        return (
+          st.name.toLowerCase().includes(searchTerm) ||
+          st.father.toLowerCase().includes(searchTerm) ||
+          st.mother.toLowerCase().includes(searchTerm) ||
+          st.mobile.includes(searchTerm) ||
+          st.aadhaar.includes(searchTerm) ||
+          st.dob.includes(searchTerm)
+        );
+      });
+
+      recordCountBadge.innerHTML = `👥 <b>${students.length}</b> Total Students ${searchTerm ? `(Showing ${filtered.length})` : ''}`;
+
+      if (filtered.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td colspan="9" style="text-align: center; padding: 28px 16px; color: #94a3b8;">
+            <b>कोई रिकॉर्ड नहीं मिला</b>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+        return;
+      }
+
+      filtered.forEach((st) => {
+        const trueIndex = students.findIndex(s => s.id === st.id);
+        const tr = document.createElement('tr');
+        tr.id = st.id;
+
+        tr.innerHTML = `
+          <td class="sn-cell">${trueIndex + 1}</td>
+          <td class="editable" contenteditable="true" data-field="name" title="Click to edit">${escapeHtml(st.name)}</td>
+          <td class="editable" contenteditable="true" data-field="dob" title="Click to edit (DD-MM-YYYY)">${escapeHtml(st.dob)}</td>
+          <td class="editable" contenteditable="true" data-field="mother" title="Click to edit">${escapeHtml(st.mother)}</td>
+          <td class="editable" contenteditable="true" data-field="father" title="Click to edit">${escapeHtml(st.father)}</td>
+          <td class="editable" contenteditable="true" data-field="aadhaar" title="Click to edit">${escapeHtml(st.aadhaar)}</td>
+          <td class="editable" contenteditable="true" data-field="mobile" title="Click to edit">${escapeHtml(st.mobile)}</td>
+          <td class="editable" contenteditable="true" data-field="abha" title="Click to edit">${escapeHtml(st.abha)}</td>
+          <td class="col-action">
+            <button class="btn-danger delete-btn" data-id="${st.id}" type="button" title="Delete this student">
+              🗑️ Delete
+            </button>
+          </td>
+        `;
+
+        tableBody.appendChild(tr);
+      });
+
+      attachCellEvents();
+    }
+
+    function attachCellEvents() {
+      const editables = tableBody.querySelectorAll('.editable');
+      editables.forEach(cell => {
+        cell.addEventListener('blur', function() {
+          const rowId = this.parentElement.id;
+          const field = this.getAttribute('data-field');
+          const value = this.innerText.trim();
+
+          const targetStudent = students.find(s => s.id === rowId);
+          if (targetStudent && targetStudent[field] !== value) {
+            targetStudent[field] = value;
+            showToast(`Updated ${field.toUpperCase()}`, '✏️');
+          }
+        });
+
+        cell.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.blur();
+          }
+        });
+      });
+
+      const deleteButtons = tableBody.querySelectorAll('.delete-btn');
+      deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          const rowId = this.getAttribute('data-id');
+          deleteRow(rowId);
+        });
+      });
+    }
+
+    function deleteRow(id) {
+      const targetIndex = students.findIndex(s => s.id === id);
+      if (targetIndex >= 0) {
+        const studentName = students[targetIndex].name || `Row #${targetIndex + 1}`;
+        if (confirm(`क्या आप ${studentName} का रिकॉर्ड हटाना चाहते हैं?`)) {
+          students.splice(targetIndex, 1);
+          renderTable();
+          showToast(`Record deleted`, '🗑️');
+          showStatus(`1 रिकॉर्ड हटाया गया। शेष छात्र: <b>${students.length}</b>`, 'ok');
+        }
+      }
+    }
+
+    addRowBtn.addEventListener('click', () => {
+      const newStudent = {
+        id: 'row_' + Date.now(),
+        name: 'New Student',
+        dob: '01-01-2015',
+        mother: '',
+        father: '',
+        aadhaar: '',
+        mobile: '',
+        abha: ''
+      };
+      students.unshift(newStudent);
+      renderTable();
+      showToast('New row added at top!', '➕');
+      const firstCell = tableBody.querySelector('.editable');
+      if (firstCell) firstCell.focus();
+    });
+
+    searchInput.addEventListener('input', () => {
+      renderTable();
+    });
+
+    function downloadExcel() {
+      if (!students || students.length === 0) {
+        alert('डाउनलोड करने के लिए कम से कम 1 छात्र का रिकॉर्ड होना चाहिए।');
+        return;
+      }
+
+      try {
+        const out = [
+          ['SN', 'Student Name', 'Birth Date', "Mother's Name", "Father's Name", 'Aadhaar Number', 'Mobile Number', 'ABHA Number']
+        ];
+
+        students.forEach((st, idx) => {
+          out.push([
+            String(idx + 1),
+            st.name || '',
+            st.dob || '',
+            st.mother || '',
+            st.father || '',
+            st.aadhaar || '',
+            st.mobile || '',
+            st.abha || ''
+          ]);
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(out);
+        ws['!cols'] = [
+          { wch: 8 },
+          { wch: 30 },
+          { wch: 18 },
+          { wch: 30 },
+          { wch: 30 },
+          { wch: 22 },
+          { wch: 18 },
+          { wch: 20 }
+        ];
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Student Master ABHA');
+
+        const exportName = `SHREE_RBSK_${originalFileName}_ABHA_Master.xlsx`;
+        XLSX.writeFile(wb, exportName);
+
+        showToast('ABHA Excel Downloaded!', '📥');
+        showStatus(`Excel फ़ाइल डाउनलोड हो गई! कुल छात्र: <b>${students.length}</b>`, 'ok');
+
+      } catch (err) {
+        alert('Download Error: ' + (err.message || 'Could not export Excel file.'));
+      }
+    }
+
+    downloadTopBtn.addEventListener('click', downloadExcel);
+    downloadBottomBtn.addEventListener('click', downloadExcel);
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) processFile(fileInput.files[0]);
+    });
+
+    removeFileBtn.addEventListener('click', () => {
+      fileInput.value = '';
+      fileInfo.style.display = 'none';
+      students = [];
+      tableBody.innerHTML = '';
+      editorSection.style.display = 'none';
+      clearStatus();
+      showToast('File removed', '🗑️');
+    });
+
+    ['dragenter', 'dragover'].forEach(ev => {
+      dropZone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(ev => {
+      dropZone.addEventListener(ev, e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      });
+    });
+
+    dropZone.addEventListener('drop', e => {
+      const f = e.dataTransfer.files[0];
+      if (f) processFile(f);
+    });
+  </script>
+</body>
+</html>
