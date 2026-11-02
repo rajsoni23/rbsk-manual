@@ -588,8 +588,10 @@
 
         <div class="header-badges">
           <a href="index.html" class="badge-pill" style="text-decoration:none; background:#0284c7; color:#fff; font-weight:700; border-color:#38bdf8;">📊 RBSK Screening Auto-Filler ↗</a>
+          <a href="/merge.html" class="badge-pill" style="text-decoration:none; background:#059669; color:#fff; font-weight:700; border-color:#34d399;" onclick="if(window.location.protocol==='file:'){ this.href='merge.html'; }">🔀 RBSK Data Merger (/merge.html) ↗</a>
           <div class="badge-pill">🔒 100% Client-Side Safe</div>
           <div class="badge-pill">⚡ Instant Live Edit & Delete</div>
+          <div class="badge-pill">📱 Strictly 10-Digit Mobile Fix</div>
           <div class="badge-pill">📊 Auto DD-MM-YYYY Fix</div>
         </div>
       </div>
@@ -802,6 +804,30 @@
       return String(row[idx]).trim();
     }
 
+    function cleanMobile(value) {
+      if (value === null || value === undefined || value === '') return '';
+      let s = String(value).trim();
+      // Remove Excel numeric/float suffixes like .0
+      s = s.replace(/\.0+$/, '');
+      // Strip any non-digit characters (spaces, dashes, parens, plus, etc.)
+      let digits = s.replace(/\D/g, '');
+      if (!digits) return '';
+
+      // If 11 digits and starts with '0' (e.g. 09876543210), strip the leading 0
+      if (digits.length === 11 && digits.startsWith('0')) {
+        return digits.slice(1);
+      }
+      // If 12 digits and starts with '91' (e.g. 919876543210), strip country code 91
+      if (digits.length === 12 && digits.startsWith('91')) {
+        return digits.slice(2);
+      }
+      // Strictly 10 digits: agar format me 11 digit (ya zyada) ho to last ke extra digits ko kaat ke 10 digit bana le
+      if (digits.length > 10) {
+        digits = digits.slice(0, 10);
+      }
+      return digits;
+    }
+
     function processFile(file) {
       originalFileName = file.name.replace(/\.(xlsx|xls)$/i, '');
       fileNameText.textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
@@ -845,7 +871,7 @@
             'Aadhaar Number (If any)', 'Aadhaar Number', 'Aadhar Number', 'Aadhaar', 'Aadhar', 'UID', 'आधार नंबर'
           ]);
           const colMobile = findColumn(headers, [
-            "Father's Mobile No", "Father's Mobile Number", "Mobile Number", "Mobile", "Contact No", "Phone", "मोबाइल नंबर"
+            "Father's Mobile No", "Father's Mobile Number", "Father Mobile No", "Father Mobile", "Mobile Number", "Mobile No", "Mobile", "Contact No", "Phone", "Mob", "मोबाइल नंबर"
           ]);
           const colAbha = findColumn(headers, [
             'ABHA Number', 'ABHA', 'Abha Number', 'ABHA ID'
@@ -858,7 +884,7 @@
             mother: getVal(r, colMother),
             father: getVal(r, colFather),
             aadhaar: getVal(r, colAadhaar),
-            mobile: getVal(r, colMobile),
+            mobile: cleanMobile(getVal(r, colMobile)),
             abha: colAbha >= 0 ? getVal(r, colAbha) : ''
           }));
 
@@ -938,7 +964,12 @@
         cell.addEventListener('blur', function() {
           const rowId = this.parentElement.id;
           const field = this.getAttribute('data-field');
-          const value = this.innerText.trim();
+          let value = this.innerText.trim();
+
+          if (field === 'mobile') {
+            value = cleanMobile(value);
+            this.innerText = value;
+          }
 
           const targetStudent = students.find(s => s.id === rowId);
           if (targetStudent && targetStudent[field] !== value) {
@@ -1019,7 +1050,7 @@
             st.mother || '',
             st.father || '',
             st.aadhaar || '',
-            st.mobile || '',
+            cleanMobile(st.mobile) || '',
             st.abha || ''
           ]);
         });
