@@ -79,11 +79,24 @@
         .tab-pane.active { display: block; }
 
         /* Table */
-        .table-responsive { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+        .table-responsive { max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-        th { background: #f1f5f9; padding: 10px 12px; font-weight: 600; color: #475569; position: sticky; top: 0; border-bottom: 1px solid var(--border); z-index: 1; }
-        td { padding: 9px 12px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+        th { background: #f1f5f9; padding: 10px 12px; font-weight: 600; color: #475569; position: sticky; top: 0; border-bottom: 1px solid var(--border); z-index: 2; white-space: nowrap; }
+        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; }
         tr:hover td { background: #f8fafc; }
+        
+        /* Editable Cells */
+        td[contenteditable="true"] { cursor: cell; outline: none; transition: background 0.15s, box-shadow 0.15s; }
+        td[contenteditable="true"]:hover { background-color: #f1f5f9; }
+        td[contenteditable="true"]:focus { background-color: #f0fdf4 !important; box-shadow: inset 0 0 0 2px #2563eb; border-radius: 2px; }
+        td.cell-edited { background-color: #ecfdf5 !important; font-weight: 600; }
+        
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+        .search-input { padding: 9px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 340px; max-width: 100%; outline: none; }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 99999; display: none; align-items: center; gap: 8px; border-left: 4px solid #10b981; }
+        .badge-who { font-size: 10px; background: #dcfce7; color: #166534; padding: 1px 4px; border-radius: 3px; font-weight: 700; margin-left: 4px; display: inline-block; }
+        
         .pill { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; display: inline-block; }
         .pill-defect { background: #fee2e2; color: #991b1b; }
         .pill-healthy { background: #dcfce7; color: #166534; }
@@ -110,13 +123,11 @@
         <h1>📊 RBSK Child Screening - Data Merger & Auto-Fill</h1>
         <p>Physical health checkup register (AI-extracted sheet) se actual RBSK upload format template me real Weight, Height, HB, Defect mapping aur New Student Registration karne ka automated single-page tool.</p>
         <div class="badge-bar">
-             <a href="formatabha.html" class="top-nav-btn abha-btn" title="School to ABHA Excel Converter & Editor">
-                <span>🆔</span> ABHA Formatter ↗
-            </a>
-            
+            <a href="formatabha.html" class="badge" style="text-decoration:none; background:rgba(255,255,255,0.3); color:#fff; font-weight:700;">🆔 ABHA Formatter (formatabha.html) ↗</a>
+            <a href="autofiller with weight and height and etc.html" class="badge" style="text-decoration:none; background:rgba(255,255,255,0.3); color:#fff; font-weight:700;">⚡ RBSK Screening Auto-Filler ↗</a>
             <span class="badge">🔒 100% Client-Side Safe</span>
-            <span class="badge">⚡ Zero-Server / Offline Ready</span>
-            <span class="badge">📐 Strictly YYYY-MM-DD Dates</span>
+            <span class="badge">🛡️ Dropdowns & Validations Preserved</span>
+            <span class="badge">📏 WHO Growth Standards Active</span>
         </div>
     </div>
 
@@ -147,6 +158,14 @@
         <div class="options-title">Automation & Quality Settings</div>
         <div class="options-grid">
             <label class="option-item">
+                <input type="checkbox" id="optAutoFillMissing" checked>
+                <span><strong>📏⚖️ WHO/RBSK Auto-Fill:</strong> Missing Height & Weight auto-fill karein</span>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" id="optFillMissingHb" checked>
+                <span><strong>🩸 Hb Auto-Fill:</strong> Missing Hb auto-fill karein</span>
+            </label>
+            <label class="option-item">
                 <input type="checkbox" id="optCalcAge" checked>
                 <span>DOB se exact Age auto calculate karein</span>
             </label>
@@ -156,12 +175,44 @@
             </label>
             <label class="option-item">
                 <input type="checkbox" id="optDefaultBP" checked>
-                <span>Naye bacho ke liye Normal BP (106/70) bharein</span>
+                <span>Naye bacho ke liye Normal BP (Age-wise) bharein</span>
             </label>
             <label class="option-item">
                 <input type="checkbox" id="optDefaultVision" checked>
                 <span>Naye bacho ke liye Normal Vision (6/6) bharein</span>
             </label>
+
+            <!-- Hb Target Range & Auto-Defect Calculation -->
+            <div class="option-item" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-top:4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>
+                        <strong style="color:#0f172a;">🩸 Hemoglobin (Hb) Target Range & Defect Calculation:</strong>
+                        <div style="font-size:12px; color:#64748b; margin-top:2px;">Missing Hb kis target range me bharein aur uske hisab se Anaemia defect auto-calculate karein:</div>
+                    </div>
+                    <select id="optHbRange" onchange="toggleCustomHb(this.value)" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#0f172a; background:#fff; outline:none; cursor:pointer;">
+                        <option value="normal" selected>Normal (11.5 - 13.8 g/dL) ➔ Healthy</option>
+                        <option value="mild">Mild Anaemia (10.0 - 11.4 g/dL) ➔ 51. Mild Anaemia</option>
+                        <option value="moderate">Moderate Anaemia (7.0 - 9.9 g/dL) ➔ 52. Moderate Anaemia</option>
+                        <option value="custom">Custom Range (Aapke mutabiq)</option>
+                    </select>
+                </div>
+                <div id="customHbRow" style="display:none; align-items:center; gap:8px; padding-top:6px; border-top:1px dashed #cbd5e1;">
+                    <span style="font-size:12px; font-weight:600;">Custom Min Hb:</span>
+                    <input type="number" id="customHbMin" step="0.1" value="11.5" style="width:70px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px;">
+                    <span style="font-size:12px; font-weight:600;">Max Hb:</span>
+                    <input type="number" id="customHbMax" step="0.1" value="13.5" style="width:70px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px;">
+                </div>
+                <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; font-size:12px; color:#475569;">
+                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                        <input type="checkbox" id="optHbAutoDefect" checked>
+                        <span><strong>Auto Defect by Hb:</strong> Agar physical defect na ho to Hb &lt; 11.5 par Anaemia defect auto-mark karein</span>
+                    </label>
+                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                        <input type="checkbox" id="optHbDecimals" checked>
+                        <span>Allow 1 Decimal Place (jaise 12.4, 11.8)</span>
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -172,12 +223,12 @@
         </button>
     </div>
 
-    <!-- Results Section -->
+    <!-- Results / Editable Spreadsheet Section -->
     <div class="results-card" id="resultsSection">
         <div class="results-header">
             <div>
-                <h2 style="font-size: 20px; font-weight: 700;">✅ Processing Complete!</h2>
-                <p style="font-size: 13px; color: var(--text-muted);">Data successfully merge ho chuka hai aur sabhi dropdowns intact hain.</p>
+                <h2 id="resultsTitle" style="font-size: 20px; font-weight: 700;">✅ RBSK Screening Spreadsheet</h2>
+                <p id="resultsSubtitle" style="font-size: 13px; color: var(--text-muted);">Data successfully loaded. Click any cell to edit — edits are live and auto-sync to Excel.</p>
             </div>
             <button id="btnDownload" class="btn-download" onclick="downloadMergedFile()">
                 <span>📥 Download Updated RBSK Sheet (.xlsx)</span>
@@ -201,17 +252,64 @@
                 <div class="stat-num" id="statAppended">0</div>
                 <div class="stat-label">New Registrations Added</div>
             </div>
+            <div class="stat-box highlight" style="background: #eff6ff; border-color: #bfdbfe;">
+                <div class="stat-num" id="statAutoFilled" style="color: #1d4ed8;">0</div>
+                <div class="stat-label">Auto-Filled (Missing H/W)</div>
+            </div>
+        </div>
+
+        <!-- Table Toolbar: Search & Badges -->
+        <div class="table-toolbar">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search any student by Name, PEN, Class, Defect, Mobile..." oninput="onFilterTable(this.value)">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">✏️ Live Editable (Click cell to edit)</span>
+                <span id="searchResultCount" style="font-size:12px; color:#64748b; font-weight:600;"></span>
+            </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs-bar">
-            <button class="tab-btn active" onclick="switchTab('tabMatched')">Matched & Updated (<span id="countTabMatched">0</span>)</button>
-            <button class="tab-btn" onclick="switchTab('tabAppended')">New Registrations (<span id="countTabAppended">0</span>)</button>
-            <button class="tab-btn" onclick="switchTab('tabDefects')">Defects & Referrals (<span id="countTabDefects">0</span>)</button>
+            <button class="tab-btn active" data-tab="tabAll" onclick="switchTab('tabAll')">📑 Full RBSK Sheet (<span id="countTabAll">0</span>)</button>
+            <button class="tab-btn" data-tab="tabMatched" onclick="switchTab('tabMatched')">Matched & Updated (<span id="countTabMatched">0</span>)</button>
+            <button class="tab-btn" data-tab="tabAppended" onclick="switchTab('tabAppended')">New Registrations (<span id="countTabAppended">0</span>)</button>
+            <button class="tab-btn" data-tab="tabDefects" onclick="switchTab('tabDefects')">Defects & Referrals (<span id="countTabDefects">0</span>)</button>
+        </div>
+
+        <!-- Tab 0: Full RBSK Sheet (All Rows) -->
+        <div class="tab-pane active" id="tabAll">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>SN</th>
+                            <th>PEN ID</th>
+                            <th>Student Name</th>
+                            <th>Gender</th>
+                            <th>DOB</th>
+                            <th>Age</th>
+                            <th>Class</th>
+                            <th>Mobile</th>
+                            <th>Weight</th>
+                            <th>Height</th>
+                            <th>High BP</th>
+                            <th>Low BP</th>
+                            <th>BP</th>
+                            <th>Vision L</th>
+                            <th>Vision R</th>
+                            <th>HB</th>
+                            <th>Official Defect</th>
+                            <th>Referred Facility</th>
+                            <th>Father's Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyAll"></tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Tab 1: Matched -->
-        <div class="tab-pane active" id="tabMatched">
+        <div class="tab-pane" id="tabMatched">
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -278,19 +376,50 @@
     </div>
 </div>
 
+<!-- Floating Toast Notification -->
+<div id="editToast" class="toast">✓ Edit saved in memory! Download Excel to export.</div>
+
 <script>
 let fileFormatBuffer = null;
 let fileUserBuffer = null;
 let mergedBlob = null;
 let mergedFileName = "actual format to be filled into_UPDATED.xlsx";
+let globalZipFormat = null;
+let globalFormatDoc = null;
+let globalSheetNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+let allRowsData = [];
+
+function toggleCustomHb(val) {
+    const row = document.getElementById('customHbRow');
+    if (row) row.style.display = (val === 'custom') ? 'flex' : 'none';
+}
+
+function showEditToast(msg) {
+    const t = document.getElementById('editToast');
+    if (!t) return;
+    t.innerText = msg;
+    t.style.display = 'flex';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (btn) btn.classList.add('active');
+    const pane = document.getElementById(tabId);
+    if (pane) pane.classList.add('active');
+}
 
 // Setup Drag & Drop
-setupDropZone('dropFormat', 'inputFormat', (file, buf) => {
+setupDropZone('dropFormat', 'inputFormat', async (file, buf) => {
     fileFormatBuffer = buf;
     document.getElementById('dropFormat').classList.add('loaded');
     document.getElementById('statusFormat').innerText = '✓ ' + file.name;
     mergedFileName = file.name.replace(/\.xlsx$/i, '') + '_UPDATED.xlsx';
     checkCanProcess();
+    await previewInitialFormat(file, buf);
 });
 
 setupDropZone('dropUser', 'inputUser', (file, buf) => {
@@ -342,11 +471,177 @@ function showAlert(msg, isError = false) {
     box.style.display = 'block';
 }
 
-function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    event.target.classList.add('active');
-    document.getElementById(tabId).classList.add('active');
+function setXmlCell(rowElem, colLetter, rNum, value, style, formula) {
+    if (!globalFormatDoc) return;
+    let c = rowElem.querySelector(`c[r="${colLetter}${rNum}"]`);
+    if (!c) {
+        c = globalFormatDoc.createElementNS(globalSheetNs, 'c');
+        c.setAttribute('r', colLetter + rNum);
+        c.setAttribute('t', 'str');
+        if (style) c.setAttribute('s', style);
+        rowElem.appendChild(c);
+    }
+    if (style && !c.getAttribute('s')) c.setAttribute('s', style);
+    if (formula) {
+        let f = c.getElementsByTagName('f')[0];
+        if (!f) {
+            f = globalFormatDoc.createElementNS(globalSheetNs, 'f');
+            c.appendChild(f);
+        }
+        f.textContent = formula;
+    }
+    let v = c.getElementsByTagName('v')[0];
+    if (!v) {
+        v = globalFormatDoc.createElementNS(globalSheetNs, 'v');
+        c.appendChild(v);
+    }
+    v.textContent = (value !== undefined && value !== null) ? String(value) : '';
+}
+
+function saveCellEdit(rNum, colLetter, val) {
+    if (!globalFormatDoc) return;
+    const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+    const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
+    if (!rowElem) return;
+
+    let finalVal = String(val || '').replace(/WHO/g, '').trim();
+
+    // 1. Column-specific normalizations
+    if (colLetter === 'G') {
+        finalVal = mapClass(finalVal);
+    } else if (colLetter === 'H') {
+        finalVal = cleanMobile(finalVal);
+    }
+
+    setXmlCell(rowElem, colLetter, rNum, finalVal);
+
+    // 2. In-memory master array update
+    const item = allRowsData.find(x => x.rowNum == rNum);
+    if (item) item[colLetter] = finalVal;
+
+    // 3. Recalculate BP if L or M is modified
+    if (colLetter === 'L' || colLetter === 'M') {
+        const cL = rowElem.querySelector(`c[r="L${rNum}"] v`)?.textContent || '';
+        const cM = rowElem.querySelector(`c[r="M${rNum}"] v`)?.textContent || '';
+        const bpStr = (cL && cM) ? `${cL}/${cM}` : '';
+        setXmlCell(rowElem, 'N', rNum, bpStr, null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
+        if (item) item.N = bpStr;
+        document.querySelectorAll(`td[data-row="${rNum}"][data-col="N"]`).forEach(td => td.innerText = bpStr);
+    }
+
+    // 4. Auto-classify Anemia Defect if Q (Hb) is modified
+    if (colLetter === 'Q') {
+        const optHbAutoDefect = document.getElementById('optHbAutoDefect');
+        if (!optHbAutoDefect || optHbAutoDefect.checked) {
+            const currentDefect = rowElem.querySelector(`c[r="S${rNum}"] v`)?.textContent || '';
+            if (!currentDefect || currentDefect === 'Healthy' || currentDefect.includes('Anaemia') || currentDefect.includes('Anemia')) {
+                const hbDef = calculateDefectFromHb(finalVal);
+                if (hbDef) {
+                    setXmlCell(rowElem, 'S', rNum, hbDef.defect);
+                    setXmlCell(rowElem, 'R', rNum, hbDef.facility);
+                    if (item) {
+                        item.S = hbDef.defect;
+                        item.R = hbDef.facility;
+                    }
+                    document.querySelectorAll(`td[data-row="${rNum}"][data-col="S"]`).forEach(td => {
+                        td.innerHTML = `<span class="pill ${hbDef.defect === 'Healthy' ? 'pill-healthy' : 'pill-defect'}">${hbDef.defect}</span>`;
+                    });
+                    document.querySelectorAll(`td[data-row="${rNum}"][data-col="R"]`).forEach(td => td.innerText = hbDef.facility);
+                }
+            }
+        }
+    }
+
+    // Update active cell DOM if normalized
+    document.querySelectorAll(`td[data-row="${rNum}"][data-col="${colLetter}"]`).forEach(td => {
+        if (td.innerText.replace(/WHO/g, '').trim() !== finalVal) {
+            td.innerText = finalVal;
+        }
+        td.classList.add('cell-edited');
+    });
+
+    mergedBlob = null; // Invalidate cache so download generates fresh from globalFormatDoc
+    showEditToast(`✓ Row ${rNum} (${colLetter}) updated! Changes saved to Excel.`);
+}
+
+function onFilterTable(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#tbodyAll tr, #tbodyMatched tr, #tbodyAppended tr, #tbodyDefects tr');
+    let matchedCount = 0;
+    rows.forEach(tr => {
+        if (!q) {
+            tr.style.display = '';
+            matchedCount++;
+            return;
+        }
+        const text = tr.innerText.toLowerCase();
+        if (text.includes(q)) {
+            tr.style.display = '';
+            matchedCount++;
+        } else {
+            tr.style.display = 'none';
+        }
+    });
+
+    const countElem = document.getElementById('searchResultCount');
+    if (countElem) {
+        countElem.innerText = q ? `Found ${matchedCount} records` : '';
+    }
+}
+
+async function previewInitialFormat(file, buf) {
+    try {
+        if (typeof JSZip === 'undefined') return;
+        globalZipFormat = await JSZip.loadAsync(buf);
+        const formatSheetXml = await globalZipFormat.file('xl/worksheets/sheet1.xml').async('text');
+        globalFormatDoc = new DOMParser().parseFromString(formatSheetXml, 'text/xml');
+        globalSheetNs = globalFormatDoc.documentElement.namespaceURI || "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+        const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+        const rows = sheetData.getElementsByTagName('row');
+
+        allRowsData = [];
+        for (let i = 2; i < rows.length; i++) {
+            const rElem = rows[i];
+            const rNum = parseInt(rElem.getAttribute('r'), 10);
+            const cells = rElem.getElementsByTagName('c');
+            const rowObj = { rowNum: rNum };
+            for (let c of cells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                const v = c.getElementsByTagName('v')[0];
+                rowObj[colLetter] = v ? v.textContent.trim() : '';
+            }
+
+            // Normalize Class & Mobile if present
+            if (rowObj.G) {
+                const normG = mapClass(rowObj.G);
+                if (normG !== rowObj.G) {
+                    setXmlCell(rElem, 'G', rNum, normG);
+                    rowObj.G = normG;
+                }
+            }
+            if (rowObj.H) {
+                const cleanH = cleanMobile(rowObj.H);
+                if (cleanH !== rowObj.H) {
+                    setXmlCell(rElem, 'H', rNum, cleanH);
+                    rowObj.H = cleanH;
+                }
+            }
+
+            allRowsData.push(rowObj);
+        }
+
+        document.getElementById('statFormatTotal').innerText = allRowsData.length;
+        document.getElementById('countTabAll').innerText = allRowsData.length;
+        document.getElementById('resultsTitle').innerText = `📑 Loaded Format Sheet (${allRowsData.length} Students) — Live Editable`;
+        document.getElementById('resultsSubtitle').innerText = `Aap kisi bhi cell par click karke direct edit kar sakte hain. AI sheet upload karke 'Match & Merge' bhi kar sakte hain.`;
+
+        renderAllTables(allRowsData, [], [], []);
+        document.getElementById('resultsSection').style.display = 'block';
+        showEditToast(`✓ Format sheet loaded (${allRowsData.length} students). Click any cell to edit.`);
+    } catch (e) {
+        console.error("Initial preview error:", e);
+    }
 }
 
 // Cleaning & Mapping Helpers
@@ -380,13 +675,29 @@ function normalizeDate(str) {
 
 function mapClass(cls) {
     if (!cls) return "";
-    cls = String(cls).trim().toLowerCase();
-    if (cls.includes('sixth') || cls.includes('6')) return 'Class 6';
-    if (cls.includes('seventh') || cls.includes('7')) return 'Class 7';
-    if (cls.includes('eighth') || cls.includes('8')) return 'Class 8';
-    if (cls.includes('nineth') || cls.includes('ninth') || cls.includes('9')) return 'Class 9';
-    if (cls.includes('tenth') || cls.includes('10')) return 'Class 10';
-    return cls.charAt(0).toUpperCase() + cls.slice(1);
+    let s = String(cls).trim().toLowerCase();
+    s = s.replace(/^(class|std|standard|grade|कक्षा|वर्ग)\s*[-:]?\s*/i, '').trim();
+
+    if (/\b(twelfth|twelve|12th|12|xii)\b/i.test(s) || s === 'xii') return 'Class 12';
+    if (/\b(eleventh|eleven|11th|11|xi)\b/i.test(s) || s === 'xi') return 'Class 11';
+    if (/\b(tenth|ten|10th|10|x)\b/i.test(s) || s === 'x') return 'Class 10';
+    if (/\b(nineth|ninth|nine|9th|9|ix)\b/i.test(s) || s === 'ix') return 'Class 9';
+    if (/\b(eighth|eight|8th|8|viii)\b/i.test(s) || s === 'viii') return 'Class 8';
+    if (/\b(seventh|seven|7th|7|vii)\b/i.test(s) || s === 'vii') return 'Class 7';
+    if (/\b(sixth|six|6th|6|vi)\b/i.test(s) || s === 'vi') return 'Class 6';
+    if (/\b(fifth|five|5th|5|v)\b/i.test(s) || s === 'v') return 'Class 5';
+    if (/\b(fourth|four|4th|4|iv)\b/i.test(s) || s === 'iv') return 'Class 4';
+    if (/\b(third|three|3rd|3|iii)\b/i.test(s) || s === 'iii') return 'Class 3';
+    if (/\b(second|two|2nd|2|ii)\b/i.test(s) || s === 'ii') return 'Class 2';
+    if (/\b(first|one|1st|1|i)\b/i.test(s) || s === 'i') return 'Class 1';
+
+    if (s.includes('balvatika') || s.includes('bal vatika') || s.includes('balwadi')) return 'Balvatika';
+    if (s.includes('nursery') || s.includes('nur')) return 'Nursery';
+    if (s.includes('lkg') || s.includes('l.k.g')) return 'LKG';
+    if (s.includes('ukg') || s.includes('u.k.g')) return 'UKG';
+    if (s.includes('kg')) return 'KG';
+
+    return cls.trim();
 }
 
 function calculateAge(dobStr) {
@@ -404,41 +715,514 @@ function calculateAge(dobStr) {
     return `${years} years ${months} months`;
 }
 
+function cleanMobile(val) {
+    if (!val) return '';
+    let s = String(val).trim().replace(/\.0+$/, '');
+    let digits = s.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+    if (digits.length > 10) return digits.slice(0, 10);
+    return digits;
+}
+
+function generateTargetHb() {
+    const rangeType = document.getElementById('optHbRange') ? document.getElementById('optHbRange').value : 'normal';
+    const useDecimals = document.getElementById('optHbDecimals') ? document.getElementById('optHbDecimals').checked : true;
+    let min = 11.5;
+    let max = 13.8;
+
+    if (rangeType === 'mild') {
+        min = 10.0;
+        max = 11.4;
+    } else if (rangeType === 'moderate') {
+        min = 7.0;
+        max = 9.9;
+    } else if (rangeType === 'custom') {
+        min = parseFloat(document.getElementById('customHbMin')?.value) || 11.5;
+        max = parseFloat(document.getElementById('customHbMax')?.value) || 13.5;
+        if (min > max) { const tmp = min; min = max; max = tmp; }
+    }
+
+    const val = min + Math.random() * (max - min);
+    return useDecimals ? String(Number(val.toFixed(1))) : String(Math.round(val));
+}
+
+function calculateDefectFromHb(hbVal) {
+    if (!hbVal) return null;
+    const num = parseFloat(hbVal);
+    if (isNaN(num)) return null;
+
+    if (num < 7.0) {
+        return { defect: "53. Severe Anemia", facility: "DEIC" };
+    } else if (num < 10.0) {
+        return { defect: "52. Moderate Anaemia", facility: "Block Level Facility" };
+    } else if (num < 11.5) {
+        return { defect: "51. Mild Anaemia", facility: "Block Level Facility" };
+    } else {
+        return { defect: "Healthy", facility: "" };
+    }
+}
+
 function mapDefectAndFacility(rawDefect, hb) {
     const res = { defect: "Healthy", facility: "", phone: "", raw: rawDefect || "" };
-    if (!rawDefect) return res;
 
-    const phoneMatch = rawDefect.match(/(?:\b|\D)(\d{10})(?:\b|\D)/);
-    if (phoneMatch) res.phone = phoneMatch[1];
+    if (rawDefect) {
+        const phoneMatch = rawDefect.match(/(?:\b|\D)(\d{10,12})(?:\b|\D)/);
+        if (phoneMatch) res.phone = cleanMobile(phoneMatch[1]);
 
-    const dLower = rawDefect.toLowerCase();
-    if (dLower.includes('cataract') || dLower.includes('phaco')) {
-        res.defect = "6. Congenital Cataract";
-        res.facility = "DEIC";
-    } else if (dLower.includes('anemic') || dLower.includes('anemia')) {
-        res.defect = "52. Moderate Anaemia";
-        res.facility = "Block Level Facility";
-    } else if (dLower.includes('squint')) {
-        res.defect = "50. Congenital Eye Problems";
-        res.facility = "DEIC";
-    } else if (dLower.includes('r.e') || dLower.includes('re') || dLower.includes('refractive')) {
-        res.defect = "49. Referactive Problems";
-        res.facility = "Block Level Facility";
-    } else if (dLower.includes('skin')) {
-        res.defect = "15. Skin Conditions";
-        res.facility = "Block Level Facility";
-    } else if (dLower.includes('ear') || dLower.includes('otitis')) {
-        res.defect = "16. Otitis Media";
-        res.facility = "Block Level Facility";
-    } else if (dLower.includes('dental') || dLower.includes('caries')) {
-        res.defect = "19. Dental Conditions";
-        res.facility = "Block Level Facility";
-    } else if (dLower.includes('heart')) {
-        res.defect = "8. Congenital Heart Disease";
-        res.facility = "DEIC";
+        const dLower = rawDefect.toLowerCase();
+        if (dLower.includes('cataract') || dLower.includes('phaco')) {
+            res.defect = "6. Congenital Cataract";
+            res.facility = "DEIC";
+        } else if (dLower.includes('severe') && (dLower.includes('anem') || dLower.includes('anemic'))) {
+            res.defect = "53. Severe Anemia";
+            res.facility = "DEIC";
+        } else if (dLower.includes('anemic') || dLower.includes('anemia') || dLower.includes('anaemia')) {
+            res.defect = "52. Moderate Anaemia";
+            res.facility = "Block Level Facility";
+        } else if (dLower.includes('squint')) {
+            res.defect = "50. Congenital Eye Problems";
+            res.facility = "DEIC";
+        } else if (dLower.includes('r.e') || dLower.includes('re') || dLower.includes('refractive') || dLower.includes('vision') || dLower.includes('glasses')) {
+            res.defect = "49. Referactive Problems";
+            res.facility = "Block Level Facility";
+        } else if (dLower.includes('skin') || dLower.includes('scabies') || dLower.includes('eczema')) {
+            res.defect = "15. Skin Conditions";
+            res.facility = "Block Level Facility";
+        } else if (dLower.includes('ear') || dLower.includes('otitis')) {
+            res.defect = "16. Otitis Media";
+            res.facility = "Block Level Facility";
+        } else if (dLower.includes('dental') || dLower.includes('caries') || dLower.includes('teeth')) {
+            res.defect = "19. Dental Conditions";
+            res.facility = "Block Level Facility";
+        } else if (dLower.includes('heart') || dLower.includes('chd')) {
+            res.defect = "8. Congenital Heart Disease";
+            res.facility = "DEIC";
+        } else if (dLower.includes('cleft')) {
+            res.defect = "2. Cleft Lip/Palate";
+            res.facility = "DEIC";
+        } else if (dLower.includes('club') || dLower.includes('foot')) {
+            res.defect = "3. Club Foot";
+            res.facility = "DEIC";
+        }
     }
+
+    // Auto Defect by Hb if no specific anatomical/physical defect detected
+    const optHbAutoDefect = document.getElementById('optHbAutoDefect');
+    const autoDefectActive = optHbAutoDefect ? optHbAutoDefect.checked : true;
+    if (res.defect === "Healthy" && hb && autoDefectActive) {
+        const hbDef = calculateDefectFromHb(hb);
+        if (hbDef && hbDef.defect !== "Healthy") {
+            res.defect = hbDef.defect;
+            res.facility = hbDef.facility;
+        }
+    }
+
     return res;
 }
+
+// --- WHO & RBSK Growth Computation Engine (Exact growthCore.js) ---
+const GROWTH_DATA_BOYS = {
+    // Months (2m to 11m) - WHO Child Growth Standards (Whole Numbers, No BP, No Hb, Normal WHO Head & MUAC)
+    "2m": { h: 58, w: 6, head: 39.0, muac: 13.5, bp: "", hb: "" },
+    "3m": { h: 61, w: 6, head: 40.5, muac: 13.5, bp: "", hb: "" },
+    "4m": { h: 64, w: 7, head: 41.6, muac: 13.5, bp: "", hb: "" },
+    "5m": { h: 66, w: 8, head: 42.6, muac: 13.5, bp: "", hb: "" },
+    "6m": { h: 68, w: 8, head: 43.3, muac: 13.5, bp: "", hb: "" },
+    "7m": { h: 69, w: 8, head: 44.0, muac: 13.5, bp: "", hb: "" },
+    "8m": { h: 71, w: 9, head: 44.5, muac: 13.5, bp: "", hb: "" },
+    "9m": { h: 72, w: 9, head: 45.0, muac: 13.5, bp: "", hb: "" },
+    "10m": { h: 73, w: 9, head: 45.4, muac: 13.5, bp: "", hb: "" },
+    "11m": { h: 75, w: 9, head: 45.8, muac: 13.5, bp: "", hb: "" },
+
+    // Years 1 to 5 - RBSK / Indian Reference Standards (No BP, No Hb, Whole Numbers, Normal WHO Head & MUAC)
+    1: { h: 76, w: 10, head: 46.1, muac: 13.5, bp: "", hb: "" },
+    2: { h: 88, w: 12, head: 48.3, muac: 13.5, bp: "", hb: "" },
+    3: { h: 97, w: 14, head: 49.5, muac: 13.5, bp: "", hb: "" },
+    4: { h: 105, w: 16, head: 50.4, muac: 13.5, bp: "", hb: "" },
+    5: { h: 111, w: 18, head: 51.1, muac: 13.5, bp: "", hb: "" },
+
+    // Years 6 to 20 - RBSK / Indian & WHO Reference Standards (Realistic Natural Heights & Weights)
+    6: { h: 116, w: 21, head: null, muac: null, bp: "98/65", hb: 12 },
+    7: { h: 121, w: 23, head: null, muac: null, bp: "100/66", hb: 12 },
+    8: { h: 127, w: 26, head: null, muac: null, bp: "102/68", hb: 12 },
+    9: { h: 132, w: 28, head: null, muac: null, bp: "104/68", hb: 13 },
+    10: { h: 137, w: 32, head: null, muac: null, bp: "106/70", hb: 13 },
+    11: { h: 143, w: 36, head: null, muac: null, bp: "108/70", hb: 13 },
+    12: { h: 149, w: 40, head: null, muac: null, bp: "110/72", hb: 13 },
+    13: { h: 156, w: 45, head: null, muac: null, bp: "112/72", hb: 13 },
+    14: { h: 163, w: 50, head: null, muac: null, bp: "114/74", hb: 13 },
+    15: { h: 169, w: 56, head: null, muac: null, bp: "115/74", hb: 14 },
+    16: { h: 173, w: 61, head: null, muac: null, bp: "116/75", hb: 14 },
+    17: { h: 175, w: 64, head: null, muac: null, bp: "116/75", hb: 14 },
+    18: { h: 176, w: 66, head: null, muac: null, bp: "118/76", hb: 14 },
+    19: { h: 177, w: 67, head: null, muac: null, bp: "118/76", hb: 14 },
+    20: { h: 177, w: 68, head: null, muac: null, bp: "118/76", hb: 14 }
+};
+
+const GROWTH_DATA_GIRLS = {
+    // Months (2m to 11m) - WHO Child Growth Standards (Whole Numbers, No BP, No Hb, Normal WHO Head & MUAC)
+    "2m": { h: 57, w: 5, head: 38.2, muac: 13.5, bp: "", hb: "" },
+    "3m": { h: 60, w: 6, head: 39.5, muac: 13.5, bp: "", hb: "" },
+    "4m": { h: 62, w: 6, head: 40.6, muac: 13.5, bp: "", hb: "" },
+    "5m": { h: 64, w: 7, head: 41.5, muac: 13.5, bp: "", hb: "" },
+    "6m": { h: 66, w: 7, head: 42.2, muac: 13.5, bp: "", hb: "" },
+    "7m": { h: 67, w: 8, head: 42.8, muac: 13.5, bp: "", hb: "" },
+    "8m": { h: 69, w: 8, head: 43.3, muac: 13.5, bp: "", hb: "" },
+    "9m": { h: 70, w: 8, head: 43.8, muac: 13.5, bp: "", hb: "" },
+    "10m": { h: 72, w: 9, head: 44.2, muac: 13.5, bp: "", hb: "" },
+    "11m": { h: 73, w: 9, head: 44.6, muac: 13.5, bp: "", hb: "" },
+
+    // Years 1 to 5 - RBSK / Indian Reference Standards (No BP, No Hb, Whole Numbers, Normal WHO Head & MUAC)
+    1: { h: 74, w: 9, head: 44.9, muac: 13.5, bp: "", hb: "" },
+    2: { h: 86, w: 12, head: 47.2, muac: 13.5, bp: "", hb: "" },
+    3: { h: 95, w: 14, head: 48.5, muac: 13.5, bp: "", hb: "" },
+    4: { h: 103, w: 16, head: 49.5, muac: 13.5, bp: "", hb: "" },
+    5: { h: 109, w: 18, head: 50.2, muac: 13.5, bp: "", hb: "" },
+
+    // Years 6 to 20 - RBSK / Indian & WHO Reference Standards (Realistic Natural Heights & Weights)
+    6: { h: 115, w: 20, head: null, muac: null, bp: "98/65", hb: 12 },
+    7: { h: 120, w: 22, head: null, muac: null, bp: "100/66", hb: 12 },
+    8: { h: 126, w: 25, head: null, muac: null, bp: "102/68", hb: 12 },
+    9: { h: 132, w: 28, head: null, muac: null, bp: "104/68", hb: 13 },
+    10: { h: 138, w: 32, head: null, muac: null, bp: "105/70", hb: 13 },
+    11: { h: 144, w: 36, head: null, muac: null, bp: "107/70", hb: 13 },
+    12: { h: 151, w: 41, head: null, muac: null, bp: "109/72", hb: 13 },
+    13: { h: 156, w: 46, head: null, muac: null, bp: "110/72", hb: 13 },
+    14: { h: 159, w: 49, head: null, muac: null, bp: "112/74", hb: 13 },
+    15: { h: 161, w: 52, head: null, muac: null, bp: "114/74", hb: 13 },
+    16: { h: 162, w: 53, head: null, muac: null, bp: "115/75", hb: 13 },
+    17: { h: 163, w: 54, head: null, muac: null, bp: "115/75", hb: 13 },
+    18: { h: 163, w: 55, head: null, muac: null, bp: "116/76", hb: 13 },
+    19: { h: 163, w: 55, head: null, muac: null, bp: "118/76", hb: 14 },
+    20: { h: 164, w: 56, head: null, muac: null, bp: "118/76", hb: 14 }
+};
+
+// Legacy alias for any code accessing GROWTH_DATA directly
+const GROWTH_DATA = GROWTH_DATA_BOYS;
+
+// Active customizable in-memory tables that default to standard WHO/RBSK references
+const ACTIVE_GROWTH_DATA_BOYS = JSON.parse(JSON.stringify(GROWTH_DATA_BOYS));
+const ACTIVE_GROWTH_DATA_GIRLS = JSON.parse(JSON.stringify(GROWTH_DATA_GIRLS));
+
+function syncCustomGrowthData(custom) {
+    if (!custom || typeof custom !== "object") return;
+    if (custom.boys && typeof custom.boys === "object") {
+        for (const k in custom.boys) {
+            ACTIVE_GROWTH_DATA_BOYS[k] = Object.assign({}, ACTIVE_GROWTH_DATA_BOYS[k] || {}, custom.boys[k]);
+        }
+    }
+    if (custom.girls && typeof custom.girls === "object") {
+        for (const k in custom.girls) {
+            ACTIVE_GROWTH_DATA_GIRLS[k] = Object.assign({}, ACTIVE_GROWTH_DATA_GIRLS[k] || {}, custom.girls[k]);
+        }
+    }
+}
+
+try {
+    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(["rbskCustomGrowthData"], (res) => {
+            if (res && res.rbskCustomGrowthData) {
+                syncCustomGrowthData(res.rbskCustomGrowthData);
+            }
+        });
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === "local" && changes.rbskCustomGrowthData) {
+                if (changes.rbskCustomGrowthData.newValue) {
+                    syncCustomGrowthData(changes.rbskCustomGrowthData.newValue);
+                } else {
+                    for (const k in ACTIVE_GROWTH_DATA_BOYS) delete ACTIVE_GROWTH_DATA_BOYS[k];
+                    for (const k in ACTIVE_GROWTH_DATA_GIRLS) delete ACTIVE_GROWTH_DATA_GIRLS[k];
+                    Object.assign(ACTIVE_GROWTH_DATA_BOYS, JSON.parse(JSON.stringify(GROWTH_DATA_BOYS)));
+                    Object.assign(ACTIVE_GROWTH_DATA_GIRLS, JSON.parse(JSON.stringify(GROWTH_DATA_GIRLS)));
+                }
+            }
+        });
+    }
+} catch (_) {}
+
+function normalizeGender(g) {
+    const s = String(g || "").toLowerCase().trim();
+    if (s.startsWith("f") || s.includes("girl") || s.includes("fem") || s.includes("female") || s.includes("stri") || s.includes("mahila")) {
+        return "female";
+    }
+    return "male";
+}
+
+function parseDetailedAge(ageStr) {
+    if (ageStr && typeof ageStr === "object" && ("years" in ageStr || "months" in ageStr)) {
+        return {
+            years: Number(ageStr.years || 0),
+            months: Number(ageStr.months || 0)
+        };
+    }
+    const str = String(ageStr || "").toLowerCase().trim();
+    if (!str) return { years: 1, months: 0 };
+
+    const yMatch = str.match(/(\d+)\s*(?:year|yr|y|वर्ष|साल)/);
+    const mMatch = str.match(/(\d+)\s*(?:month|mo|m|माह|महीने)/);
+
+    let years = yMatch ? parseInt(yMatch[1], 10) : 0;
+    let months = mMatch ? parseInt(mMatch[1], 10) : 0;
+
+    if (!yMatch && !mMatch && /^\d+(\.\d+)?$/.test(str)) {
+        const num = parseFloat(str);
+        years = Math.floor(num);
+        months = Math.round((num - years) * 12);
+    }
+
+    return { years, months };
+}
+
+// WHO Standard Reference Tables for Head Circumference (0 to 60 Months)
+const WHO_HC_DATA = {
+    male: [
+        { age: 0, m: 34.5, sd1neg: 33.2, sd1pos: 35.8, sd2neg: 31.9, sd2pos: 37.0 },
+        { age: 1, m: 37.3, sd1neg: 36.0, sd1pos: 38.6, sd2neg: 34.7, sd2pos: 39.8 },
+        { age: 2, m: 39.0, sd1neg: 37.7, sd1pos: 40.2, sd2neg: 36.4, sd2pos: 41.5 },
+        { age: 3, m: 40.5, sd1neg: 39.2, sd1pos: 41.8, sd2neg: 37.9, sd2pos: 43.0 },
+        { age: 4, m: 41.6, sd1neg: 40.2, sd1pos: 42.9, sd2neg: 38.9, sd2pos: 44.1 },
+        { age: 5, m: 42.6, sd1neg: 41.2, sd1pos: 43.9, sd2neg: 39.9, sd2pos: 45.1 },
+        { age: 6, m: 43.3, sd1neg: 42.1, sd1pos: 44.6, sd2neg: 40.8, sd2pos: 45.8 },
+        { age: 7, m: 44.0, sd1neg: 42.7, sd1pos: 45.2, sd2neg: 41.4, sd2pos: 46.4 },
+        { age: 8, m: 44.5, sd1neg: 43.2, sd1pos: 45.7, sd2neg: 41.9, sd2pos: 47.0 },
+        { age: 9, m: 45.0, sd1neg: 43.7, sd1pos: 46.2, sd2neg: 42.5, sd2pos: 47.5 },
+        { age: 10, m: 45.4, sd1neg: 44.1, sd1pos: 46.6, sd2neg: 42.9, sd2pos: 48.0 },
+        { age: 11, m: 45.8, sd1neg: 44.5, sd1pos: 47.0, sd2neg: 43.3, sd2pos: 48.4 },
+        { age: 12, m: 46.1, sd1neg: 44.8, sd1pos: 47.3, sd2neg: 43.6, sd2pos: 48.6 },
+        { age: 18, m: 47.4, sd1neg: 46.1, sd1pos: 48.6, sd2neg: 44.9, sd2pos: 49.9 },
+        { age: 24, m: 48.3, sd1neg: 47.0, sd1pos: 49.5, sd2neg: 45.8, sd2pos: 50.8 },
+        { age: 36, m: 49.5, sd1neg: 48.2, sd1pos: 50.8, sd2neg: 46.9, sd2pos: 52.1 },
+        { age: 48, m: 50.4, sd1neg: 49.1, sd1pos: 51.7, sd2neg: 47.8, sd2pos: 53.0 },
+        { age: 60, m: 51.1, sd1neg: 49.7, sd1pos: 52.4, sd2neg: 48.4, sd2pos: 53.7 }
+    ],
+    female: [
+        { age: 0, m: 33.9, sd1neg: 32.7, sd1pos: 35.1, sd2neg: 31.5, sd2pos: 36.2 },
+        { age: 1, m: 36.5, sd1neg: 35.2, sd1pos: 37.7, sd2neg: 34.0, sd2pos: 38.9 },
+        { age: 2, m: 38.2, sd1neg: 36.8, sd1pos: 39.4, sd2neg: 35.5, sd2pos: 40.5 },
+        { age: 3, m: 39.5, sd1neg: 38.2, sd1pos: 40.8, sd2neg: 36.9, sd2pos: 42.0 },
+        { age: 4, m: 40.6, sd1neg: 39.2, sd1pos: 41.8, sd2neg: 38.0, sd2pos: 43.0 },
+        { age: 5, m: 41.5, sd1neg: 40.1, sd1pos: 42.7, sd2neg: 38.8, sd2pos: 43.9 },
+        { age: 6, m: 42.2, sd1neg: 40.9, sd1pos: 43.5, sd2neg: 39.6, sd2pos: 44.8 },
+        { age: 7, m: 42.8, sd1neg: 41.5, sd1pos: 44.0, sd2neg: 40.2, sd2pos: 45.4 },
+        { age: 8, m: 43.3, sd1neg: 42.0, sd1pos: 44.5, sd2neg: 40.7, sd2pos: 45.9 },
+        { age: 9, m: 43.8, sd1neg: 42.5, sd1pos: 45.1, sd2neg: 41.2, sd2pos: 46.4 },
+        { age: 10, m: 44.2, sd1neg: 42.9, sd1pos: 45.5, sd2neg: 41.6, sd2pos: 46.8 },
+        { age: 11, m: 44.6, sd1neg: 43.3, sd1pos: 45.9, sd2neg: 42.0, sd2pos: 47.2 },
+        { age: 12, m: 44.9, sd1neg: 43.6, sd1pos: 46.2, sd2neg: 42.3, sd2pos: 47.5 },
+        { age: 18, m: 46.2, sd1neg: 44.9, sd1pos: 47.5, sd2neg: 43.6, sd2pos: 48.8 },
+        { age: 24, m: 47.2, sd1neg: 45.9, sd1pos: 48.5, sd2neg: 44.6, sd2pos: 49.8 },
+        { age: 36, m: 48.5, sd1neg: 47.1, sd1pos: 49.8, sd2neg: 45.8, sd2pos: 51.2 },
+        { age: 48, m: 49.5, sd1neg: 48.1, sd1pos: 50.8, sd2neg: 46.8, sd2pos: 52.2 },
+        { age: 60, m: 50.2, sd1neg: 48.8, sd1pos: 51.5, sd2neg: 47.5, sd2pos: 52.9 }
+    ]
+};
+
+function getWhoNormalHeadCircumference(totalMonths, gender) {
+    const g = normalizeGender(gender) === "female" ? "female" : "male";
+    const refList = WHO_HC_DATA[g];
+    let ref = refList[0];
+    for (let i = 0; i < refList.length; i++) {
+        if (totalMonths >= refList[i].age) {
+            ref = refList[i];
+        }
+    }
+    const naturalOffsets = [-0.2, -0.1, 0, 0.1, 0.2];
+    const offset = naturalOffsets[Math.floor(Math.random() * naturalOffsets.length)];
+    let val = Number((ref.m + offset).toFixed(1));
+    val = Math.max(ref.sd1neg + 0.1, Math.min(ref.sd1pos - 0.1, val));
+    return Number(val.toFixed(1));
+}
+
+function getWhoNormalMuac() {
+    const options = [13.2, 13.4, 13.5, 13.6, 13.8];
+    return options[Math.floor(Math.random() * options.length)];
+}
+
+const WHO_UNDER5_BOYS = {
+    0: { h: 50, w: 3 }, 1: { h: 55, w: 5 }, 2: { h: 58, w: 6 }, 3: { h: 61, w: 6 },
+    4: { h: 64, w: 7 }, 5: { h: 66, w: 8 }, 6: { h: 68, w: 8 }, 7: { h: 69, w: 8 },
+    8: { h: 71, w: 9 }, 9: { h: 72, w: 9 }, 10: { h: 73, w: 9 }, 11: { h: 75, w: 9 },
+    12: { h: 76, w: 10 }, 13: { h: 77, w: 10 }, 14: { h: 78, w: 10 }, 15: { h: 79, w: 10 },
+    16: { h: 80, w: 11 }, 17: { h: 81, w: 11 }, 18: { h: 82, w: 11 }, 19: { h: 83, w: 11 },
+    20: { h: 84, w: 11 }, 21: { h: 85, w: 12 }, 22: { h: 86, w: 12 }, 23: { h: 87, w: 12 },
+    24: { h: 88, w: 12 }, 25: { h: 89, w: 12 }, 26: { h: 89, w: 13 }, 27: { h: 90, w: 13 },
+    28: { h: 91, w: 13 }, 29: { h: 92, w: 13 }, 30: { h: 93, w: 13 }, 31: { h: 93, w: 14 },
+    32: { h: 94, w: 14 }, 33: { h: 95, w: 14 }, 34: { h: 96, w: 14 }, 35: { h: 96, w: 14 },
+    36: { h: 97, w: 14 }, 37: { h: 98, w: 15 }, 38: { h: 98, w: 15 }, 39: { h: 99, w: 15 },
+    40: { h: 100, w: 15 }, 41: { h: 100, w: 15 }, 42: { h: 101, w: 15 }, 43: { h: 102, w: 16 },
+    44: { h: 102, w: 16 }, 45: { h: 103, w: 16 }, 46: { h: 103, w: 16 }, 47: { h: 104, w: 16 },
+    48: { h: 105, w: 16 }, 49: { h: 105, w: 17 }, 50: { h: 106, w: 17 }, 51: { h: 106, w: 17 },
+    52: { h: 107, w: 17 }, 53: { h: 107, w: 17 }, 54: { h: 108, w: 17 }, 55: { h: 108, w: 18 },
+    56: { h: 109, w: 18 }, 57: { h: 110, w: 18 }, 58: { h: 110, w: 18 }, 59: { h: 111, w: 18 },
+    60: { h: 111, w: 18 }
+};
+
+const WHO_UNDER5_GIRLS = {
+    0: { h: 49, w: 3 }, 1: { h: 54, w: 4 }, 2: { h: 57, w: 5 }, 3: { h: 60, w: 6 },
+    4: { h: 62, w: 6 }, 5: { h: 64, w: 7 }, 6: { h: 66, w: 7 }, 7: { h: 67, w: 8 },
+    8: { h: 69, w: 8 }, 9: { h: 70, w: 8 }, 10: { h: 72, w: 9 }, 11: { h: 73, w: 9 },
+    12: { h: 74, w: 9 }, 13: { h: 75, w: 9 }, 14: { h: 76, w: 9 }, 15: { h: 78, w: 10 },
+    16: { h: 79, w: 10 }, 17: { h: 80, w: 10 }, 18: { h: 81, w: 10 }, 19: { h: 82, w: 10 },
+    20: { h: 83, w: 11 }, 21: { h: 84, w: 11 }, 22: { h: 85, w: 11 }, 23: { h: 86, w: 11 },
+    24: { h: 86, w: 12 }, 25: { h: 87, w: 12 }, 26: { h: 88, w: 12 }, 27: { h: 89, w: 12 },
+    28: { h: 90, w: 12 }, 29: { h: 90, w: 13 }, 30: { h: 91, w: 13 }, 31: { h: 92, w: 13 },
+    32: { h: 93, w: 13 }, 33: { h: 93, w: 13 }, 34: { h: 94, w: 14 }, 35: { h: 95, w: 14 },
+    36: { h: 95, w: 14 }, 37: { h: 96, w: 14 }, 38: { h: 97, w: 14 }, 39: { h: 97, w: 14 },
+    40: { h: 98, w: 15 }, 41: { h: 99, w: 15 }, 42: { h: 99, w: 15 }, 43: { h: 100, w: 15 },
+    44: { h: 101, w: 15 }, 45: { h: 101, w: 16 }, 46: { h: 102, w: 16 }, 47: { h: 102, w: 16 },
+    48: { h: 103, w: 16 }, 49: { h: 103, w: 16 }, 50: { h: 104, w: 16 }, 51: { h: 105, w: 17 },
+    52: { h: 105, w: 17 }, 53: { h: 106, w: 17 }, 54: { h: 106, w: 17 }, 55: { h: 107, w: 17 },
+    56: { h: 107, w: 18 }, 57: { h: 108, w: 18 }, 58: { h: 108, w: 18 }, 59: { h: 109, w: 18 },
+    60: { h: 109, w: 18 }
+};
+
+function getGrowthData(ageInput, genderInput = "male") {
+    const gender = normalizeGender(genderInput);
+    const table = gender === "female" ? ACTIVE_GROWTH_DATA_GIRLS : ACTIVE_GROWTH_DATA_BOYS;
+    const under5Table = gender === "female" ? WHO_UNDER5_GIRLS : WHO_UNDER5_BOYS;
+
+    const { years, months } = parseDetailedAge(ageInput);
+    const totalMonths = (years * 12) + (months || 0);
+
+    const isUnderFive = totalMonths > 0 ? totalMonths <= 60 : (years <= 5 && months === 0);
+
+    let data = null;
+    let ageKey = "";
+    let finalH = 0;
+    let finalW = 0;
+    let finalHead = null;
+    let finalMuac = null;
+    let finalBp = "";
+    let finalHb = "";
+
+    const getRandomOffset = () => [-1, 0, 1][Math.floor(Math.random() * 3)];
+
+    if (isUnderFive) {
+        const m = Math.max(1, Math.min(60, totalMonths || (years ? years * 12 : (months || 1))));
+        ageKey = `${m}m`;
+
+        const customEntry = table[ageKey] || (months === 0 && table[years]);
+        const whoEntry = under5Table[m] || under5Table[12];
+
+        const baseH = Math.round(Number(customEntry?.h || whoEntry.h) || 0);
+        const baseW = Math.round(Number(customEntry?.w || whoEntry.w) || 0);
+
+        finalH = baseH;
+        finalW = baseW;
+
+        finalHead = String(getWhoNormalHeadCircumference(m, gender));
+        finalMuac = String(getWhoNormalMuac());
+        finalBp = "";
+        finalHb = "";
+    } else {
+        let y = years;
+        if (y <= 5) y = 6;
+        y = Math.max(6, Math.min(20, y));
+        ageKey = String(y);
+
+        data = table[y] || table[6];
+        const baseH = Math.round(Number(data.h) || 120);
+        const baseW = Math.round(Number(data.w) || 22);
+
+        finalH = Math.max(100, baseH + getRandomOffset());
+        finalW = Math.max(15, baseW + getRandomOffset());
+
+        const hM = finalH / 100;
+        const curBmi = finalW / (hM * hM);
+        if (curBmi < 14.8) {
+            finalW = Math.ceil(15.2 * hM * hM);
+        } else if (curBmi > 23.0) {
+            finalW = Math.floor(22.0 * hM * hM);
+        }
+
+        if (data.bp) {
+            finalBp = String(data.bp).trim();
+        } else {
+            finalBp = "105/70";
+        }
+
+        const baseHb = Math.round(Number(data.hb) || 12);
+        finalHb = String(Math.max(11, Math.min(15, baseHb + getRandomOffset())));
+
+        finalHead = null;
+        finalMuac = null;
+    }
+
+    return {
+        gender: gender,
+        ageKey: ageKey,
+        isUnderFive: isUnderFive,
+        h: String(finalH),
+        w: String(finalW),
+        head: finalHead,
+        muac: finalMuac,
+        bp: finalBp,
+        hb: finalHb
+    };
+}
+
+function getStudentAgeInfo(dobVal, ageText, classText) {
+    if (dobVal) {
+        const dob = new Date(dobVal);
+        if (!isNaN(dob.getTime())) {
+            const now = new Date();
+            let years = now.getFullYear() - dob.getFullYear();
+            let months = now.getMonth() - dob.getMonth();
+            if (now.getDate() < dob.getDate()) months--;
+            if (months < 0) { years--; months += 12; }
+            if (years >= 0 && years <= 25) {
+                return { years, months, totalMonths: (years * 12) + months };
+            }
+        }
+    }
+    const ageStr = String(ageText || '').toLowerCase();
+    const yM = ageStr.match(/(\d+)\s*(?:year|yr|y|वर्ष|साल)/);
+    const mM = ageStr.match(/(\d+)\s*(?:month|mo|m|माह|महीने)/);
+    if (yM || mM) {
+        const y = yM ? parseInt(yM[1], 10) : 0;
+        const m = mM ? parseInt(mM[1], 10) : 0;
+        return { years: y, months: m, totalMonths: (y * 12) + m };
+    }
+    const clsStr = String(classText || '').toLowerCase();
+    const cM = clsStr.match(/\b(1[0-2]|[1-9])\b/);
+    if (cM) {
+        const y = parseInt(cM[1], 10) + 5;
+        return { years: y, months: 6, totalMonths: (y * 12) + 6 };
+    }
+    return { years: 10, months: 0, totalMonths: 120 };
+}
+
+function computeAutoGrowth(student) {
+    const ageInfo = getStudentAgeInfo(student.dob, student.age, student.class);
+    const growth = getGrowthData(ageInfo, student.gender || 'male');
+    return {
+        height: growth.h,
+        weight: growth.w,
+        hb: growth.hb || "12",
+        bp: growth.bp || "106/70",
+        head: growth.head,
+        muac: growth.muac
+    };
+}
+
+window.GROWTH_DATA = GROWTH_DATA;
+window.GROWTH_DATA_BOYS = GROWTH_DATA_BOYS;
+window.GROWTH_DATA_GIRLS = GROWTH_DATA_GIRLS;
+window.ACTIVE_GROWTH_DATA_BOYS = ACTIVE_GROWTH_DATA_BOYS;
+window.ACTIVE_GROWTH_DATA_GIRLS = ACTIVE_GROWTH_DATA_GIRLS;
+window.WHO_UNDER5_BOYS = WHO_UNDER5_BOYS;
+window.WHO_UNDER5_GIRLS = WHO_UNDER5_GIRLS;
+window.WHO_HC_DATA = WHO_HC_DATA;
+window.getWhoNormalHeadCircumference = getWhoNormalHeadCircumference;
+window.getWhoNormalMuac = getWhoNormalMuac;
+window.syncCustomGrowthData = syncCustomGrowthData;
+window.getGrowthData = getGrowthData;
+window.normalizeGender = normalizeGender;
+window.parseDetailedAge = parseDetailedAge;
+window.getStudentAgeInfo = getStudentAgeInfo;
+window.computeAutoGrowth = computeAutoGrowth;
 
 // Main Processing Engine
 async function processFiles() {
@@ -618,6 +1402,14 @@ async function processFiles() {
         const matchedUserIndices = new Set();
         const defectsList = [];
 
+        const optAutoFillMissing = document.getElementById('optAutoFillMissing').checked;
+        const optFillMissingHb = document.getElementById('optFillMissingHb').checked;
+        const optCalcAge = document.getElementById('optCalcAge').checked;
+        const optDefaultBP = document.getElementById('optDefaultBP').checked;
+        const optDefaultVision = document.getElementById('optDefaultVision').checked;
+        const optExtractPhone = document.getElementById('optExtractPhone').checked;
+        let autoFillCount = 0;
+
         for (let u of userStudents) {
             let match = formatStudents.find(f => f.normName === u.normName && f.dob === u.dobNorm);
             
@@ -633,14 +1425,38 @@ async function processFiles() {
                 const rNum = match.rowNum;
                 const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
 
-                if (u.weight) setCell(match.rowElem, match.cMap, 'J', rNum, u.weight);
-                if (u.height) setCell(match.rowElem, match.cMap, 'K', rNum, u.height);
-                if (u.hb) setCell(match.rowElem, match.cMap, 'Q', rNum, u.hb);
+                let w = u.weight || getCellVal(match.cMap, 'J');
+                let h = u.height || getCellVal(match.cMap, 'K');
+                let hb = u.hb || getCellVal(match.cMap, 'Q');
+
+                let wasWeightAuto = false;
+                let wasHeightAuto = false;
+                let wasHbAuto = false;
+
+                if (optAutoFillMissing) {
+                    if (!w || !h || (!hb && optFillMissingHb)) {
+                        const growth = computeAutoGrowth({
+                            dob: match.dob,
+                            age: getCellVal(match.cMap, 'F'),
+                            class: match.class,
+                            gender: getCellVal(match.cMap, 'D') || u.gender
+                        });
+                        if (!w) { w = growth.weight; wasWeightAuto = true; }
+                        if (!h) { h = growth.height; wasHeightAuto = true; }
+                        if (!hb && optFillMissingHb) { hb = growth.hb; wasHbAuto = true; }
+                    }
+                }
+                if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
+
+                if (w) setCell(match.rowElem, match.cMap, 'J', rNum, w);
+                if (h) setCell(match.rowElem, match.cMap, 'K', rNum, h);
+                if (hb) setCell(match.rowElem, match.cMap, 'Q', rNum, hb);
+
                 if (defectInfo.defect !== 'Healthy') {
                     setCell(match.rowElem, match.cMap, 'S', rNum, defectInfo.defect);
                     setCell(match.rowElem, match.cMap, 'R', rNum, defectInfo.facility);
                 }
-                if (defectInfo.phone && document.getElementById('optExtractPhone').checked) {
+                if (defectInfo.phone && optExtractPhone) {
                     setCell(match.rowElem, match.cMap, 'H', rNum, defectInfo.phone);
                 }
 
@@ -650,9 +1466,12 @@ async function processFiles() {
                     name: match.name,
                     dob: match.dob,
                     class: match.class,
-                    weight: u.weight || getCellVal(match.cMap, 'J'),
-                    height: u.height || getCellVal(match.cMap, 'K'),
-                    hb: u.hb || getCellVal(match.cMap, 'Q'),
+                    weight: w,
+                    height: h,
+                    hb: hb,
+                    wasWeightAuto: wasWeightAuto,
+                    wasHeightAuto: wasHeightAuto,
+                    wasHbAuto: wasHbAuto,
                     defect: defectInfo.defect,
                     facility: defectInfo.facility
                 });
@@ -681,11 +1500,6 @@ async function processFiles() {
         let nextSN = maxSN + 1;
         let nextRowNum = maxRowNum + 1;
 
-        const optCalcAge = document.getElementById('optCalcAge').checked;
-        const optDefaultBP = document.getElementById('optDefaultBP').checked;
-        const optDefaultVision = document.getElementById('optDefaultVision').checked;
-        const optExtractPhone = document.getElementById('optExtractPhone').checked;
-
         for (let u of userStudents) {
             if (matchedUserIndices.has(u.userRowIndex)) continue;
 
@@ -694,6 +1508,29 @@ async function processFiles() {
             const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
             const normCls = mapClass(u.class);
             const ageCalc = optCalcAge ? calculateAge(u.dobNorm) : '';
+
+            let w = u.weight;
+            let h = u.height;
+            let hb = u.hb;
+
+            let wasWeightAuto = false;
+            let wasHeightAuto = false;
+            let wasHbAuto = false;
+
+            if (optAutoFillMissing) {
+                if (!w || !h || (!hb && optFillMissingHb)) {
+                    const growth = computeAutoGrowth({
+                        dob: u.dobNorm,
+                        age: ageCalc,
+                        class: normCls,
+                        gender: u.gender
+                    });
+                    if (!w) { w = growth.weight; wasWeightAuto = true; }
+                    if (!h) { h = growth.height; wasHeightAuto = true; }
+                    if (!hb && optFillMissingHb) { hb = growth.hb; wasHbAuto = true; }
+                }
+            }
+            if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
 
             const rowElem = formatDoc.createElementNS(sheetNs, 'row');
             rowElem.setAttribute('r', String(rNum));
@@ -723,14 +1560,14 @@ async function processFiles() {
             addC('G', normCls);                                      // Class
             addC('H', optExtractPhone ? defectInfo.phone : '');      // Mobile
             addC('I', '');                                           // Address
-            addC('J', u.weight);                                     // Weight
-            addC('K', u.height);                                     // Height
+            addC('J', w || '');                                      // Weight
+            addC('K', h || '');                                      // Height
             addC('L', optDefaultBP ? '106' : '');                    // High
             addC('M', optDefaultBP ? '70' : '');                     // Low
             addC('N', optDefaultBP ? '106/70' : '', null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`); // BP
             addC('O', optDefaultVision ? '6/6' : '', '1');           // Vision L
             addC('P', optDefaultVision ? '6/6' : '', '1');           // Vision R
-            addC('Q', u.hb);                                         // HB
+            addC('Q', hb || '');                                     // HB
             addC('R', defectInfo.facility);                          // Facility
             addC('S', defectInfo.defect);                            // Defect
             addC('T', '');                                           // Mother
@@ -746,9 +1583,12 @@ async function processFiles() {
                 age: ageCalc,
                 class: normCls,
                 father: u.father,
-                weight: u.weight,
-                height: u.height,
-                hb: u.hb,
+                weight: w,
+                height: h,
+                hb: hb,
+                wasWeightAuto: wasWeightAuto,
+                wasHeightAuto: wasHeightAuto,
+                wasHbAuto: wasHbAuto,
                 defect: defectInfo.defect
             });
 
@@ -764,10 +1604,78 @@ async function processFiles() {
             }
         }
 
+        // Auto-fill missing height/weight in format template rows that had no match
+        if (optAutoFillMissing) {
+            for (let f of formatStudents) {
+                if (matchedList.some(m => m.row === f.rowNum)) continue;
+                let curW = getCellVal(f.cMap, 'J');
+                let curH = getCellVal(f.cMap, 'K');
+                let curHb = getCellVal(f.cMap, 'Q');
+
+                if (!curW || !curH || (!curHb && optFillMissingHb)) {
+                    const growth = computeAutoGrowth({
+                        dob: f.dob,
+                        age: getCellVal(f.cMap, 'F'),
+                        class: f.class,
+                        gender: getCellVal(f.cMap, 'D') || 'male'
+                    });
+                    let touched = false;
+                    if (!curW) { setCell(f.rowElem, f.cMap, 'J', f.rowNum, growth.weight); touched = true; }
+                    if (!curH) { setCell(f.rowElem, f.cMap, 'K', f.rowNum, growth.height); touched = true; }
+                    if (!curHb && optFillMissingHb) { setCell(f.rowElem, f.cMap, 'Q', f.rowNum, growth.hb); touched = true; }
+                    if (touched) autoFillCount++;
+                }
+            }
+        }
+
+        // Clean mobile numbers in existing format rows to strictly 10 digits
+        for (let f of formatStudents) {
+            let mVal = getCellVal(f.cMap, 'H');
+            if (mVal) {
+                let cleaned = cleanMobile(mVal);
+                if (cleaned && cleaned !== mVal) {
+                    setCell(f.rowElem, f.cMap, 'H', f.rowNum, cleaned);
+                }
+            }
+        }
+
         // Update Dimension
         const dim = formatDoc.getElementsByTagName('dimension')[0];
         if (dim) {
             dim.setAttribute('ref', `A1:U${nextRowNum - 1}`);
+        }
+
+        globalZipFormat = zipFormat;
+        globalFormatDoc = formatDoc;
+        globalSheetNs = sheetNs;
+
+        // Populate allRowsData from final XML rows for full editable view
+        allRowsData = [];
+        const finalRows = sheetData.getElementsByTagName('row');
+        for (let i = 2; i < finalRows.length; i++) {
+            const rElem = finalRows[i];
+            const rNum = parseInt(rElem.getAttribute('r'), 10);
+            const cells = rElem.getElementsByTagName('c');
+            const rowObj = { rowNum: rNum };
+            for (let c of cells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                const v = c.getElementsByTagName('v')[0];
+                rowObj[colLetter] = v ? v.textContent.trim() : '';
+            }
+
+            const mInfo = matchedList.find(m => m.row === rNum);
+            const aInfo = appendedList.find(a => a.row === rNum);
+            if (mInfo) {
+                rowObj.wasWeightAuto = mInfo.wasWeightAuto;
+                rowObj.wasHeightAuto = mInfo.wasHeightAuto;
+                rowObj.wasHbAuto = mInfo.wasHbAuto;
+            } else if (aInfo) {
+                rowObj.wasWeightAuto = aInfo.wasWeightAuto;
+                rowObj.wasHeightAuto = aInfo.wasHeightAuto;
+                rowObj.wasHbAuto = aInfo.wasHbAuto;
+            }
+
+            allRowsData.push(rowObj);
         }
 
         // Serialize and update JSZip
@@ -785,14 +1693,21 @@ async function processFiles() {
         document.getElementById('statUserTotal').innerText = userStudents.length;
         document.getElementById('statMatched').innerText = matchedList.length;
         document.getElementById('statAppended').innerText = appendedList.length;
+        if (document.getElementById('statAutoFilled')) {
+            document.getElementById('statAutoFilled').innerText = autoFillCount;
+        }
 
+        document.getElementById('countTabAll').innerText = allRowsData.length;
         document.getElementById('countTabMatched').innerText = matchedList.length;
         document.getElementById('countTabAppended').innerText = appendedList.length;
         document.getElementById('countTabDefects').innerText = defectsList.length;
 
-        renderTables(matchedList, appendedList, defectsList);
+        document.getElementById('resultsTitle').innerText = `✅ Processing Complete! (${allRowsData.length} Total Students)`;
+        document.getElementById('resultsSubtitle').innerText = `Data successfully merged. Click any cell below to live edit — edits auto-sync to the downloaded Excel.`;
+
+        renderAllTables(allRowsData, matchedList, appendedList, defectsList);
         document.getElementById('resultsSection').style.display = 'block';
-        showAlert(`Successfully merged! ${matchedList.length} students updated, ${appendedList.length} new registrations added.`, false);
+        showAlert(`Successfully merged! ${matchedList.length} students updated, ${appendedList.length} new registrations added. (${autoFillCount} students with missing values auto-filled using WHO/RBSK Standards)`, false);
 
     } catch (err) {
         console.error(err);
@@ -803,63 +1718,127 @@ async function processFiles() {
     }
 }
 
-function renderTables(matched, appended, defects) {
+function renderAllTables(allRows, matched, appended, defects) {
+    const formatGrowthCell = (val, isAuto) => {
+        if (!val) return '-';
+        if (isAuto) {
+            return `<span style="color:#059669; font-weight:700;">${val} <span class="badge-who">WHO</span></span>`;
+        }
+        return val;
+    };
+
+    // 1. Tab 0: Full RBSK Sheet (All Students)
+    const tbAll = document.getElementById('tbodyAll');
+    tbAll.innerHTML = allRows.map(r => `
+        <tr data-row="${r.rowNum}">
+            <td style="color:#64748b; font-weight:700;">${r.rowNum}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="A" onblur="saveCellEdit(${r.rowNum}, 'A', this.innerText)">${r.A || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="B" onblur="saveCellEdit(${r.rowNum}, 'B', this.innerText)"><code>${r.B || '--'}</code></td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="C" onblur="saveCellEdit(${r.rowNum}, 'C', this.innerText)"><strong>${r.C || ''}</strong></td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="D" onblur="saveCellEdit(${r.rowNum}, 'D', this.innerText)">${r.D || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="E" onblur="saveCellEdit(${r.rowNum}, 'E', this.innerText)">${r.E || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="F" onblur="saveCellEdit(${r.rowNum}, 'F', this.innerText)">${r.F || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="G" onblur="saveCellEdit(${r.rowNum}, 'G', this.innerText)">${r.G || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="H" onblur="saveCellEdit(${r.rowNum}, 'H', this.innerText)">${r.H || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="J" onblur="saveCellEdit(${r.rowNum}, 'J', this.innerText)">${formatGrowthCell(r.J, r.wasWeightAuto)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="K" onblur="saveCellEdit(${r.rowNum}, 'K', this.innerText)">${formatGrowthCell(r.K, r.wasHeightAuto)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="L" onblur="saveCellEdit(${r.rowNum}, 'L', this.innerText)">${r.L || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="M" onblur="saveCellEdit(${r.rowNum}, 'M', this.innerText)">${r.M || ''}</td>
+            <td data-row="${r.rowNum}" data-col="N" style="color:#64748b;">${r.N || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="O" onblur="saveCellEdit(${r.rowNum}, 'O', this.innerText)">${r.O || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="P" onblur="saveCellEdit(${r.rowNum}, 'P', this.innerText)">${r.P || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="Q" onblur="saveCellEdit(${r.rowNum}, 'Q', this.innerText)">${formatGrowthCell(r.Q, r.wasHbAuto)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="S" onblur="saveCellEdit(${r.rowNum}, 'S', this.innerText)"><span class="pill ${(r.S === 'Healthy' || !r.S) ? 'pill-healthy' : 'pill-defect'}">${r.S || 'Healthy'}</span></td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="R" onblur="saveCellEdit(${r.rowNum}, 'R', this.innerText)">${r.R || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="U" onblur="saveCellEdit(${r.rowNum}, 'U', this.innerText)">${r.U || ''}</td>
+        </tr>
+    `).join('');
+
+    // 2. Tab 1: Matched
     const tbMatched = document.getElementById('tbodyMatched');
     tbMatched.innerHTML = matched.map(m => `
-        <tr>
+        <tr data-row="${m.row}">
             <td>${m.row}</td>
-            <td><code>${m.pen}</code></td>
-            <td><strong>${m.name}</strong></td>
-            <td>${m.dob}</td>
-            <td>${m.class}</td>
-            <td>${m.weight || '-'}</td>
-            <td>${m.height || '-'}</td>
-            <td>${m.hb || '-'}</td>
-            <td><span class="pill ${m.defect === 'Healthy' ? 'pill-healthy' : 'pill-defect'}">${m.defect}</span></td>
-            <td>${m.facility || '-'}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="B" onblur="saveCellEdit(${m.row}, 'B', this.innerText)"><code>${m.pen}</code></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="C" onblur="saveCellEdit(${m.row}, 'C', this.innerText)"><strong>${m.name}</strong></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="E" onblur="saveCellEdit(${m.row}, 'E', this.innerText)">${m.dob}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="G" onblur="saveCellEdit(${m.row}, 'G', this.innerText)">${m.class}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="J" onblur="saveCellEdit(${m.row}, 'J', this.innerText)">${formatGrowthCell(m.weight, m.wasWeightAuto)}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="K" onblur="saveCellEdit(${m.row}, 'K', this.innerText)">${formatGrowthCell(m.height, m.wasHeightAuto)}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="Q" onblur="saveCellEdit(${m.row}, 'Q', this.innerText)">${formatGrowthCell(m.hb, m.wasHbAuto)}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="S" onblur="saveCellEdit(${m.row}, 'S', this.innerText)"><span class="pill ${(m.defect === 'Healthy' || !m.defect) ? 'pill-healthy' : 'pill-defect'}">${m.defect || 'Healthy'}</span></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)">${m.facility || '-'}</td>
         </tr>
     `).join('');
 
+    // 3. Tab 2: Appended
     const tbAppended = document.getElementById('tbodyAppended');
     tbAppended.innerHTML = appended.map(a => `
-        <tr>
+        <tr data-row="${a.row}">
             <td><span class="pill pill-new">SN ${a.sn}</span></td>
-            <td><strong>${a.name}</strong></td>
-            <td>${a.gender}</td>
-            <td>${a.dob}</td>
-            <td>${a.age}</td>
-            <td>${a.class}</td>
-            <td>${a.father}</td>
-            <td>${a.weight || '-'}</td>
-            <td>${a.height || '-'}</td>
-            <td>${a.hb || '-'}</td>
-            <td><span class="pill ${a.defect === 'Healthy' ? 'pill-healthy' : 'pill-defect'}">${a.defect}</span></td>
+            <td contenteditable="true" data-row="${a.row}" data-col="C" onblur="saveCellEdit(${a.row}, 'C', this.innerText)"><strong>${a.name}</strong></td>
+            <td contenteditable="true" data-row="${a.row}" data-col="D" onblur="saveCellEdit(${a.row}, 'D', this.innerText)">${a.gender}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="E" onblur="saveCellEdit(${a.row}, 'E', this.innerText)">${a.dob}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="F" onblur="saveCellEdit(${a.row}, 'F', this.innerText)">${a.age}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="G" onblur="saveCellEdit(${a.row}, 'G', this.innerText)">${a.class}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="U" onblur="saveCellEdit(${a.row}, 'U', this.innerText)">${a.father}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="J" onblur="saveCellEdit(${a.row}, 'J', this.innerText)">${formatGrowthCell(a.weight, a.wasWeightAuto)}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="K" onblur="saveCellEdit(${a.row}, 'K', this.innerText)">${formatGrowthCell(a.height, a.wasHeightAuto)}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="Q" onblur="saveCellEdit(${a.row}, 'Q', this.innerText)">${formatGrowthCell(a.hb, a.wasHbAuto)}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="S" onblur="saveCellEdit(${a.row}, 'S', this.innerText)"><span class="pill ${(a.defect === 'Healthy' || !a.defect) ? 'pill-healthy' : 'pill-defect'}">${a.defect || 'Healthy'}</span></td>
         </tr>
     `).join('');
 
+    // 4. Tab 3: Defects
     const tbDefects = document.getElementById('tbodyDefects');
     tbDefects.innerHTML = defects.map(d => `
-        <tr>
-            <td><strong>${d.name}</strong></td>
-            <td>${d.class}</td>
-            <td>${d.phone ? '📞 ' + d.phone : '-'}</td>
-            <td><em style="color: #64748b;">${d.raw}</em></td>
-            <td><span class="pill pill-defect">${d.defect}</span></td>
-            <td><strong>${d.facility}</strong></td>
+        <tr data-row="${d.row}">
+            <td contenteditable="true" data-row="${d.row}" data-col="C" onblur="saveCellEdit(${d.row}, 'C', this.innerText)"><strong>${d.name}</strong></td>
+            <td contenteditable="true" data-row="${d.row}" data-col="G" onblur="saveCellEdit(${d.row}, 'G', this.innerText)">${d.class}</td>
+            <td contenteditable="true" data-row="${d.row}" data-col="H" onblur="saveCellEdit(${d.row}, 'H', this.innerText)">${d.phone ? '📞 ' + d.phone : '-'}</td>
+            <td style="color:#64748b;"><em>${d.raw}</em></td>
+            <td contenteditable="true" data-row="${d.row}" data-col="S" onblur="saveCellEdit(${d.row}, 'S', this.innerText)"><span class="pill pill-defect">${d.defect}</span></td>
+            <td contenteditable="true" data-row="${d.row}" data-col="R" onblur="saveCellEdit(${d.row}, 'R', this.innerText)"><strong>${d.facility}</strong></td>
         </tr>
     `).join('');
 }
 
-function downloadMergedFile() {
-    if (!mergedBlob) return;
-    const url = URL.createObjectURL(mergedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = mergedFileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+async function downloadMergedFile() {
+    if (!globalZipFormat || !globalFormatDoc) {
+        showAlert("Pehle file load ya merge karein.", true);
+        return;
+    }
+    const btn = document.getElementById('btnDownload');
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '⏳ Generating Excel...';
+    btn.disabled = true;
+
+    try {
+        const serializer = new XMLSerializer();
+        const updatedXmlStr = serializer.serializeToString(globalFormatDoc);
+        globalZipFormat.file('xl/worksheets/sheet1.xml', updatedXmlStr);
+
+        mergedBlob = await globalZipFormat.generateAsync({
+            type: 'blob',
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+
+        const url = URL.createObjectURL(mergedBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = mergedFileName || "actual format to be filled into_UPDATED.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showEditToast('✓ Excel downloaded with all live edits!');
+    } catch (err) {
+        console.error(err);
+        showAlert('Download Error: ' + err.message, true);
+    } finally {
+        btn.innerHTML = oldText;
+        btn.disabled = false;
+    }
 }
 </script>
 </body>
