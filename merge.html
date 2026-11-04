@@ -101,6 +101,37 @@
         .pill-defect { background: #fee2e2; color: #991b1b; }
         .pill-healthy { background: #dcfce7; color: #166534; }
         .pill-new { background: #e0e7ff; color: #3730a3; }
+        .pill-removed { background: #fee2e2; color: #b91c1c; font-weight: 700; border: 1px solid #fca5a5; }
+        
+        /* Defect Grouped Dropdown */
+        .defect-select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1.5px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            max-width: 250px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .defect-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
+        }
+        .defect-select optgroup {
+            font-weight: 700;
+            color: #1e40af;
+            background: #f1f5f9;
+        }
+        .defect-select option {
+            font-weight: 500;
+            color: #1e293b;
+            background: #ffffff;
+            padding: 4px;
+        }
         
         /* Alert Box */
         .alert-box { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
@@ -214,6 +245,15 @@
                 </div>
             </div>
         </div>
+
+        <!-- Option to remove portal students not present in AI Register -->
+        <div style="grid-column: 1 / -1; margin-top: 10px; background: #fff7ed; border: 1.5px solid #fed7aa; padding: 12px 16px; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+            <input type="checkbox" id="optRemoveUnmatchedPortal" checked style="width: 20px; height: 20px; accent-color: #ea580c; cursor: pointer; margin-top: 2px;">
+            <label for="optRemoveUnmatchedPortal" style="cursor: pointer;">
+                <span style="font-weight: 700; color: #c2410c; font-size: 14px;">🗑️ Remove Unmatched Portal Students (Keep Only Present Students from AI Register)</span>
+                <br><span style="font-size: 12px; color: #9a3412;">Portal export ke jo bachhe physical/AI register me nahi mile (jo school chhod chuke ya next class me merge ho gaye), unhe final Excel file se remove karein. Final sheet me sirf <strong>[AI Register ke matched bachhe] + [Register ke new registration bachhe]</strong> hi rahenge.</span>
+            </label>
+        </div>
     </div>
 
     <!-- Action Button -->
@@ -248,9 +288,17 @@
                 <div class="stat-num" id="statMatched">0</div>
                 <div class="stat-label">Matched & Updated</div>
             </div>
+            <div class="stat-box" style="background: #fff1f2; border-color: #fecdd3;">
+                <div class="stat-num" id="statRemovedPortal" style="color: #e11d48;">0</div>
+                <div class="stat-label">Removed (Not in Register)</div>
+            </div>
             <div class="stat-box highlight">
                 <div class="stat-num" id="statAppended">0</div>
                 <div class="stat-label">New Registrations Added</div>
+            </div>
+            <div class="stat-box highlight" style="background: #f0fdf4; border-color: #bbf7d0;">
+                <div class="stat-num" id="statFinalTotal" style="color: #16a34a;">0</div>
+                <div class="stat-label">Final Output Students</div>
             </div>
             <div class="stat-box highlight" style="background: #eff6ff; border-color: #bfdbfe;">
                 <div class="stat-num" id="statAutoFilled" style="color: #1d4ed8;">0</div>
@@ -270,8 +318,9 @@
         <!-- Tabs -->
         <div class="tabs-bar">
             <button class="tab-btn active" data-tab="tabAll" onclick="switchTab('tabAll')">📑 Full RBSK Sheet (<span id="countTabAll">0</span>)</button>
-            <button class="tab-btn" data-tab="tabMatched" onclick="switchTab('tabMatched')">Matched & Updated (<span id="countTabMatched">0</span>)</button>
+            <button class="tab-btn" data-tab="tabMatched" onclick="switchTab('tabMatched')">Matched & Kept (<span id="countTabMatched">0</span>)</button>
             <button class="tab-btn" data-tab="tabAppended" onclick="switchTab('tabAppended')">New Registrations (<span id="countTabAppended">0</span>)</button>
+            <button class="tab-btn" data-tab="tabRemoved" onclick="switchTab('tabRemoved')">🗑️ Removed Portal Students (<span id="countTabRemoved">0</span>)</button>
             <button class="tab-btn" data-tab="tabDefects" onclick="switchTab('tabDefects')">Defects & Referrals (<span id="countTabDefects">0</span>)</button>
         </div>
 
@@ -351,6 +400,27 @@
                         </tr>
                     </thead>
                     <tbody id="tbodyAppended"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab: Removed from Portal -->
+        <div class="tab-pane" id="tabRemoved">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Original Row</th>
+                            <th>PEN ID</th>
+                            <th>Student Name</th>
+                            <th>Class</th>
+                            <th>DOB</th>
+                            <th>Father's Name</th>
+                            <th>Reason for Removal</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyRemoved"></tbody>
                 </table>
             </div>
         </div>
@@ -511,6 +581,22 @@ function saveCellEdit(rNum, colLetter, val) {
         finalVal = mapClass(finalVal);
     } else if (colLetter === 'H') {
         finalVal = cleanMobile(finalVal);
+    } else if (colLetter === 'S') {
+        const defInfo = normalizeDefect(finalVal);
+        finalVal = defInfo.defect;
+        setXmlCell(rowElem, 'S', rNum, defInfo.defect);
+        setXmlCell(rowElem, 'R', rNum, defInfo.facility);
+        if (item) {
+            item.S = defInfo.defect;
+            item.R = defInfo.facility;
+        }
+        document.querySelectorAll(`td[data-row="${rNum}"][data-col="R"]`).forEach(td => {
+            td.innerText = defInfo.facility;
+            td.classList.add('cell-edited');
+        });
+        document.querySelectorAll(`select.defect-select[data-row="${rNum}"]`).forEach(sel => {
+            sel.value = defInfo.defect;
+        });
     }
 
     setXmlCell(rowElem, colLetter, rNum, finalVal);
@@ -566,7 +652,7 @@ function saveCellEdit(rNum, colLetter, val) {
 
 function onFilterTable(query) {
     const q = (query || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('#tbodyAll tr, #tbodyMatched tr, #tbodyAppended tr, #tbodyDefects tr');
+    const rows = document.querySelectorAll('#tbodyAll tr, #tbodyMatched tr, #tbodyAppended tr, #tbodyRemoved tr, #tbodyDefects tr');
     let matchedCount = 0;
     rows.forEach(tr => {
         if (!q) {
@@ -574,7 +660,9 @@ function onFilterTable(query) {
             matchedCount++;
             return;
         }
-        const text = tr.innerText.toLowerCase();
+        const sel = tr.querySelector('select.defect-select');
+        const selText = sel ? (sel.options[sel.selectedIndex]?.text || sel.value) : '';
+        const text = (tr.innerText + ' ' + selText).toLowerCase();
         if (text.includes(q)) {
             tr.style.display = '';
             matchedCount++;
@@ -636,7 +724,7 @@ async function previewInitialFormat(file, buf) {
         document.getElementById('resultsTitle').innerText = `📑 Loaded Format Sheet (${allRowsData.length} Students) — Live Editable`;
         document.getElementById('resultsSubtitle').innerText = `Aap kisi bhi cell par click karke direct edit kar sakte hain. AI sheet upload karke 'Match & Merge' bhi kar sakte hain.`;
 
-        renderAllTables(allRowsData, [], [], []);
+        renderAllTables(allRowsData, [], [], [], []);
         document.getElementById('resultsSection').style.display = 'block';
         showEditToast(`✓ Format sheet loaded (${allRowsData.length} students). Click any cell to edit.`);
     } catch (e) {
@@ -748,20 +836,198 @@ function generateTargetHb() {
     return useDecimals ? String(Number(val.toFixed(1))) : String(Math.round(val));
 }
 
+// --- RBSK 4Ds & Adolescent Defect Directory & Grouped Mapping ---
+const DEFECT_DIRECTORY = [
+    // Healthy / Normal
+    {
+        category: "Healthy / Normal",
+        items: [
+            { value: "Healthy", label: "Healthy / Normal", facility: "", keywords: ["healthy", "normal", "nil", "none", "fit", "ok", "fine", "theek", "thik", "swasth"] }
+        ]
+    },
+    // 1. Defects at Birth
+    {
+        category: "1. Defects at Birth",
+        items: [
+            { value: "1. Neural Tube Defect", label: "Neural Tube Defect", facility: "DEIC", keywords: ["neural tube", "ntd", "spina bifida", "meningocele", "encephalocele"] },
+            { value: "2. Downs Syndrome", label: "Down's Syndrome", facility: "DEIC", keywords: ["down", "downs", "down's", "trisomy 21"] },
+            { value: "3. Cleft Lip and Palate", label: "Cleft Lip & Palate", facility: "DEIC", keywords: ["cleft", "cleft lip", "cleft palate", "harelip"] },
+            { value: "4. Talipes (club foot)", label: "Talipes (Club Foot)", facility: "DEIC", keywords: ["talipes", "club foot", "clubfoot", "ctev"] },
+            { value: "5. Developmental Dysplasia of Hip", label: "Developmental Dysplasia of Hip", facility: "DEIC", keywords: ["ddh", "dysplasia", "hip dysplasia", "dislocation of hip"] },
+            { value: "6. Congenital Cataract", label: "Congenital Cataract", facility: "DEIC", keywords: ["cataract", "congenital cataract", "phaco", "motiyabind"] },
+            { value: "7. Congenital Deafness", label: "Congenital Deafness", facility: "DEIC", keywords: ["deaf", "deafness", "congenital deafness", "hearing loss at birth", "behra"] },
+            { value: "8. Congenital Heart Disease", label: "Congenital Heart Disease", facility: "DEIC", keywords: ["congenital heart", "heart disease", "chd", "vsd", "asd", "tof", "pda", "dil me chhed"] },
+            { value: "9. Retinopathy of Prematurity (only at DH)", label: "Retinopathy of Prematurity", facility: "District Level Facility", keywords: ["retinopathy", "rop", "prematurity"] },
+            { value: "42. Microcephaly", label: "Microcephaly", facility: "DEIC", keywords: ["microcephaly", "small head", "chota sir"] },
+            { value: "43. Macrocephaly", label: "Macrocephaly", facility: "DEIC", keywords: ["macrocephaly", "large head", "bada sir", "hydrocephalus"] },
+            { value: "47. Congenital Ear Problems", label: "Congenital Ear Defects", facility: "DEIC", keywords: ["ear defect", "congenital ear", "microtia", "anotia", "ear deformity"] },
+            { value: "48. Neck and Face Defects", label: "Neck & Face Defects", facility: "DEIC", keywords: ["neck defect", "face defect", "neck & face", "torticollis", "facial asymmetry", "branchial"] },
+            { value: "50. Congenital Eye Problems", label: "Congenital Eye Defects", facility: "DEIC", keywords: ["eye defect", "congenital eye", "squint", "strabismus", "coloboma", "microphthalmia", "bheengapan"] }
+        ]
+    },
+    // 2. Deficiencies
+    {
+        category: "2. Deficiencies",
+        items: [
+            { value: "10. Severe Anemia", label: "Severe Anemia", facility: "DEIC", keywords: ["severe anemia", "severe anemic", "hb < 7", "severe anaemia", "khoon ki kami severe"] },
+            { value: "11. Vitamin A Deficiency", label: "Vit A Deficiency (Bitot Spot)", facility: "Block Level Facility", keywords: ["vitamin a", "vit a", "bitot", "bitot spot", "night blindness", "ratondhi"] },
+            { value: "12. Vitamin D Deficiency (Rickets)", label: "Vit D Deficiency (Rickets)", facility: "Block Level Facility", keywords: ["vitamin d", "vit d deficiency (rickets)", "rickets", "bow legs", "knock knee"] },
+            { value: "13. SAM/Severe Thinness/SUW", label: "SAM / Severe Thinness / SUW", facility: "NRC", keywords: ["sam", "severe acute malnutrition", "severe thinness", "suw", "severe underweight", "kuposhan severe"] },
+            { value: "14. Goiter", label: "Goiter", facility: "Block Level Facility", keywords: ["goiter", "goitre", "gala phoolna", "thyroid", "iodine deficiency"] },
+            { value: "41. Severe Stunting", label: "Severe Stunting", facility: "NRC", keywords: ["severe stunting", "stunted", "stunting"] },
+            { value: "44. Vitamin B Complex Deficiency", label: "Vit B Complex Deficiency", facility: "Block Level Facility", keywords: ["vitamin b", "vit b", "b complex", "cheilosis", "glossitis", "mouth ulcer", "stomatitis", "jeebh/hoth chhilna"] },
+            { value: "45. Obesity", label: "Obesity", facility: "Block Level Facility", keywords: ["obesity", "obese", "overweight", "motapa"] },
+            { value: "52. Moderate Anaemia", label: "Moderate Anaemia", facility: "Block Level Facility", keywords: ["moderate anemia", "moderate anaemia", "hb 7-10", "madhyam khoon ki kami"] },
+            { value: "89. Mild Anaemia", label: "Mild Anaemia", facility: "Block Level Facility", keywords: ["mild anemia", "mild anaemia", "hb 10-11.5", "halka anemic"] },
+            { value: "90. MAM", label: "MAM", facility: "Block Level Facility", keywords: ["mam", "moderate acute malnutrition", "kuposhan mam"] },
+            { value: "120. Vitamin D Deficiency", label: "Vitamin D Deficiency", facility: "Block Level Facility", keywords: ["vitamin d deficiency", "vit d"] }
+        ]
+    },
+    // 3. Childhood Diseases
+    {
+        category: "3. Childhood Diseases",
+        items: [
+            { value: "15. Skin Conditions", label: "Skin Conditions", facility: "Block Level Facility", keywords: ["skin", "scabies", "eczema", "ringworm", "fungal", "rash", "khujli", "charm rog"] },
+            { value: "16. Otitis Media", label: "Otitis Media", facility: "Block Level Facility", keywords: ["otitis", "otitis media", "csom", "asom", "ear discharge", "kan behna", "ear pain"] },
+            { value: "17. Rheumatic Heart Disease", label: "Rheumatic Heart Disease", facility: "DEIC", keywords: ["rheumatic", "rhd", "rheumatic heart"] },
+            { value: "18. Reactive Airway Disease", label: "Reactive Airway Disease", facility: "Block Level Facility", keywords: ["reactive airway", "rad", "wheezing", "saans lene me takleef"] },
+            { value: "19. Dental Conditions", label: "Dental Conditions", facility: "Block Level Facility", keywords: ["dental", "caries", "cavity", "teeth", "tooth", "dant", "daant kharab"] },
+            { value: "20. Convulsive Disorders", label: "Convulsive Disorders", facility: "DEIC", keywords: ["convulsive", "convulsions", "seizure", "epilepsy", "fits", "daura"] },
+            { value: "39. Childhood Leprosy Disease", label: "Childhood Leprosy", facility: "Leprosy Centers", keywords: ["leprosy", "kusth", "hansen"] },
+            { value: "40. Childhood Tuberculosis Pulmonary", label: "Tuberculosis Pulmonary", facility: "TB Centres", keywords: ["tb pulmonary", "pulmonary tb", "tuberculosis", "tb"] },
+            { value: "46. Stage 2 Hypertension", label: "Stage 2 Hypertension", facility: "District Level Facility", keywords: ["stage 2 hypertension", "high bp stage 2", "severe hypertension"] },
+            { value: "49. Referactive Problems", label: "Refractive Problems", facility: "Block Level Facility", keywords: ["refractive", "refractive problems", "vision", "glasses", "chashma", "kam dikhna", "r.e", "re", "refraction"] },
+            { value: "140. Childhood Tuberculosis (Extra Pulmonary)", label: "TB Extra Pulmonary", facility: "TB Centres", keywords: ["extra pulmonary", "tb extra", "tuberculosis extra pulmonary", "lymph node tb"] },
+            { value: "150. Skin Condtions Not Leprosy", label: "Skin Conditions (Not Leprosy)", facility: "Block Level Facility", keywords: ["skin not leprosy", "skin conditions not leprosy"] },
+            { value: "180. Bronchail Asthma(Reactive Aiirway Disease)", label: "Bronchial Asthma", facility: "Block Level Facility", keywords: ["asthma", "bronchial asthma", "dama"] },
+            { value: "460. Prehypertension", label: "Prehypertension", facility: "Block Level Facility", keywords: ["prehypertension", "pre-hypertension"] },
+            { value: "461. Stage 1 Hypertension", label: "Stage 1 Hypertension", facility: "Block Level Facility", keywords: ["stage 1 hypertension", "high bp", "hypertension"] }
+        ]
+    },
+    // 4. Development Delay
+    {
+        category: "4. Development Delay",
+        items: [
+            { value: "21. Vision Impairment", label: "Vision Impairment", facility: "DEIC", keywords: ["vision impairment", "blind", "low vision", "drishti dosh"] },
+            { value: "22. Hearing Impairment", label: "Hearing Impairment", facility: "DEIC", keywords: ["hearing impairment", "hard of hearing", "hearing loss"] },
+            { value: "23. Neuro-Motor", label: "Neuro-Motor Impairment", facility: "DEIC", keywords: ["neuro-motor", "neuromotor", "cerebral palsy", "cp"] },
+            { value: "24. Motor Delay", label: "Motor Delay", facility: "DEIC", keywords: ["motor delay", "gross motor", "fine motor", "chalne me deri"] },
+            { value: "25. Cognitive Delay", label: "Cognitive Delay", facility: "DEIC", keywords: ["cognitive", "cognitive delay", "mental delay", "developmental delay"] },
+            { value: "26. Language Delay", label: "Language Delay", facility: "DEIC", keywords: ["language delay", "speech delay", "bolne me deri", "totlana", "stammering"] },
+            { value: "27. Behaviour Disorder(Autism)", label: "Behavior Disorder (Autism)", facility: "DEIC", keywords: ["autism", "asd", "behaviour disorder", "behavior disorder"] },
+            { value: "28. Learning Disorder", label: "Learning Disorder", facility: "DEIC", keywords: ["learning disorder", "dyslexia", "padhne me dikkat"] },
+            { value: "29. Attention Deficit Hyperactivity Disorder", label: "ADHD", facility: "DEIC", keywords: ["adhd", "hyperactive", "attention deficit"] },
+            { value: "51. Convulsive Disorders(Developmental delay)", label: "Convulsive Disorders (Dev Delay)", facility: "DEIC", keywords: ["convulsive dev delay", "convulsive disorders(developmental delay)"] }
+        ]
+    },
+    // 5. Adolescent Health concerns
+    {
+        category: "5. Adolescent Health concerns",
+        items: [
+            { value: "31. Growing up concerns", label: "Growing Up Concerns", facility: "AFHC", keywords: ["growing up", "growing up concerns", "puberty", "kishorawastha samasya"] },
+            { value: "32. Substance abuse", label: "Substance Abuse", facility: "AFHC", keywords: ["substance abuse", "substance", "nasha", "drug", "tobacco", "smoking"] },
+            { value: "33. Feel depressed", label: "Feel Depressed", facility: "AFHC", keywords: ["feel depressed", "depression", "anxiety", "udasi", "tanaav"] },
+            { value: "34. Delay in menstruation cycles", label: "Delay in Menstruation", facility: "AFHC", keywords: ["delay in menstruation", "menstruation delay", "periods delay", "mahawari me deri"] },
+            { value: "35. Irregular periods", label: "Irregular Periods", facility: "AFHC", keywords: ["irregular periods", "aniyamit mahawari", "irregular menses", "periods problem"] },
+            { value: "36. Experience any pain or burning sensation while urinating", label: "Pain/Burning Urinating", facility: "AFHC", keywords: ["burning sensation while urinating", "pain urinating", "peshab me jalan", "dysuria", "uti"] },
+            { value: "37. Discharge/foul smelling discharge from the genitor-urinary area", label: "Genito-Urinary Discharge", facility: "AFHC", keywords: ["discharge", "genitor-urinary", "foul smelling discharge", "safed pani", "leucorrhea"] },
+            { value: "38. Pain during menstruation", label: "Pain During Menstruation", facility: "AFHC", keywords: ["pain during menstruation", "dysmenorrhea", "periods pain", "mahawari me dard"] }
+        ]
+    }
+];
+
+// Flat value map for fast lookup
+const DEFECT_VALUE_MAP = {};
+for (const cat of DEFECT_DIRECTORY) {
+    for (const item of cat.items) {
+        DEFECT_VALUE_MAP[item.value] = item;
+    }
+}
+
+function normalizeDefect(raw) {
+    if (!raw) return { defect: "Healthy", facility: "" };
+    const str = String(raw).trim();
+    if (!str || str.toLowerCase() === 'healthy' || str.toLowerCase() === 'normal' || str.toLowerCase() === 'fit' || str.toLowerCase() === 'ok') {
+        return { defect: "Healthy", facility: "" };
+    }
+    // Exact match by official code string
+    if (DEFECT_VALUE_MAP[str]) {
+        return { defect: DEFECT_VALUE_MAP[str].value, facility: DEFECT_VALUE_MAP[str].facility };
+    }
+    // Case-insensitive match on code or display label
+    const sLow = str.toLowerCase();
+    for (const cat of DEFECT_DIRECTORY) {
+        for (const it of cat.items) {
+            if (it.value.toLowerCase() === sLow || it.label.toLowerCase() === sLow) {
+                return { defect: it.value, facility: it.facility };
+            }
+        }
+    }
+    // Match by keywords / aliases
+    for (const cat of DEFECT_DIRECTORY) {
+        for (const it of cat.items) {
+            if (it.keywords && it.keywords.some(kw => sLow.includes(kw))) {
+                return { defect: it.value, facility: it.facility };
+            }
+        }
+    }
+    return { defect: str, facility: "Block Level Facility" };
+}
+
 function calculateDefectFromHb(hbVal) {
     if (!hbVal) return null;
     const num = parseFloat(hbVal);
     if (isNaN(num)) return null;
 
     if (num < 7.0) {
-        return { defect: "53. Severe Anemia", facility: "DEIC" };
+        return { defect: "10. Severe Anemia", facility: "DEIC" };
     } else if (num < 10.0) {
         return { defect: "52. Moderate Anaemia", facility: "Block Level Facility" };
     } else if (num < 11.5) {
-        return { defect: "51. Mild Anaemia", facility: "Block Level Facility" };
+        return { defect: "89. Mild Anaemia", facility: "Block Level Facility" };
     } else {
         return { defect: "Healthy", facility: "" };
     }
+}
+
+function getDefectSelectHtml(rowNum, selectedValue) {
+    const norm = normalizeDefect(selectedValue);
+    let html = `<select class="defect-select" data-row="${rowNum}" onchange="onDefectSelectChange(${rowNum}, this.value)">`;
+    for (const cat of DEFECT_DIRECTORY) {
+        html += `<optgroup label="${cat.category}">`;
+        for (const it of cat.items) {
+            const isSel = (it.value === norm.defect);
+            html += `<option value="${it.value}" ${isSel ? 'selected' : ''}>${it.label} (${it.value})</option>`;
+        }
+        html += `</optgroup>`;
+    }
+    html += `</select>`;
+    return html;
+}
+
+function onDefectSelectChange(rNum, selectedValue) {
+    const defInfo = normalizeDefect(selectedValue);
+    if (!globalFormatDoc) return;
+    const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+    const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
+    if (!rowElem) return;
+
+    setXmlCell(rowElem, 'S', rNum, defInfo.defect);
+    setXmlCell(rowElem, 'R', rNum, defInfo.facility);
+
+    const item = allRowsData.find(x => x.rowNum == rNum);
+    if (item) {
+        item.S = defInfo.defect;
+        item.R = defInfo.facility;
+    }
+
+    document.querySelectorAll(`td[data-row="${rNum}"][data-col="R"]`).forEach(td => {
+        td.innerText = defInfo.facility;
+        td.classList.add('cell-edited');
+    });
+
+    mergedBlob = null;
+    showEditToast(`✓ Row ${rNum}: Defect set to "${defInfo.defect}" -> Facility: "${defInfo.facility || 'None'}"`);
 }
 
 function mapDefectAndFacility(rawDefect, hb) {
@@ -771,40 +1037,10 @@ function mapDefectAndFacility(rawDefect, hb) {
         const phoneMatch = rawDefect.match(/(?:\b|\D)(\d{10,12})(?:\b|\D)/);
         if (phoneMatch) res.phone = cleanMobile(phoneMatch[1]);
 
-        const dLower = rawDefect.toLowerCase();
-        if (dLower.includes('cataract') || dLower.includes('phaco')) {
-            res.defect = "6. Congenital Cataract";
-            res.facility = "DEIC";
-        } else if (dLower.includes('severe') && (dLower.includes('anem') || dLower.includes('anemic'))) {
-            res.defect = "53. Severe Anemia";
-            res.facility = "DEIC";
-        } else if (dLower.includes('anemic') || dLower.includes('anemia') || dLower.includes('anaemia')) {
-            res.defect = "52. Moderate Anaemia";
-            res.facility = "Block Level Facility";
-        } else if (dLower.includes('squint')) {
-            res.defect = "50. Congenital Eye Problems";
-            res.facility = "DEIC";
-        } else if (dLower.includes('r.e') || dLower.includes('re') || dLower.includes('refractive') || dLower.includes('vision') || dLower.includes('glasses')) {
-            res.defect = "49. Referactive Problems";
-            res.facility = "Block Level Facility";
-        } else if (dLower.includes('skin') || dLower.includes('scabies') || dLower.includes('eczema')) {
-            res.defect = "15. Skin Conditions";
-            res.facility = "Block Level Facility";
-        } else if (dLower.includes('ear') || dLower.includes('otitis')) {
-            res.defect = "16. Otitis Media";
-            res.facility = "Block Level Facility";
-        } else if (dLower.includes('dental') || dLower.includes('caries') || dLower.includes('teeth')) {
-            res.defect = "19. Dental Conditions";
-            res.facility = "Block Level Facility";
-        } else if (dLower.includes('heart') || dLower.includes('chd')) {
-            res.defect = "8. Congenital Heart Disease";
-            res.facility = "DEIC";
-        } else if (dLower.includes('cleft')) {
-            res.defect = "2. Cleft Lip/Palate";
-            res.facility = "DEIC";
-        } else if (dLower.includes('club') || dLower.includes('foot')) {
-            res.defect = "3. Club Foot";
-            res.facility = "DEIC";
+        const mapped = normalizeDefect(rawDefect);
+        if (mapped && mapped.defect !== 'Healthy') {
+            res.defect = mapped.defect;
+            res.facility = mapped.facility;
         }
     }
 
@@ -1223,6 +1459,11 @@ window.normalizeGender = normalizeGender;
 window.parseDetailedAge = parseDetailedAge;
 window.getStudentAgeInfo = getStudentAgeInfo;
 window.computeAutoGrowth = computeAutoGrowth;
+window.DEFECT_DIRECTORY = DEFECT_DIRECTORY;
+window.normalizeDefect = normalizeDefect;
+window.calculateDefectFromHb = calculateDefectFromHb;
+window.getDefectSelectHtml = getDefectSelectHtml;
+window.onDefectSelectChange = onDefectSelectChange;
 
 // Main Processing Engine
 async function processFiles() {
@@ -1400,8 +1641,11 @@ async function processFiles() {
         // Matching & Updating
         const matchedList = [];
         const matchedUserIndices = new Set();
+        const matchedFormatRowNums = new Set();
         const defectsList = [];
+        const removedList = [];
 
+        const optRemoveUnmatchedPortal = document.getElementById('optRemoveUnmatchedPortal') ? document.getElementById('optRemoveUnmatchedPortal').checked : true;
         const optAutoFillMissing = document.getElementById('optAutoFillMissing').checked;
         const optFillMissingHb = document.getElementById('optFillMissingHb').checked;
         const optCalcAge = document.getElementById('optCalcAge').checked;
@@ -1410,24 +1654,93 @@ async function processFiles() {
         const optExtractPhone = document.getElementById('optExtractPhone').checked;
         let autoFillCount = 0;
 
+        // First Pass: Find all matches between User Students and Format Students
         for (let u of userStudents) {
-            let match = formatStudents.find(f => f.normName === u.normName && f.dob === u.dobNorm);
+            let match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName && f.dob === u.dobNorm);
             
             if (!match && u.normName === 'CHINTU' && (u.normFather.includes('DALJ') || u.normFather.includes('DALJEET'))) {
-                match = formatStudents.find(f => f.normName === 'CHINTU');
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === 'CHINTU');
             }
             if (!match && u.normName === 'DEEPANSHI' && u.normFather.includes('SATPAL')) {
-                match = formatStudents.find(f => f.normName === 'DEEPANSHI' && f.normFather.includes('SATPAL'));
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === 'DEEPANSHI' && f.normFather.includes('SATPAL'));
+            }
+            if (!match) {
+                const candidates = formatStudents.filter(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName);
+                if (candidates.length === 1) match = candidates[0];
             }
 
             if (match) {
                 matchedUserIndices.add(u.userRowIndex);
-                const rNum = match.rowNum;
-                const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
+                matchedFormatRowNums.add(match.rowNum);
+                match.isMatched = true;
+                match.matchedUser = u;
+            }
+        }
 
-                let w = u.weight || getCellVal(match.cMap, 'J');
-                let h = u.height || getCellVal(match.cMap, 'K');
-                let hb = u.hb || getCellVal(match.cMap, 'Q');
+        function getCellVal(cMap, col) {
+            if (!cMap[col]) return '';
+            const v = cMap[col].getElementsByTagName('v')[0];
+            return v ? v.textContent : '';
+        }
+
+        let nextRowNum = 3;
+        let nextSN = 1;
+
+        if (optRemoveUnmatchedPortal) {
+            // Remove unmatched portal students from XML DOM
+            for (let f of formatStudents) {
+                if (!f.isMatched) {
+                    removedList.push({
+                        originalRowNum: f.rowNum,
+                        rowNum: f.rowNum,
+                        pen: f.pen,
+                        name: f.name,
+                        class: f.class,
+                        dob: f.dob,
+                        father: f.father
+                    });
+                    if (f.rowElem.parentNode === sheetData) {
+                        sheetData.removeChild(f.rowElem);
+                    }
+                }
+            }
+
+            // Renumber kept matched portal rows sequentially
+            const keptFormatStudents = formatStudents.filter(f => f.isMatched);
+            for (let f of keptFormatStudents) {
+                const u = f.matchedUser;
+                const newRNum = nextRowNum++;
+                const newSN = nextSN++;
+
+                f.rowElem.setAttribute('r', String(newRNum));
+
+                const newCMap = {};
+                const cells = f.rowElem.getElementsByTagName('c');
+                for (let c of cells) {
+                    const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                    c.setAttribute('r', colLetter + newRNum);
+                    newCMap[colLetter] = c;
+
+                    if (colLetter === 'A') {
+                        let v = c.getElementsByTagName('v')[0];
+                        if (!v) { v = formatDoc.createElementNS(sheetNs, 'v'); c.appendChild(v); }
+                        v.textContent = String(newSN);
+                    }
+                    if (colLetter === 'N') {
+                        let fElem = c.getElementsByTagName('f')[0];
+                        if (fElem) {
+                            fElem.textContent = `IF(OR(L${newRNum}="",M${newRNum}=""),"",CONCATENATE(L${newRNum},"/",M${newRNum}))`;
+                        }
+                    }
+                }
+                f.cMap = newCMap;
+                f.rowNum = newRNum;
+                f.sn = newSN;
+
+                const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
+                let w = u.weight || getCellVal(f.cMap, 'J');
+                let h = u.height || getCellVal(f.cMap, 'K');
+                let hb = u.hb || getCellVal(f.cMap, 'Q');
 
                 let wasWeightAuto = false;
                 let wasHeightAuto = false;
@@ -1436,10 +1749,10 @@ async function processFiles() {
                 if (optAutoFillMissing) {
                     if (!w || !h || (!hb && optFillMissingHb)) {
                         const growth = computeAutoGrowth({
-                            dob: match.dob,
-                            age: getCellVal(match.cMap, 'F'),
-                            class: match.class,
-                            gender: getCellVal(match.cMap, 'D') || u.gender
+                            dob: f.dob,
+                            age: getCellVal(f.cMap, 'F'),
+                            class: f.class,
+                            gender: getCellVal(f.cMap, 'D') || u.gender
                         });
                         if (!w) { w = growth.weight; wasWeightAuto = true; }
                         if (!h) { h = growth.height; wasHeightAuto = true; }
@@ -1448,24 +1761,24 @@ async function processFiles() {
                 }
                 if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
 
-                if (w) setCell(match.rowElem, match.cMap, 'J', rNum, w);
-                if (h) setCell(match.rowElem, match.cMap, 'K', rNum, h);
-                if (hb) setCell(match.rowElem, match.cMap, 'Q', rNum, hb);
+                if (w) setCell(f.rowElem, f.cMap, 'J', newRNum, w);
+                if (h) setCell(f.rowElem, f.cMap, 'K', newRNum, h);
+                if (hb) setCell(f.rowElem, f.cMap, 'Q', newRNum, hb);
 
-                if (defectInfo.defect !== 'Healthy') {
-                    setCell(match.rowElem, match.cMap, 'S', rNum, defectInfo.defect);
-                    setCell(match.rowElem, match.cMap, 'R', rNum, defectInfo.facility);
+                if (defectInfo.defect) {
+                    setCell(f.rowElem, f.cMap, 'S', newRNum, defectInfo.defect);
+                    setCell(f.rowElem, f.cMap, 'R', newRNum, defectInfo.facility);
                 }
                 if (defectInfo.phone && optExtractPhone) {
-                    setCell(match.rowElem, match.cMap, 'H', rNum, defectInfo.phone);
+                    setCell(f.rowElem, f.cMap, 'H', newRNum, defectInfo.phone);
                 }
 
                 matchedList.push({
-                    row: rNum,
-                    pen: match.pen,
-                    name: match.name,
-                    dob: match.dob,
-                    class: match.class,
+                    row: newRNum,
+                    pen: f.pen,
+                    name: f.name,
+                    dob: f.dob,
+                    class: f.class,
                     weight: w,
                     height: h,
                     hb: hb,
@@ -1476,10 +1789,11 @@ async function processFiles() {
                     facility: defectInfo.facility
                 });
 
-                if (defectInfo.defect !== 'Healthy') {
+                if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
                     defectsList.push({
-                        name: match.name,
-                        class: match.class,
+                        row: newRNum,
+                        name: f.name,
+                        class: f.class,
                         phone: defectInfo.phone,
                         raw: u.defectRaw,
                         defect: defectInfo.defect,
@@ -1487,18 +1801,102 @@ async function processFiles() {
                     });
                 }
             }
-        }
+        } else {
+            // Keep all format students (legacy mode)
+            for (let f of formatStudents) {
+                if (f.isMatched) {
+                    const u = f.matchedUser;
+                    const rNum = f.rowNum;
+                    const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
 
-        function getCellVal(cMap, col) {
-            if (!cMap[col]) return '';
-            const v = cMap[col].getElementsByTagName('v')[0];
-            return v ? v.textContent : '';
+                    let w = u.weight || getCellVal(f.cMap, 'J');
+                    let h = u.height || getCellVal(f.cMap, 'K');
+                    let hb = u.hb || getCellVal(f.cMap, 'Q');
+
+                    let wasWeightAuto = false;
+                    let wasHeightAuto = false;
+                    let wasHbAuto = false;
+
+                    if (optAutoFillMissing) {
+                        if (!w || !h || (!hb && optFillMissingHb)) {
+                            const growth = computeAutoGrowth({
+                                dob: f.dob,
+                                age: getCellVal(f.cMap, 'F'),
+                                class: f.class,
+                                gender: getCellVal(f.cMap, 'D') || u.gender
+                            });
+                            if (!w) { w = growth.weight; wasWeightAuto = true; }
+                            if (!h) { h = growth.height; wasHeightAuto = true; }
+                            if (!hb && optFillMissingHb) { hb = growth.hb; wasHbAuto = true; }
+                        }
+                    }
+                    if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
+
+                    if (w) setCell(f.rowElem, f.cMap, 'J', rNum, w);
+                    if (h) setCell(f.rowElem, f.cMap, 'K', rNum, h);
+                    if (hb) setCell(f.rowElem, f.cMap, 'Q', rNum, hb);
+
+                    if (defectInfo.defect) {
+                        setCell(f.rowElem, f.cMap, 'S', rNum, defectInfo.defect);
+                        setCell(f.rowElem, f.cMap, 'R', rNum, defectInfo.facility);
+                    }
+                    if (defectInfo.phone && optExtractPhone) {
+                        setCell(f.rowElem, f.cMap, 'H', rNum, defectInfo.phone);
+                    }
+
+                    matchedList.push({
+                        row: rNum,
+                        pen: f.pen,
+                        name: f.name,
+                        dob: f.dob,
+                        class: f.class,
+                        weight: w,
+                        height: h,
+                        hb: hb,
+                        wasWeightAuto: wasWeightAuto,
+                        wasHeightAuto: wasHeightAuto,
+                        wasHbAuto: wasHbAuto,
+                        defect: defectInfo.defect,
+                        facility: defectInfo.facility
+                    });
+
+                    if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
+                        defectsList.push({
+                            row: rNum,
+                            name: f.name,
+                            class: f.class,
+                            phone: defectInfo.phone,
+                            raw: u.defectRaw,
+                            defect: defectInfo.defect,
+                            facility: defectInfo.facility
+                        });
+                    }
+                } else if (optAutoFillMissing) {
+                    let curW = getCellVal(f.cMap, 'J');
+                    let curH = getCellVal(f.cMap, 'K');
+                    let curHb = getCellVal(f.cMap, 'Q');
+
+                    if (!curW || !curH || (!curHb && optFillMissingHb)) {
+                        const growth = computeAutoGrowth({
+                            dob: f.dob,
+                            age: getCellVal(f.cMap, 'F'),
+                            class: f.class,
+                            gender: getCellVal(f.cMap, 'D') || 'male'
+                        });
+                        let touched = false;
+                        if (!curW) { setCell(f.rowElem, f.cMap, 'J', f.rowNum, growth.weight); touched = true; }
+                        if (!curH) { setCell(f.rowElem, f.cMap, 'K', f.rowNum, growth.height); touched = true; }
+                        if (!curHb && optFillMissingHb) { setCell(f.rowElem, f.cMap, 'Q', f.rowNum, growth.hb); touched = true; }
+                        if (touched) autoFillCount++;
+                    }
+                }
+            }
+            nextRowNum = maxRowNum + 1;
+            nextSN = maxSN + 1;
         }
 
         // Appending Unmatched Students as New Registrations
         const appendedList = [];
-        let nextSN = maxSN + 1;
-        let nextRowNum = maxRowNum + 1;
 
         for (let u of userStudents) {
             if (matchedUserIndices.has(u.userRowIndex)) continue;
@@ -1576,6 +1974,7 @@ async function processFiles() {
             sheetData.appendChild(rowElem);
 
             appendedList.push({
+                row: rNum,
                 sn: sn,
                 name: u.name,
                 gender: u.gender,
@@ -1589,11 +1988,13 @@ async function processFiles() {
                 wasWeightAuto: wasWeightAuto,
                 wasHeightAuto: wasHeightAuto,
                 wasHbAuto: wasHbAuto,
-                defect: defectInfo.defect
+                defect: defectInfo.defect,
+                facility: defectInfo.facility
             });
 
-            if (defectInfo.defect !== 'Healthy') {
+            if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
                 defectsList.push({
+                    row: rNum,
                     name: u.name,
                     class: normCls,
                     phone: defectInfo.phone,
@@ -1604,37 +2005,16 @@ async function processFiles() {
             }
         }
 
-        // Auto-fill missing height/weight in format template rows that had no match
-        if (optAutoFillMissing) {
-            for (let f of formatStudents) {
-                if (matchedList.some(m => m.row === f.rowNum)) continue;
-                let curW = getCellVal(f.cMap, 'J');
-                let curH = getCellVal(f.cMap, 'K');
-                let curHb = getCellVal(f.cMap, 'Q');
-
-                if (!curW || !curH || (!curHb && optFillMissingHb)) {
-                    const growth = computeAutoGrowth({
-                        dob: f.dob,
-                        age: getCellVal(f.cMap, 'F'),
-                        class: f.class,
-                        gender: getCellVal(f.cMap, 'D') || 'male'
-                    });
-                    let touched = false;
-                    if (!curW) { setCell(f.rowElem, f.cMap, 'J', f.rowNum, growth.weight); touched = true; }
-                    if (!curH) { setCell(f.rowElem, f.cMap, 'K', f.rowNum, growth.height); touched = true; }
-                    if (!curHb && optFillMissingHb) { setCell(f.rowElem, f.cMap, 'Q', f.rowNum, growth.hb); touched = true; }
-                    if (touched) autoFillCount++;
-                }
-            }
-        }
-
         // Clean mobile numbers in existing format rows to strictly 10 digits
-        for (let f of formatStudents) {
-            let mVal = getCellVal(f.cMap, 'H');
-            if (mVal) {
-                let cleaned = cleanMobile(mVal);
-                if (cleaned && cleaned !== mVal) {
-                    setCell(f.rowElem, f.cMap, 'H', f.rowNum, cleaned);
+        const keptRows = sheetData.getElementsByTagName('row');
+        for (let i = 2; i < keptRows.length; i++) {
+            const rElem = keptRows[i];
+            const rNum = rElem.getAttribute('r');
+            const hCell = rElem.querySelector(`c[r="H${rNum}"] v`);
+            if (hCell && hCell.textContent) {
+                const cleaned = cleanMobile(hCell.textContent);
+                if (cleaned && cleaned !== hCell.textContent) {
+                    hCell.textContent = cleaned;
                 }
             }
         }
@@ -1643,6 +2023,12 @@ async function processFiles() {
         const dim = formatDoc.getElementsByTagName('dimension')[0];
         if (dim) {
             dim.setAttribute('ref', `A1:U${nextRowNum - 1}`);
+        }
+
+        // Update ignoredErrors if present
+        const ie = formatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
+        if (ie) {
+            ie.setAttribute('sqref', `A1:U${nextRowNum - 1}`);
         }
 
         globalZipFormat = zipFormat;
@@ -1692,7 +2078,13 @@ async function processFiles() {
         document.getElementById('statFormatTotal').innerText = formatStudents.length;
         document.getElementById('statUserTotal').innerText = userStudents.length;
         document.getElementById('statMatched').innerText = matchedList.length;
+        if (document.getElementById('statRemovedPortal')) {
+            document.getElementById('statRemovedPortal').innerText = removedList.length;
+        }
         document.getElementById('statAppended').innerText = appendedList.length;
+        if (document.getElementById('statFinalTotal')) {
+            document.getElementById('statFinalTotal').innerText = allRowsData.length;
+        }
         if (document.getElementById('statAutoFilled')) {
             document.getElementById('statAutoFilled').innerText = autoFillCount;
         }
@@ -1700,14 +2092,22 @@ async function processFiles() {
         document.getElementById('countTabAll').innerText = allRowsData.length;
         document.getElementById('countTabMatched').innerText = matchedList.length;
         document.getElementById('countTabAppended').innerText = appendedList.length;
+        if (document.getElementById('countTabRemoved')) {
+            document.getElementById('countTabRemoved').innerText = removedList.length;
+        }
         document.getElementById('countTabDefects').innerText = defectsList.length;
 
         document.getElementById('resultsTitle').innerText = `✅ Processing Complete! (${allRowsData.length} Total Students)`;
-        document.getElementById('resultsSubtitle').innerText = `Data successfully merged. Click any cell below to live edit — edits auto-sync to the downloaded Excel.`;
+        document.getElementById('resultsSubtitle').innerText = `Matched: ${matchedList.length} | Removed Unmatched Portal: ${removedList.length} | New Registrations: ${appendedList.length}. Click any cell or select Defect from dropdown to live edit.`;
 
-        renderAllTables(allRowsData, matchedList, appendedList, defectsList);
+        renderAllTables(allRowsData, matchedList, appendedList, removedList, defectsList);
         document.getElementById('resultsSection').style.display = 'block';
-        showAlert(`Successfully merged! ${matchedList.length} students updated, ${appendedList.length} new registrations added. (${autoFillCount} students with missing values auto-filled using WHO/RBSK Standards)`, false);
+
+        let alertMsg = `Merge Safal! ${matchedList.length} students matched aur update hue.`;
+        if (removedList.length > 0) alertMsg += ` ${removedList.length} unmatched portal records remove kiye gaye.`;
+        if (appendedList.length > 0) alertMsg += ` ${appendedList.length} new registration bache add hue.`;
+        if (autoFillCount > 0) alertMsg += ` (${autoFillCount} students me missing height/weight/hb WHO standard se auto-fill kiye gaye).`;
+        showAlert(alertMsg, false);
 
     } catch (err) {
         console.error(err);
@@ -1718,7 +2118,7 @@ async function processFiles() {
     }
 }
 
-function renderAllTables(allRows, matched, appended, defects) {
+function renderAllTables(allRows, matched, appended, removed, defects) {
     const formatGrowthCell = (val, isAuto) => {
         if (!val) return '-';
         if (isAuto) {
@@ -1748,8 +2148,8 @@ function renderAllTables(allRows, matched, appended, defects) {
             <td contenteditable="true" data-row="${r.rowNum}" data-col="O" onblur="saveCellEdit(${r.rowNum}, 'O', this.innerText)">${r.O || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="P" onblur="saveCellEdit(${r.rowNum}, 'P', this.innerText)">${r.P || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="Q" onblur="saveCellEdit(${r.rowNum}, 'Q', this.innerText)">${formatGrowthCell(r.Q, r.wasHbAuto)}</td>
-            <td contenteditable="true" data-row="${r.rowNum}" data-col="S" onblur="saveCellEdit(${r.rowNum}, 'S', this.innerText)"><span class="pill ${(r.S === 'Healthy' || !r.S) ? 'pill-healthy' : 'pill-defect'}">${r.S || 'Healthy'}</span></td>
-            <td contenteditable="true" data-row="${r.rowNum}" data-col="R" onblur="saveCellEdit(${r.rowNum}, 'R', this.innerText)">${r.R || ''}</td>
+            <td data-row="${r.rowNum}" data-col="S">${getDefectSelectHtml(r.rowNum, r.S)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="R" onblur="saveCellEdit(${r.rowNum}, 'R', this.innerText)"><strong>${r.R || ''}</strong></td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="U" onblur="saveCellEdit(${r.rowNum}, 'U', this.innerText)">${r.U || ''}</td>
         </tr>
     `).join('');
@@ -1766,8 +2166,8 @@ function renderAllTables(allRows, matched, appended, defects) {
             <td contenteditable="true" data-row="${m.row}" data-col="J" onblur="saveCellEdit(${m.row}, 'J', this.innerText)">${formatGrowthCell(m.weight, m.wasWeightAuto)}</td>
             <td contenteditable="true" data-row="${m.row}" data-col="K" onblur="saveCellEdit(${m.row}, 'K', this.innerText)">${formatGrowthCell(m.height, m.wasHeightAuto)}</td>
             <td contenteditable="true" data-row="${m.row}" data-col="Q" onblur="saveCellEdit(${m.row}, 'Q', this.innerText)">${formatGrowthCell(m.hb, m.wasHbAuto)}</td>
-            <td contenteditable="true" data-row="${m.row}" data-col="S" onblur="saveCellEdit(${m.row}, 'S', this.innerText)"><span class="pill ${(m.defect === 'Healthy' || !m.defect) ? 'pill-healthy' : 'pill-defect'}">${m.defect || 'Healthy'}</span></td>
-            <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)">${m.facility || '-'}</td>
+            <td data-row="${m.row}" data-col="S">${getDefectSelectHtml(m.row, m.defect)}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)"><strong>${m.facility || '-'}</strong></td>
         </tr>
     `).join('');
 
@@ -1785,11 +2185,28 @@ function renderAllTables(allRows, matched, appended, defects) {
             <td contenteditable="true" data-row="${a.row}" data-col="J" onblur="saveCellEdit(${a.row}, 'J', this.innerText)">${formatGrowthCell(a.weight, a.wasWeightAuto)}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="K" onblur="saveCellEdit(${a.row}, 'K', this.innerText)">${formatGrowthCell(a.height, a.wasHeightAuto)}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="Q" onblur="saveCellEdit(${a.row}, 'Q', this.innerText)">${formatGrowthCell(a.hb, a.wasHbAuto)}</td>
-            <td contenteditable="true" data-row="${a.row}" data-col="S" onblur="saveCellEdit(${a.row}, 'S', this.innerText)"><span class="pill ${(a.defect === 'Healthy' || !a.defect) ? 'pill-healthy' : 'pill-defect'}">${a.defect || 'Healthy'}</span></td>
+            <td data-row="${a.row}" data-col="S">${getDefectSelectHtml(a.row, a.defect)}</td>
         </tr>
     `).join('');
 
-    // 4. Tab 3: Defects
+    // 4. Tab 3: Removed from Portal
+    const tbRemoved = document.getElementById('tbodyRemoved');
+    if (tbRemoved) {
+        tbRemoved.innerHTML = (removed && removed.length) ? removed.map(r => `
+            <tr>
+                <td>Row ${r.originalRowNum || r.rowNum}</td>
+                <td><code>${r.pen || '--'}</code></td>
+                <td><strong>${r.name}</strong></td>
+                <td>${r.class || '-'}</td>
+                <td>${r.dob || '-'}</td>
+                <td>${r.father || '-'}</td>
+                <td style="color:#b91c1c; font-weight:600;">AI Register me anupasthit (School chhod chuka / Next class merge)</td>
+                <td><span class="pill pill-removed">Removed from Output</span></td>
+            </tr>
+        `).join('') : `<tr><td colspan="8" style="text-align:center; color:#94a3b8; padding:20px;">Koi portal student remove nahi kiya gaya. Sabhi match ho gaye.</td></tr>`;
+    }
+
+    // 5. Tab 4: Defects
     const tbDefects = document.getElementById('tbodyDefects');
     tbDefects.innerHTML = defects.map(d => `
         <tr data-row="${d.row}">
@@ -1797,7 +2214,7 @@ function renderAllTables(allRows, matched, appended, defects) {
             <td contenteditable="true" data-row="${d.row}" data-col="G" onblur="saveCellEdit(${d.row}, 'G', this.innerText)">${d.class}</td>
             <td contenteditable="true" data-row="${d.row}" data-col="H" onblur="saveCellEdit(${d.row}, 'H', this.innerText)">${d.phone ? '📞 ' + d.phone : '-'}</td>
             <td style="color:#64748b;"><em>${d.raw}</em></td>
-            <td contenteditable="true" data-row="${d.row}" data-col="S" onblur="saveCellEdit(${d.row}, 'S', this.innerText)"><span class="pill pill-defect">${d.defect}</span></td>
+            <td data-row="${d.row}" data-col="S">${getDefectSelectHtml(d.row, d.defect)}</td>
             <td contenteditable="true" data-row="${d.row}" data-col="R" onblur="saveCellEdit(${d.row}, 'R', this.innerText)"><strong>${d.facility}</strong></td>
         </tr>
     `).join('');
