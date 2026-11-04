@@ -60,6 +60,27 @@
         .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
         .btn-download { background: #1e293b; color: white; border: none; padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
         .btn-download:hover { background: #0f172a; }
+        .btn-fill-normal {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border: none;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+        }
+        .btn-fill-normal:hover {
+            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-fill-normal:active { transform: translateY(0); }
 
         /* Results Card */
         .results-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: none; }
@@ -256,10 +277,13 @@
         </div>
     </div>
 
-    <!-- Action Button -->
-    <div class="action-row">
+    <!-- Action Buttons -->
+    <div class="action-row" style="display:flex; justify-content:center; align-items:center; gap:16px; flex-wrap:wrap;">
         <button id="btnProcess" class="btn-primary" disabled onclick="processFiles()">
             <span>⚡ Match & Merge RBSK Data</span>
+        </button>
+        <button id="btnFillNormalTop" class="btn-fill-normal" style="padding: 14px 28px; font-size: 15px;" onclick="fillNormalValues()" title="Jo parameters blank/empty hain sirf unhe Normal values se fill karein. AI register se li gayi values bilkul change nahi hongi.">
+            <span>🩺 Fill Normal Values (Missing Only)</span>
         </button>
     </div>
 
@@ -270,9 +294,14 @@
                 <h2 id="resultsTitle" style="font-size: 20px; font-weight: 700;">✅ RBSK Screening Spreadsheet</h2>
                 <p id="resultsSubtitle" style="font-size: 13px; color: var(--text-muted);">Data successfully loaded. Click any cell to edit — edits are live and auto-sync to Excel.</p>
             </div>
-            <button id="btnDownload" class="btn-download" onclick="downloadMergedFile()">
-                <span>📥 Download Updated RBSK Sheet (.xlsx)</span>
-            </button>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <button id="btnFillNormal" class="btn-fill-normal" onclick="fillNormalValues()" title="Jo parameters blank hain sirf unhe Normal values se fill karein. AI register se li gayi values change nahi hongi.">
+                    <span>🩺 Fill Normal Values (Missing Only)</span>
+                </button>
+                <button id="btnDownload" class="btn-download" onclick="downloadMergedFile()">
+                    <span>📥 Download Updated RBSK Sheet (.xlsx)</span>
+                </button>
+            </div>
         </div>
 
         <div class="stats-grid">
@@ -309,7 +338,10 @@
         <!-- Table Toolbar: Search & Badges -->
         <div class="table-toolbar">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search any student by Name, PEN, Class, Defect, Mobile..." oninput="onFilterTable(this.value)">
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button class="btn-fill-normal" style="padding: 6px 12px; font-size: 12px;" onclick="fillNormalValues()" title="Jo parameters blank hain sirf unhe Normal values se fill karein. AI register se li gayi values change nahi hongi.">
+                    <span>🩺 Fill Normal Values</span>
+                </button>
                 <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">✏️ Live Editable (Click cell to edit)</span>
                 <span id="searchResultCount" style="font-size:12px; color:#64748b; font-weight:600;"></span>
             </div>
@@ -458,6 +490,10 @@ let globalZipFormat = null;
 let globalFormatDoc = null;
 let globalSheetNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 let allRowsData = [];
+let lastMatchedList = [];
+let lastAppendedList = [];
+let lastRemovedList = [];
+let lastDefectsList = [];
 
 function toggleCustomHb(val) {
     const row = document.getElementById('customHbRow');
@@ -724,6 +760,10 @@ async function previewInitialFormat(file, buf) {
         document.getElementById('resultsTitle').innerText = `📑 Loaded Format Sheet (${allRowsData.length} Students) — Live Editable`;
         document.getElementById('resultsSubtitle').innerText = `Aap kisi bhi cell par click karke direct edit kar sakte hain. AI sheet upload karke 'Match & Merge' bhi kar sakte hain.`;
 
+        lastMatchedList = [];
+        lastAppendedList = [];
+        lastRemovedList = [];
+        lastDefectsList = [];
         renderAllTables(allRowsData, [], [], [], []);
         document.getElementById('resultsSection').style.display = 'block';
         showEditToast(`✓ Format sheet loaded (${allRowsData.length} students). Click any cell to edit.`);
@@ -2100,6 +2140,11 @@ async function processFiles() {
         document.getElementById('resultsTitle').innerText = `✅ Processing Complete! (${allRowsData.length} Total Students)`;
         document.getElementById('resultsSubtitle').innerText = `Matched: ${matchedList.length} | Removed Unmatched Portal: ${removedList.length} | New Registrations: ${appendedList.length}. Click any cell or select Defect from dropdown to live edit.`;
 
+        lastMatchedList = matchedList;
+        lastAppendedList = appendedList;
+        lastRemovedList = removedList;
+        lastDefectsList = defectsList;
+
         renderAllTables(allRowsData, matchedList, appendedList, removedList, defectsList);
         document.getElementById('resultsSection').style.display = 'block';
 
@@ -2220,6 +2265,160 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
     `).join('');
 }
 
+function fillNormalValues() {
+    if (!globalFormatDoc || !allRowsData || allRowsData.length === 0) {
+        showAlert("Kripya pehle RBSK Format Template upload karein.", true);
+        return;
+    }
+
+    const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+    if (!sheetData) return;
+
+    let filledCount = 0;
+    let studentsTouched = 0;
+
+    for (let rowObj of allRowsData) {
+        const rNum = rowObj.rowNum;
+        const rElem = sheetData.querySelector(`row[r="${rNum}"]`);
+        if (!rElem) continue;
+
+        let touchedThisStudent = false;
+
+        // Gender & Age for WHO growth calculations
+        const gender = rowObj.D || 'male';
+        const ageInfo = getStudentAgeInfo(rowObj.E, rowObj.F, rowObj.G);
+        const growth = getGrowthData(ageInfo, gender);
+
+        // 1. Weight (Col J) - Strictly ONLY fill if empty/missing/'-' (Never overwrite real AI register value)
+        if (!rowObj.J || rowObj.J.trim() === '' || rowObj.J === '-') {
+            const wVal = growth.w;
+            rowObj.J = wVal;
+            rowObj.wasWeightAuto = true;
+            setXmlCell(rElem, 'J', rNum, wVal);
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        // 2. Height (Col K) - Strictly ONLY fill if empty/missing/'-' (Never overwrite real AI register value)
+        if (!rowObj.K || rowObj.K.trim() === '' || rowObj.K === '-') {
+            const hVal = growth.h;
+            rowObj.K = hVal;
+            rowObj.wasHeightAuto = true;
+            setXmlCell(rElem, 'K', rNum, hVal);
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        // 3. Blood Pressure High (Col L) & Low (Col M) - Only fill if empty/missing
+        const bpStr = growth.bp || "106/70";
+        const bpParts = bpStr.split('/');
+        const defaultHigh = bpParts[0] || '106';
+        const defaultLow = bpParts[1] || '70';
+
+        if (!rowObj.L || rowObj.L.trim() === '') {
+            rowObj.L = defaultHigh;
+            setXmlCell(rElem, 'L', rNum, defaultHigh);
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        if (!rowObj.M || rowObj.M.trim() === '') {
+            rowObj.M = defaultLow;
+            setXmlCell(rElem, 'M', rNum, defaultLow);
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        // 4. Blood Pressure Formula & Value (Col N)
+        if (rowObj.L && rowObj.M) {
+            const combinedBp = `${rowObj.L}/${rowObj.M}`;
+            if (rowObj.N !== combinedBp) {
+                rowObj.N = combinedBp;
+                setXmlCell(rElem, 'N', rNum, combinedBp, null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
+            }
+        }
+
+        // 5. Vision Left Eye (Col O) & Right Eye (Col P) - Normal standard is 6/6
+        if (!rowObj.O || rowObj.O.trim() === '') {
+            rowObj.O = '6/6';
+            setXmlCell(rElem, 'O', rNum, '6/6', '1');
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        if (!rowObj.P || rowObj.P.trim() === '') {
+            rowObj.P = '6/6';
+            setXmlCell(rElem, 'P', rNum, '6/6', '1');
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        // 6. HB Count (Col Q) - Strictly ONLY fill if empty/missing/'-' (Never overwrite real AI register value)
+        if (!rowObj.Q || rowObj.Q.trim() === '' || rowObj.Q === '-') {
+            const normHb = generateTargetHb();
+            rowObj.Q = normHb;
+            rowObj.wasHbAuto = true;
+            setXmlCell(rElem, 'Q', rNum, normHb);
+            filledCount++;
+            touchedThisStudent = true;
+        }
+
+        // 7. Defect Name (Col S) & Facility (Col R) - Only if empty
+        if (!rowObj.S || rowObj.S.trim() === '') {
+            rowObj.S = 'Healthy';
+            setXmlCell(rElem, 'S', rNum, 'Healthy');
+            rowObj.R = '';
+            setXmlCell(rElem, 'R', rNum, '');
+            filledCount++;
+            touchedThisStudent = true;
+        } else if (rowObj.S === 'Healthy' && rowObj.R) {
+            rowObj.R = '';
+            setXmlCell(rElem, 'R', rNum, '');
+        }
+
+        // 8. Age (Col F) - If missing and DOB available
+        if ((!rowObj.F || rowObj.F.trim() === '') && rowObj.E) {
+            const calcA = calculateAge(rowObj.E);
+            if (calcA) {
+                rowObj.F = calcA;
+                setXmlCell(rElem, 'F', rNum, calcA);
+            }
+        }
+
+        // Sync with lastMatchedList and lastAppendedList
+        const mItem = lastMatchedList.find(x => x.row == rNum);
+        if (mItem) {
+            if (!mItem.weight) { mItem.weight = rowObj.J; mItem.wasWeightAuto = true; }
+            if (!mItem.height) { mItem.height = rowObj.K; mItem.wasHeightAuto = true; }
+            if (!mItem.hb) { mItem.hb = rowObj.Q; mItem.wasHbAuto = true; }
+            if (!mItem.defect) { mItem.defect = rowObj.S; }
+            if (!mItem.facility) { mItem.facility = rowObj.R; }
+        }
+        const aItem = lastAppendedList.find(x => x.row == rNum);
+        if (aItem) {
+            if (!aItem.weight) { aItem.weight = rowObj.J; aItem.wasWeightAuto = true; }
+            if (!aItem.height) { aItem.height = rowObj.K; aItem.wasHeightAuto = true; }
+            if (!aItem.hb) { aItem.hb = rowObj.Q; aItem.wasHbAuto = true; }
+            if (!aItem.defect) { aItem.defect = rowObj.S; }
+        }
+
+        if (touchedThisStudent) studentsTouched++;
+    }
+
+    mergedBlob = null; // Re-generate fresh XLSX on download
+
+    // Re-render UI tables
+    renderAllTables(allRowsData, lastMatchedList, lastAppendedList, lastRemovedList, lastDefectsList);
+
+    const statAuto = document.getElementById('statAutoFilled');
+    if (statAuto) {
+        statAuto.innerText = String(parseInt(statAuto.innerText || '0', 10) + studentsTouched);
+    }
+
+    showEditToast(`✓ ${filledCount} missing values normal parameters se fill ho gayi! AI Register values bilkul surakshit hain.`);
+    showAlert(`Normal Values Feed Safal! ${studentsTouched} students me kul ${filledCount} missing parameters (Normal BP, 6/6 Vision, Normal Hb, WHO Height/Weight) auto-fill ho gaye. AI register se aayi hui real values bilkul safe aur unchanged hain.`, false);
+}
+
 async function downloadMergedFile() {
     if (!globalZipFormat || !globalFormatDoc) {
         showAlert("Pehle file load ya merge karein.", true);
@@ -2257,6 +2456,9 @@ async function downloadMergedFile() {
         btn.disabled = false;
     }
 }
+
+window.fillNormalValues = fillNormalValues;
+window.downloadMergedFile = downloadMergedFile;
 </script>
 </body>
 </html>
