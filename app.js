@@ -1036,46 +1036,46 @@
 
                 const st = studentRowsData[stIndex];
                 const stName = st.name || "Student";
-                if (confirm(`Kya aap student "${stName}" (S.N. ${st.sn}) ko delete karna chahte hain?`)) {
-                    // 1. Remove from studentRowsData
-                    studentRowsData.splice(stIndex, 1);
 
-                    // 2. Remove row from rawGrid
-                    if (rawGrid && rawGrid[rIdx]) {
-                        rawGrid.splice(rIdx, 1);
-                    }
+                // Instant delete - No confirmation popup
+                // 1. Remove from studentRowsData
+                studentRowsData.splice(stIndex, 1);
 
-                    // 3. Shift rowIndex of all remaining students below rIdx
-                    studentRowsData.forEach((item) => {
-                        if (item.rowIndex > rIdx) {
-                            item.rowIndex--;
-                        }
-                    });
-
-                    // 4. Re-number S.N. cleanly
-                    studentRowsData.forEach((item, idx) => {
-                        item.sn = idx + 1;
-                        if (colIndexMap.sn >= 0 && rawGrid[item.rowIndex]) {
-                            rawGrid[item.rowIndex][colIndexMap.sn] = idx + 1;
-                        }
-                    });
-
-                    // 5. Update stats and file badge
-                    if (fileMetaBadge) {
-                        fileMetaBadge.textContent = `${detectedType} Template • ${studentRowsData.length} Students`;
-                    }
-                    if (lastAutoStats) {
-                        lastAutoStats.total = studentRowsData.length;
-                        renderStats(lastAutoStats);
-                    }
-
-                    // 6. Adjust page if page is now empty
-                    const maxPages = Math.ceil(studentRowsData.length / rowsPerPage) || 1;
-                    if (currentPage > maxPages) currentPage = maxPages;
-
-                    // 7. Re-render table
-                    renderPreviewTable();
+                // 2. Remove row from rawGrid
+                if (rawGrid && rawGrid[rIdx]) {
+                    rawGrid.splice(rIdx, 1);
                 }
+
+                // 3. Shift rowIndex of all remaining students below rIdx
+                studentRowsData.forEach((item) => {
+                    if (item.rowIndex > rIdx) {
+                        item.rowIndex--;
+                    }
+                });
+
+                // 4. Re-number S.N. cleanly
+                studentRowsData.forEach((item, idx) => {
+                    item.sn = idx + 1;
+                    if (colIndexMap.sn >= 0 && rawGrid[item.rowIndex]) {
+                        rawGrid[item.rowIndex][colIndexMap.sn] = idx + 1;
+                    }
+                });
+
+                // 5. Update stats and file badge
+                if (fileMetaBadge) {
+                    fileMetaBadge.textContent = `${detectedType} Template • ${studentRowsData.length} Students`;
+                }
+                if (lastAutoStats) {
+                    lastAutoStats.total = studentRowsData.length;
+                    renderStats(lastAutoStats);
+                }
+
+                // 6. Adjust page if page is now empty
+                const maxPages = Math.ceil(studentRowsData.length / rowsPerPage) || 1;
+                if (currentPage > maxPages) currentPage = maxPages;
+
+                // 7. Re-render table
+                renderPreviewTable();
             });
         });
 
