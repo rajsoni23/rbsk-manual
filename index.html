@@ -118,27 +118,75 @@
                 </select>
                 <select class="select-input-sm" id="optSpecificDefect" style="display: none; border-color: #f97316;">
                     <option value="healthy">Healthy</option>
-                    <option value="skin">Skin</option>
-                    <option value="dental">Dental</option>
-                    <option value="otitis">Otitis</option>
-                    <option value="vision">Vision</option>
-                    <option value="vitaminA">Vit A</option>
-                    <option value="vitaminB">B Complex</option>
-                    <option value="vitaminD">Vit D</option>
-                    <option value="sam">SAM</option>
-                    <option value="mildAnaemia">Mild Anaemia</option>
-                    <option value="moderateAnaemia">Moderate Anaemia</option>
-                    <option value="severeAnemia">Severe Anemia</option>
-                    <option value="reactiveAirway">Reactive Airway Disease</option>
-                    <option value="growingUpConcerns">Growing up concerns</option>
-                    <option value="painUrination">Pain/Burning Urinating</option>
-                    <option value="painMenstruation">Pain during menstruation</option>
-                    <option value="neuralTubeDefect">Neural Tube Defect</option>
-                    <option value="cleftLip">Cleft Lip/Palate</option>
-                    <option value="clubFoot">Club Foot</option>
-                    <option value="chd">Congenital Heart Disease</option>
-                    <option value="downSyndrome">Down Syndrome</option>
-                    <option value="convulsive">Convulsive Disorders</option>
+                    <optgroup label="1. Defects at Birth">
+                        <option value="neuralTubeDefect">1. Neural Tube Defect</option>
+                        <option value="downsSyndrome">2. Down's Syndrome</option>
+                        <option value="cleftLipPalate">3. Cleft Lip &amp; Palate</option>
+                        <option value="clubFoot">4. Talipes (Club Foot)</option>
+                        <option value="hipDysplasia">5. Developmental Dysplasia of Hip</option>
+                        <option value="congenitalCataract">6. Congenital Cataract</option>
+                        <option value="congenitalDeafness">7. Congenital Deafness</option>
+                        <option value="congenitalHeartDisease">8. Congenital Heart Disease</option>
+                        <option value="retinopathy">9. Retinopathy of Prematurity</option>
+                        <option value="microcephaly">42. Microcephaly</option>
+                        <option value="macrocephaly">43. Macrocephaly</option>
+                        <option value="congenitalEar">47. Congenital Ear Defects</option>
+                        <option value="neckFaceDefects">48. Neck &amp; Face Defects</option>
+                        <option value="congenitalEye">50. Congenital Eye Defects</option>
+                    </optgroup>
+                    <optgroup label="2. Deficiencies">
+                        <option value="severeAnemia">10. Severe Anemia</option>
+                        <option value="vitaminA">11. Vit A Deficiency (Bitot Spot)</option>
+                        <option value="vitaminD">12. Vit D Deficiency (Rickets)</option>
+                        <option value="sam">13. SAM / Severe Thinness / SUW</option>
+                        <option value="goiter">14. Goiter</option>
+                        <option value="severeStunting">41. Severe Stunting</option>
+                        <option value="vitaminB">44. Vit B Complex Deficiency</option>
+                        <option value="obesity">45. Obesity</option>
+                        <option value="moderateAnaemia">52. Moderate Anaemia</option>
+                        <option value="mildAnaemia">89. Mild Anaemia</option>
+                        <option value="mam">90. MAM</option>
+                        <option value="vitaminD120">120. Vitamin D Deficiency</option>
+                    </optgroup>
+                    <optgroup label="3. Childhood Diseases">
+                        <option value="skin">15. Skin Conditions</option>
+                        <option value="otitis">16. Otitis Media</option>
+                        <option value="rheumaticHeart">17. Rheumatic Heart Disease</option>
+                        <option value="reactiveAirway">18. Reactive Airway Disease</option>
+                        <option value="dental">19. Dental Conditions</option>
+                        <option value="convulsiveDisorders">20. Convulsive Disorders</option>
+                        <option value="childhoodLeprosy">39. Childhood Leprosy</option>
+                        <option value="tbPulmonary">40. Tuberculosis Pulmonary</option>
+                        <option value="stage2Hypertension">46. Stage 2 Hypertension</option>
+                        <option value="refractiveProblems">49. Refractive Problems</option>
+                        <option value="tbExtraPulmonary">140. TB Extra Pulmonary</option>
+                        <option value="skinNotLeprosy">150. Skin Conditions (Not Leprosy)</option>
+                        <option value="bronchialAsthma">180. Bronchial Asthma</option>
+                        <option value="prehypertension">460. Prehypertension</option>
+                        <option value="stage1Hypertension">461. Stage 1 Hypertension</option>
+                    </optgroup>
+                    <optgroup label="4. Development Delay">
+                        <option value="vision">21. Vision Impairment</option>
+                        <option value="hearingImpairment">22. Hearing Impairment</option>
+                        <option value="neuroMotor">23. Neuro-Motor Impairment</option>
+                        <option value="motorDelay">24. Motor Delay</option>
+                        <option value="cognitiveDelay">25. Cognitive Delay</option>
+                        <option value="languageDelay">26. Language Delay</option>
+                        <option value="autism">27. Behavior Disorder (Autism)</option>
+                        <option value="learningDisorder">28. Learning Disorder</option>
+                        <option value="adhd">29. ADHD</option>
+                        <option value="convulsiveDevelopmental">51. Convulsive Disorders (Dev Delay)</option>
+                    </optgroup>
+                    <optgroup label="5. Adolescent Health concerns">
+                        <option value="growingUpConcerns">31. Growing Up Concerns</option>
+                        <option value="substanceAbuse">32. Substance Abuse</option>
+                        <option value="feelDepressed">33. Feel Depressed</option>
+                        <option value="delayMenstruation">34. Delay in Menstruation</option>
+                        <option value="irregularPeriods">35. Irregular Periods</option>
+                        <option value="painUrination">36. Pain/Burning Urinating</option>
+                        <option value="genitorUrinaryDischarge">37. Genito-Urinary Discharge</option>
+                        <option value="painMenstruation">38. Pain During Menstruation</option>
+                    </optgroup>
                 </select>
             </div>
         </div>
