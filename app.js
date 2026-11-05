@@ -25,37 +25,125 @@
     let activeFilter = "";
     let currentPage = 1;
     const rowsPerPage = 20;
+    let lastAutoStats = null;
 
-    // RBSK Comprehensive Disease / Condition Reference List (All 4Ds & Adolescent concerns)
-    const DEFECT_OPTIONS = [
-        { val: "healthy", label: "Healthy", color: "#4b5563" },
-        { val: "skin", label: "Skin", color: "#dc2626" },
-        { val: "dental", label: "Dental", color: "#dc2626" },
-        { val: "otitis", label: "Otitis", color: "#dc2626" },
-        { val: "vision", label: "Vision", color: "#dc2626" },
-        { val: "vitaminA", label: "Vit A", color: "#dc2626" },
-        { val: "vitaminB", label: "B Complex", color: "#dc2626" },
-        { val: "vitaminD", label: "Vit D", color: "#dc2626" },
-        { val: "sam", label: "SAM", color: "#dc2626" },
-        { val: "mildAnaemia", label: "Mild Anaemia", color: "#dc2626" },
-        { val: "moderateAnaemia", label: "Moderate Anaemia", color: "#dc2626" },
-        { val: "severeAnemia", label: "Severe Anemia", color: "#dc2626" },
-        { val: "reactiveAirway", label: "Reactive Airway Disease", color: "#dc2626" },
-        { val: "growingUpConcerns", label: "Growing up concerns", color: "#dc2626" },
-        { val: "painUrination", label: "Pain/Burning Urinating", color: "#dc2626" },
-        { val: "painMenstruation", label: "Pain during menstruation", color: "#dc2626" },
-        { val: "neuralTubeDefect", label: "Neural Tube Defect", color: "#dc2626" },
-        { val: "cleftLip", label: "Cleft Lip/Palate", color: "#dc2626" },
-        { val: "clubFoot", label: "Club Foot", color: "#dc2626" },
-        { val: "chd", label: "Congenital Heart Disease", color: "#dc2626" },
-        { val: "downSyndrome", label: "Down Syndrome", color: "#dc2626" },
-        { val: "convulsive", label: "Convulsive Disorders", color: "#dc2626" }
+            // RBSK Comprehensive Disease / Condition Reference List (All 4Ds & Adolescent concerns)
+    const RBSK_SCREENING_DEFECT_CATEGORIES = [
+        {
+            category: "1. Defects at Birth",
+            items: [
+                { val: "neuralTubeDefect", label: "1. Neural Tube Defect", facility: "DEIC" },
+                { val: "downsSyndrome", label: "2. Down's Syndrome", facility: "DEIC" },
+                { val: "cleftLipPalate", label: "3. Cleft Lip & Palate", facility: "DEIC" },
+                { val: "clubFoot", label: "4. Talipes (Club Foot)", facility: "DEIC" },
+                { val: "hipDysplasia", label: "5. Developmental Dysplasia of Hip", facility: "DEIC" },
+                { val: "congenitalCataract", label: "6. Congenital Cataract", facility: "DEIC" },
+                { val: "congenitalDeafness", label: "7. Congenital Deafness", facility: "DEIC" },
+                { val: "congenitalHeartDisease", label: "8. Congenital Heart Disease", facility: "DEIC" },
+                { val: "retinopathy", label: "9. Retinopathy of Prematurity", facility: "District Level Facility" },
+                { val: "microcephaly", label: "42. Microcephaly", facility: "DEIC" },
+                { val: "macrocephaly", label: "43. Macrocephaly", facility: "DEIC" },
+                { val: "congenitalEar", label: "47. Congenital Ear Defects", facility: "DEIC" },
+                { val: "neckFaceDefects", label: "48. Neck & Face Defects", facility: "DEIC" },
+                { val: "congenitalEye", label: "50. Congenital Eye Defects", facility: "DEIC" }
+            ]
+        },
+        {
+            category: "2. Deficiencies",
+            items: [
+                { val: "severeAnemia", label: "10. Severe Anemia", facility: "DEIC" },
+                { val: "vitaminA", label: "11. Vit A Deficiency (Bitot Spot)", facility: "Block Level Facility" },
+                { val: "vitaminD", label: "12. Vit D Deficiency (Rickets)", facility: "Block Level Facility" },
+                { val: "sam", label: "13. SAM / Severe Thinness / SUW", facility: "NRC" },
+                { val: "goiter", label: "14. Goiter", facility: "Block Level Facility" },
+                { val: "severeStunting", label: "41. Severe Stunting", facility: "NRC" },
+                { val: "vitaminB", label: "44. Vit B Complex Deficiency", facility: "Block Level Facility" },
+                { val: "obesity", label: "45. Obesity", facility: "Block Level Facility" },
+                { val: "moderateAnaemia", label: "52. Moderate Anaemia", facility: "Block Level Facility" },
+                { val: "mildAnaemia", label: "89. Mild Anaemia", facility: "Block Level Facility" },
+                { val: "mam", label: "90. MAM", facility: "Block Level Facility" },
+                { val: "vitaminD120", label: "120. Vitamin D Deficiency", facility: "Block Level Facility" }
+            ]
+        },
+        {
+            category: "3. Childhood Diseases",
+            items: [
+                { val: "skin", label: "15. Skin Conditions", facility: "Block Level Facility" },
+                { val: "otitis", label: "16. Otitis Media", facility: "Block Level Facility" },
+                { val: "rheumaticHeart", label: "17. Rheumatic Heart Disease", facility: "DEIC" },
+                { val: "reactiveAirway", label: "18. Reactive Airway Disease", facility: "Block Level Facility" },
+                { val: "dental", label: "19. Dental Conditions", facility: "Block Level Facility" },
+                { val: "convulsiveDisorders", label: "20. Convulsive Disorders", facility: "DEIC" },
+                { val: "childhoodLeprosy", label: "39. Childhood Leprosy", facility: "Block Level Facility" },
+                { val: "tbPulmonary", label: "40. Tuberculosis Pulmonary", facility: "Block Level Facility" },
+                { val: "stage2Hypertension", label: "46. Stage 2 Hypertension", facility: "District Level Facility" },
+                { val: "refractiveProblems", label: "49. Refractive Problems", facility: "DEIC" },
+                { val: "tbExtraPulmonary", label: "140. TB Extra Pulmonary", facility: "District Level Facility" },
+                { val: "skinNotLeprosy", label: "150. Skin Conditions (Not Leprosy)", facility: "Block Level Facility" },
+                { val: "bronchialAsthma", label: "180. Bronchial Asthma", facility: "Block Level Facility" },
+                { val: "prehypertension", label: "460. Prehypertension", facility: "Block Level Facility" },
+                { val: "stage1Hypertension", label: "461. Stage 1 Hypertension", facility: "Block Level Facility" }
+            ]
+        },
+        {
+            category: "4. Development Delay",
+            items: [
+                { val: "vision", label: "21. Vision Impairment", facility: "DEIC" },
+                { val: "hearingImpairment", label: "22. Hearing Impairment", facility: "DEIC" },
+                { val: "neuroMotor", label: "23. Neuro-Motor Impairment", facility: "DEIC" },
+                { val: "motorDelay", label: "24. Motor Delay", facility: "DEIC" },
+                { val: "cognitiveDelay", label: "25. Cognitive Delay", facility: "DEIC" },
+                { val: "languageDelay", label: "26. Language Delay", facility: "DEIC" },
+                { val: "autism", label: "27. Behavior Disorder (Autism)", facility: "DEIC" },
+                { val: "learningDisorder", label: "28. Learning Disorder", facility: "DEIC" },
+                { val: "adhd", label: "29. ADHD", facility: "DEIC" },
+                { val: "convulsiveDevelopmental", label: "51. Convulsive Disorders (Dev Delay)", facility: "DEIC" }
+            ]
+        },
+        {
+            category: "5. Adolescent Health concerns",
+            items: [
+                { val: "growingUpConcerns", label: "31. Growing Up Concerns", facility: "AFHC" },
+                { val: "substanceAbuse", label: "32. Substance Abuse", facility: "AFHC" },
+                { val: "feelDepressed", label: "33. Feel Depressed", facility: "AFHC" },
+                { val: "delayMenstruation", label: "34. Delay in Menstruation", facility: "AFHC" },
+                { val: "irregularPeriods", label: "35. Irregular Periods", facility: "AFHC" },
+                { val: "painUrination", label: "36. Pain/Burning Urinating", facility: "AFHC" },
+                { val: "genitorUrinaryDischarge", label: "37. Genito-Urinary Discharge", facility: "AFHC" },
+                { val: "painMenstruation", label: "38. Pain During Menstruation", facility: "AFHC" }
+            ]
+        }
     ];
 
-    const DEFECT_LABELS = {};
-    DEFECT_OPTIONS.forEach((o) => {
-        DEFECT_LABELS[o.val] = o.label;
+    // Flat options list for processing and lookup
+    const DEFECT_OPTIONS = [
+        { val: "healthy", label: "Healthy", color: "#4b5563", facility: "" }
+    ];
+    const DEFECT_LABELS = { "healthy": "Healthy" };
+    const DEFECT_FACILITIES = { "healthy": "" };
+
+    RBSK_SCREENING_DEFECT_CATEGORIES.forEach((cat) => {
+        cat.items.forEach((item) => {
+            const entry = {
+                val: item.val,
+                label: item.label,
+                color: "#dc2626",
+                facility: item.facility || "Block Level Facility"
+            };
+            DEFECT_OPTIONS.push(entry);
+            DEFECT_LABELS[item.val] = item.label;
+            DEFECT_LABELS[item.label] = item.label;
+            DEFECT_FACILITIES[item.val] = entry.facility;
+            DEFECT_FACILITIES[item.label] = entry.facility;
+        });
     });
+
+    // Backward-compatible aliases for legacy keys
+    DEFECT_LABELS["downSyndrome"] = "2. Down's Syndrome";
+    DEFECT_LABELS["cleftLip"] = "3. Cleft Lip & Palate";
+    DEFECT_LABELS["chd"] = "8. Congenital Heart Disease";
+    DEFECT_LABELS["convulsive"] = "20. Convulsive Disorders";
+    DEFECT_LABELS["convulsiveDevDelay"] = "51. Convulsive Disorders (Dev Delay)";
 
     // Vision Options
     const VISION_OPTIONS = [
@@ -80,31 +168,24 @@
     ];
 
     function normalizeDefectKey(raw) {
-        const s = String(raw || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-        if (!s || s === "healthy" || s === "nil" || s === "none" || s === "normal" || s === "no" || s === "0" || s === "fit") {
+        if (!raw) return "healthy";
+        const s = String(raw).trim();
+        const sClean = s.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (!sClean || sClean === "healthy" || sClean === "nil" || sClean === "none" || sClean === "normal" || sClean === "no" || sClean === "0" || sClean === "fit" || sClean === "swasth" || sClean === "theek") {
             return "healthy";
         }
-        if (s.startsWith("10") || s.includes("severeanemia") || s.includes("severeanaemia") || s.includes("severeanem")) return "severeAnemia";
-        if (s.startsWith("52") || s.includes("moderateanaemia") || s.includes("moderateanemia") || s.includes("modanemia")) return "moderateAnaemia";
-        if (s.startsWith("89") || s.includes("mildanaemia") || s.includes("mildanemia") || s.includes("anaemia") || s.includes("anemia")) return "mildAnaemia";
-        if (s.startsWith("18") || s.includes("reactiveairway") || s.includes("airway") || s.includes("asthma") || s.includes("rad")) return "reactiveAirway";
-        if (s.startsWith("31") || s.includes("growingup") || s.includes("growingconcern")) return "growingUpConcerns";
-        if (s.startsWith("36") || s.includes("urinat") || s.includes("burningurine") || s.includes("painurination")) return "painUrination";
-        if (s.startsWith("38") || s.includes("menstruat") || s.includes("periodpain") || s.includes("dysmenorrhea") || s.includes("painmenstruation")) return "painMenstruation";
-        if (s.startsWith("150") || s.startsWith("15") || s.includes("skin") || s.includes("scabies") || s.includes("leprosy")) return "skin";
-        if (s.startsWith("19") || s.includes("dent") || s.includes("teeth") || s.includes("caries")) return "dental";
-        if (s.startsWith("16") || s.includes("otit") || s.includes("ear") || s.includes("discharge")) return "otitis";
-        if (s.startsWith("21") || s.includes("vis") || s.includes("eye") || s.includes("blind")) return "vision";
-        if (s.startsWith("11") || s.includes("vita") || s.includes("vitamina") || s.includes("bitot")) return "vitaminA";
-        if (s.startsWith("44") || s.includes("vitb") || s.includes("bcomp") || s.includes("complex")) return "vitaminB";
-        if (s.startsWith("12") || s.includes("vitd") || s.includes("vitamind") || s.includes("rickets")) return "vitaminD";
-        if (s.startsWith("13") || s.includes("sam") || s.includes("severethin") || s.includes("suw") || s.includes("malnutr")) return "sam";
-        if (s.includes("neural") || s.includes("ntd") || s.includes("spina")) return "neuralTubeDefect";
-        if (s.includes("cleft") || s.includes("palate") || s.includes("lip")) return "cleftLip";
-        if (s.includes("club") || s.includes("foot") || s.includes("ctev")) return "clubFoot";
-        if (s.includes("heart") || s.includes("chd") || s.includes("congenitalheart")) return "chd";
-        if (s.includes("down") || s.includes("trisomy") || s.includes("syndrome")) return "downSyndrome";
-        if (s.includes("convuls") || s.includes("epilep") || s.includes("seiz")) return "convulsive";
+        for (const opt of DEFECT_OPTIONS) {
+            if (opt.val.toLowerCase() === sClean || opt.label.toLowerCase() === s.toLowerCase() || opt.label.toLowerCase().replace(/[^a-z0-9]/g, "") === sClean) {
+                return opt.val;
+            }
+        }
+        // Substring / keyword fallback
+        for (const opt of DEFECT_OPTIONS) {
+            const lLow = opt.label.toLowerCase();
+            if (lLow.includes(s.toLowerCase()) || s.toLowerCase().includes(opt.val.toLowerCase())) {
+                return opt.val;
+            }
+        }
         return "healthy";
     }
 
@@ -136,15 +217,20 @@
     }
 
     function renderDiseaseSelectHtml(currentVal, rowIdx) {
-        const isHealthy = currentVal === "healthy";
+        const isHealthy = currentVal === "healthy" || currentVal === "Healthy";
         const borderStyle = isHealthy ? "border: 1px solid #d1d5db;" : "border: 1px solid rgb(249, 115, 22);";
         const colorStyle = isHealthy ? "color: #4b5563;" : "color: #dc2626; font-weight: 700;";
 
         let html = `<select class="rbsk-disease-select" data-row-idx="${rowIdx}" style="${borderStyle} ${colorStyle}">`;
+        html += `<option value="healthy" style="color: #4b5563;"${(currentVal === "healthy" || currentVal === "Healthy") ? " selected" : ""}>Healthy</option>`;
 
-        DEFECT_OPTIONS.forEach((opt) => {
-            const sel = opt.val === currentVal ? " selected" : "";
-            html += `<option value="${opt.val}" style="color: ${opt.color};"${sel}>${opt.label}</option>`;
+        RBSK_SCREENING_DEFECT_CATEGORIES.forEach((grp) => {
+            html += `<optgroup label="${grp.category}">`;
+            grp.items.forEach((opt) => {
+                const sel = (opt.val === currentVal || opt.label === currentVal) ? " selected" : "";
+                html += `<option value="${opt.val}" style="color: #dc2626;"${sel}>${opt.label}</option>`;
+            });
+            html += `</optgroup>`;
         });
 
         html += `</select>`;
@@ -752,10 +838,7 @@
             // 6. Referred Facility
             let finalFacilityType = st.manualFacilityType !== null ? st.manualFacilityType : st.originalFacilityType;
             if (!finalFacilityType && finalDefectKey !== "healthy") {
-                // Auto-suggest appropriate facility based on condition
-                if (finalDefectKey === "sam") finalFacilityType = "NRC";
-                else if (finalDefectKey === "severeAnemia" || finalDefectKey === "chd" || finalDefectKey === "neuralTubeDefect") finalFacilityType = "DEIC";
-                else finalFacilityType = "Block Level Facility";
+                finalFacilityType = DEFECT_FACILITIES[finalDefectKey] || "Block Level Facility";
             } else if (finalDefectKey === "healthy" && !st.manualFacilityType) {
                 finalFacilityType = "";
             }
@@ -790,13 +873,14 @@
             }
         });
 
-        renderStats({
+        lastAutoStats = {
             total: studentRowsData.length,
             weight: totalWeightFilled,
             height: totalHeightFilled,
             hb: totalHbFilled,
             vision: totalVisionFilled
-        });
+        };
+        renderStats(lastAutoStats);
 
         currentPage = 1;
         renderPreviewTable();
@@ -871,6 +955,7 @@
 
         let theadHtml = `
             <tr>
+                <th style="width: 75px; text-align: center;">Action</th>
                 <th>S.N.</th>
                 <th>${detectedType === "AWC" ? "AWC Child ID" : "PEN ID"}</th>
                 <th>Student Name</th>
@@ -892,7 +977,7 @@
         const pageItems = filtered.slice(startIdx, startIdx + rowsPerPage);
 
         if (pageItems.length === 0) {
-            const cols = detectedType === "AWC" ? 15 : 12;
+            const cols = detectedType === "AWC" ? 16 : 13;
             previewTbody.innerHTML = `<tr><td colspan="${cols}" class="no-records">No students match your search filter.</td></tr>`;
             return;
         }
@@ -916,6 +1001,11 @@
 
             tbodyHtml += `
                 <tr>
+                    <td style="text-align: center;">
+                        <button type="button" class="btn-delete-student" data-row-idx="${st.rowIndex}" title="Delete ${st.name || 'Student'}" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; transition: all 0.15s ease;">
+                            <span>🗑️</span> Delete
+                        </button>
+                    </td>
                     <td>${st.sn || "-"}</td>
                     <td>${st.id || "-"}</td>
                     <td style="font-weight: 600;">${st.name || "-"}</td>
@@ -935,6 +1025,60 @@
 
         previewTbody.innerHTML = tbodyHtml;
 
+        // Attach live listeners to Delete buttons
+        previewTbody.querySelectorAll(".btn-delete-student").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                const targetBtn = e.target.closest(".btn-delete-student");
+                if (!targetBtn) return;
+                const rIdx = parseInt(targetBtn.getAttribute("data-row-idx"), 10);
+                const stIndex = studentRowsData.findIndex((s) => s.rowIndex === rIdx);
+                if (stIndex === -1) return;
+
+                const st = studentRowsData[stIndex];
+                const stName = st.name || "Student";
+                if (confirm(`Kya aap student "${stName}" (S.N. ${st.sn}) ko delete karna chahte hain?`)) {
+                    // 1. Remove from studentRowsData
+                    studentRowsData.splice(stIndex, 1);
+
+                    // 2. Remove row from rawGrid
+                    if (rawGrid && rawGrid[rIdx]) {
+                        rawGrid.splice(rIdx, 1);
+                    }
+
+                    // 3. Shift rowIndex of all remaining students below rIdx
+                    studentRowsData.forEach((item) => {
+                        if (item.rowIndex > rIdx) {
+                            item.rowIndex--;
+                        }
+                    });
+
+                    // 4. Re-number S.N. cleanly
+                    studentRowsData.forEach((item, idx) => {
+                        item.sn = idx + 1;
+                        if (colIndexMap.sn >= 0 && rawGrid[item.rowIndex]) {
+                            rawGrid[item.rowIndex][colIndexMap.sn] = idx + 1;
+                        }
+                    });
+
+                    // 5. Update stats and file badge
+                    if (fileMetaBadge) {
+                        fileMetaBadge.textContent = `${detectedType} Template • ${studentRowsData.length} Students`;
+                    }
+                    if (lastAutoStats) {
+                        lastAutoStats.total = studentRowsData.length;
+                        renderStats(lastAutoStats);
+                    }
+
+                    // 6. Adjust page if page is now empty
+                    const maxPages = Math.ceil(studentRowsData.length / rowsPerPage) || 1;
+                    if (currentPage > maxPages) currentPage = maxPages;
+
+                    // 7. Re-render table
+                    renderPreviewTable();
+                }
+            });
+        });
+
         // Attach live listeners to Defect dropdowns
         previewTbody.querySelectorAll(".rbsk-disease-select").forEach((sel) => {
             sel.addEventListener("change", (e) => {
@@ -953,9 +1097,7 @@
 
                     // Update facility automatically if non-healthy
                     if (selectedVal !== "healthy" && (!st.computed.facilityType || st.computed.facilityType === "")) {
-                        let autoFac = "Block Level Facility";
-                        if (selectedVal === "sam") autoFac = "NRC";
-                        else if (selectedVal === "severeAnemia" || selectedVal === "chd" || selectedVal === "neuralTubeDefect") autoFac = "DEIC";
+                        let autoFac = DEFECT_FACILITIES[selectedVal] || "Block Level Facility";
                         st.manualFacilityType = autoFac;
                         if (st.computed) st.computed.facilityType = autoFac;
                         if (colIndexMap.facilityType >= 0 && rawGrid[rIdx]) {
@@ -1095,8 +1237,21 @@
                 { wch: 14 },
                 { wch: 35 },
                 { wch: 20 },
-                { wch: 80 }
+                { wch: 80 },
+                { wch: 4 },
+                { wch: 40 }
             ];
+            // Populate Column G (c: 6) with full RBSK defect list for dropdown reference without 255-char limit
+            guideSheet[XLSX.utils.encode_cell({ r: 0, c: 6 })] = { t: "s", v: "RBSK Defect Reference List" };
+            DEFECT_OPTIONS.forEach((opt, idx) => {
+                const addr = XLSX.utils.encode_cell({ r: idx + 1, c: 6 });
+                guideSheet[addr] = { t: "s", v: opt.label };
+            });
+            const oldRange = XLSX.utils.decode_range(guideSheet["!ref"] || "A1:E20");
+            guideSheet["!ref"] = XLSX.utils.encode_range({
+                s: { r: 0, c: 0 },
+                e: { r: Math.max(oldRange.e.r, DEFECT_OPTIONS.length + 2), c: Math.max(oldRange.e.c, 6) }
+            });
             XLSX.utils.book_append_sheet(workbook, guideSheet, "Instructions");
 
             const cleanName = originalFileName.replace(/\.(xlsx|xls)$/i, "");
@@ -1144,8 +1299,8 @@
                 // 1. Defect Column
                 if (defectColIdx >= 0) {
                     const colLetter = XLSX.utils.encode_col(defectColIdx);
-                    const dvDefectOptions = DEFECT_OPTIONS.map((o) => o.label).join(",");
-                    dvRules.push(`<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${colLetter}2:${colLetter}${maxRow}"><formula1>&quot;${dvDefectOptions}&quot;</formula1></dataValidation>`);
+                    const formulaRef = `Instructions!$G$2:$G${DEFECT_OPTIONS.length + 1}`;
+                    dvRules.push(`<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="${colLetter}2:${colLetter}${maxRow}"><formula1>${formulaRef}</formula1></dataValidation>`);
                 }
 
                 // 2. Vision Left
