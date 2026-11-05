@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RBSK Child Screening - Data Merger & Auto-Fill Tool</title>
+    <title>RBSK Student Data Comparison & Reconciliation Tool</title>
     <style>
         :root {
             --primary: #059669;
@@ -22,164 +22,138 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
         body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; padding: 24px 16px; }
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
         
         /* Header */
-        .header { background: linear-gradient(135deg, #065f46 0%, #059669 100%); color: white; padding: 28px; border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
-        .header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
-        .header p { font-size: 14px; opacity: 0.9; max-width: 800px; }
-        .badge-bar { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-        .badge { background: rgba(255, 255, 255, 0.2); padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+        .header { background: linear-gradient(135deg, #065f46 0%, #059669 100%); color: white; padding: 26px 28px; border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        .header p { font-size: 14px; opacity: 0.95; max-width: 880px; }
+        .badge-bar { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+        .badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* Alert message */
+        .alert-box { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; display: none; }
+        .alert-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
 
         /* Upload Cards */
         .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-        @media(max-width: 768px) { .cards-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .cards-grid { grid-template-columns: 1fr; } }
         
-        .upload-card { background: var(--bg-card); border: 2px dashed var(--border); border-radius: var(--radius); padding: 24px; text-align: center; transition: all 0.2s ease; cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 200px; }
-        .upload-card:hover, .upload-card.dragover { border-color: var(--primary); background: var(--primary-light); }
-        .upload-card.loaded { border-color: var(--primary); border-style: solid; background: #f0fdf4; }
-        .upload-icon { font-size: 40px; margin-bottom: 12px; color: var(--text-muted); }
-        .upload-card.loaded .upload-icon { color: var(--primary); }
-        .upload-title { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
-        .upload-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
-        .file-status { font-size: 13px; font-weight: 500; padding: 4px 12px; border-radius: 6px; display: inline-block; background: var(--border); color: var(--text-muted); }
-        .upload-card.loaded .file-status { background: #dcfce7; color: #166534; font-weight: 600; }
+        .upload-card { background: var(--bg-card); border: 2px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
+        .upload-card:hover { border-color: var(--primary); background-color: var(--primary-light); }
+        .upload-card.loaded { border-color: var(--primary); border-style: solid; background-color: #f0fdf4; }
+        .upload-icon { font-size: 38px; margin-bottom: 10px; }
+        .upload-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; color: var(--text-main); }
+        .upload-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+        .file-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #e2e8f0; color: #475569; }
+        .upload-card.loaded .file-status { background: #bbf7d0; color: #166534; }
         input[type="file"] { display: none; }
 
         /* Options Panel */
-        .options-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
-        .options-title { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; }
-        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-        .option-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
-        .option-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); }
+        .options-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 24px; box-shadow: var(--shadow); }
+        .options-title { font-weight: 700; font-size: 15px; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        .option-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-main); cursor: pointer; background: #f8fafc; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; transition: border-color 0.2s; }
+        .option-item:hover { border-color: #cbd5e1; }
+        .option-item input[type="checkbox"] { margin-top: 3px; accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
 
-        /* Process Button */
-        .action-row { text-align: center; margin-bottom: 28px; }
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 14px 36px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); display: inline-flex; align-items: center; gap: 10px; }
-        .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4); }
-        .btn-primary:disabled { background: #cbd5e1; cursor: not-allowed; box-shadow: none; }
-        .btn-download { background: #1e293b; color: white; border: none; padding: 12px 28px; font-size: 15px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-download:hover { background: #0f172a; }
-        .btn-fill-normal {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-            color: white;
-            border: none;
-            padding: 12px 22px;
-            font-size: 14px;
+        /* Action Buttons */
+        .action-row { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .btn-primary { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3); transition: all 0.2s; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(5, 150, 105, 0.4); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        .btn-download { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); transition: all 0.2s; }
+        .btn-download:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35); }
+
+        /* Delete Button */
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
             font-weight: 700;
-            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+            gap: 4px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
         }
-        .btn-fill-normal:hover {
-            background: linear-gradient(135deg, #047857 0%, #065f46 100%);
-            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
-            transform: translateY(-1px);
+        .btn-delete:hover {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #b91c1c;
+            transform: scale(1.05);
         }
-        .btn-fill-normal:active { transform: translateY(0); }
 
         /* Results Card */
-        .results-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: none; }
-        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
-        .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
-        .stat-box.highlight { background: var(--primary-light); border-color: #a7f3d0; }
-        .stat-num { font-size: 26px; font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
-        .stat-box.highlight .stat-num { color: var(--primary-dark); }
-        .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); }
+        .results-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 24px; box-shadow: var(--shadow); display: none; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 14px; }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+        .stat-num { font-size: 22px; font-weight: 800; color: var(--text-main); }
+        .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+        .stat-box.highlight { background: #ecfdf5; border-color: #a7f3d0; }
+        .stat-box.highlight .stat-num { color: #047857; }
+        .stat-box.danger { background: #fff1f2; border-color: #fecdd3; }
+        .stat-box.danger .stat-num { color: #e11d48; }
+
+        /* Toolbar */
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+        .search-input { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 340px; max-width: 100%; outline: none; }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15); }
 
         /* Tabs */
-        .tabs-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; gap: 8px; overflow-x: auto; }
-        .tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
-        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tabs-bar { display: flex; gap: 6px; border-bottom: 2px solid var(--border); margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+        .tab-btn { background: none; border: none; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px 6px 0 0; white-space: nowrap; transition: all 0.15s; }
+        .tab-btn:hover { color: var(--primary); background: #f1f5f9; }
+        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: 700; background: #ecfdf5; }
+
+        /* Tables */
+        .table-responsive { width: 100%; overflow-x: auto; max-height: 560px; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        thead { background: #f8fafc; position: sticky; top: 0; z-index: 10; }
+        th { padding: 10px 12px; font-weight: 700; color: #475569; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; color: #1e293b; }
+        tr:hover { background-color: #f8fafc; }
+        
+        td[contenteditable="true"] { cursor: cell; transition: background-color 0.15s; }
+        td[contenteditable="true"]:hover { background-color: #fef9c3; outline: 1px dashed #ca8a04; }
+        td[contenteditable="true"]:focus { background-color: #fef08a; outline: 2px solid #ca8a04; }
+        .cell-edited { background-color: #e0f2fe !important; }
+
+        select.defect-select { padding: 4px 8px; font-size: 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #fff; max-width: 240px; cursor: pointer; outline: none; }
+        select.defect-select:focus { border-color: var(--primary); }
+
+        .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .pill-healthy { background: #dcfce7; color: #166534; }
+        .pill-defect { background: #fee2e2; color: #991b1b; }
+        .pill-removed { background: #fee2e2; color: #b91c1c; font-weight: 700; }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
 
-        /* Table */
-        .table-responsive { max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-        th { background: #f1f5f9; padding: 10px 12px; font-weight: 600; color: #475569; position: sticky; top: 0; border-bottom: 1px solid var(--border); z-index: 2; white-space: nowrap; }
-        td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; }
-        tr:hover td { background: #f8fafc; }
-        
-        /* Editable Cells */
-        td[contenteditable="true"] { cursor: cell; outline: none; transition: background 0.15s, box-shadow 0.15s; }
-        td[contenteditable="true"]:hover { background-color: #f1f5f9; }
-        td[contenteditable="true"]:focus { background-color: #f0fdf4 !important; box-shadow: inset 0 0 0 2px #2563eb; border-radius: 2px; }
-        td.cell-edited { background-color: #ecfdf5 !important; font-weight: 600; }
-        
-        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
-        .search-input { padding: 9px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; width: 340px; max-width: 100%; outline: none; }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 99999; display: none; align-items: center; gap: 8px; border-left: 4px solid #10b981; }
-        .badge-who { font-size: 10px; background: #dcfce7; color: #166534; padding: 1px 4px; border-radius: 3px; font-weight: 700; margin-left: 4px; display: inline-block; }
-        
-        .pill { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; display: inline-block; }
-        .pill-defect { background: #fee2e2; color: #991b1b; }
-        .pill-healthy { background: #dcfce7; color: #166534; }
-        .pill-new { background: #e0e7ff; color: #3730a3; }
-        .pill-removed { background: #fee2e2; color: #b91c1c; font-weight: 700; border: 1px solid #fca5a5; }
-        
-        /* Defect Grouped Dropdown */
-        .defect-select {
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1.5px solid #cbd5e1;
-            background: #ffffff;
-            font-size: 12px;
-            font-weight: 600;
-            color: #1e293b;
-            cursor: pointer;
-            max-width: 250px;
-            outline: none;
-            transition: all 0.2s;
-        }
-        .defect-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.18);
-        }
-        .defect-select optgroup {
-            font-weight: 700;
-            color: #1e40af;
-            background: #f1f5f9;
-        }
-        .defect-select option {
-            font-weight: 500;
-            color: #1e293b;
-            background: #ffffff;
-            padding: 4px;
-        }
-        
-        /* Alert Box */
-        .alert-box { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
-        .alert-box.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
-        .alert-box.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; display: block; }
+        /* Toast */
+        #editToast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 9999; display: none; animation: slideUp 0.2s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
-
-    <!-- Load JSZip: Local first, fallback to CDN -->
-    <script src="jszip.min.js"></script>
-    <script>
-        if (typeof JSZip === 'undefined') {
-            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');
-        }
-    </script>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>📊 RBSK Child Screening - Data Merger & Auto-Fill</h1>
-        <p>Physical health checkup register (AI-extracted sheet) se actual RBSK upload format template me real Weight, Height, HB, Defect mapping aur New Student Registration karne ka automated single-page tool.</p>
+        <h1>📊 RBSK Child Screening - Student Data Comparison & Reconciliation Tool</h1>
+        <p>Portal export template sheet aur Physical/AI register ko compare karein: anupasthit bacho (jo school chhod chuke ya next class merge ho gaye) ko remove karein, register ke real data ko match karein, aur register ke naye registration bacho ko auto-add karein.</p>
         <div class="badge-bar">
-            <a href="formatabha.html" class="badge" style="text-decoration:none; background:rgba(255,255,255,0.3); color:#fff; font-weight:700;">🆔 ABHA Formatter (formatabha.html) ↗</a>
-            <a href="autofiller with weight and height and etc.html" class="badge" style="text-decoration:none; background:rgba(255,255,255,0.3); color:#fff; font-weight:700;">⚡ RBSK Screening Auto-Filler ↗</a>
+            <span class="badge">⚖️ Comparison & Reconciliation Engine</span>
+            <span class="badge">🗑️ Student Row Deletion Enabled</span>
             <span class="badge">🔒 100% Client-Side Safe</span>
-            <span class="badge">🛡️ Dropdowns & Validations Preserved</span>
-            <span class="badge">📏 WHO Growth Standards Active</span>
+            <span class="badge">🛡️ Portal Dropdowns & Formats Preserved</span>
         </div>
     </div>
 
@@ -190,7 +164,7 @@
         <div class="upload-card" id="dropFormat" onclick="document.getElementById('inputFormat').click()">
             <div class="upload-icon">📑</div>
             <div class="upload-title">1. RBSK Format Template (.xlsx)</div>
-            <div class="upload-desc">Portal se download kiya gaya format jisme dropdowns aur PEN IDs hain.</div>
+            <div class="upload-desc">Portal se download kiya gaya format jisme PEN IDs aur student list hain.</div>
             <div class="file-status" id="statusFormat">Click ya Drag-and-Drop karein</div>
             <input type="file" id="inputFormat" accept=".xlsx">
         </div>
@@ -199,7 +173,7 @@
         <div class="upload-card" id="dropUser" onclick="document.getElementById('inputUser').click()">
             <div class="upload-icon">📝</div>
             <div class="upload-title">2. AI Extracted Sheet (.xlsx)</div>
-            <div class="upload-desc">Physical register se AI ke dwara extract kiya gaya real screening data.</div>
+            <div class="upload-desc">Physical register se extract kiya gaya real screening data (Students & Defects).</div>
             <div class="file-status" id="statusUser">Click ya Drag-and-Drop karein</div>
             <input type="file" id="inputUser" accept=".xlsx">
         </div>
@@ -207,97 +181,47 @@
 
     <!-- Options Panel -->
     <div class="options-panel">
-        <div class="options-title">Automation & Quality Settings</div>
+        <div class="options-title">⚙️ Compare & Reconciliation Settings</div>
         <div class="options-grid">
-            <label class="option-item">
-                <input type="checkbox" id="optAutoFillMissing" checked>
-                <span><strong>📏⚖️ WHO/RBSK Auto-Fill:</strong> Missing Height & Weight auto-fill karein</span>
-            </label>
-            <label class="option-item">
-                <input type="checkbox" id="optFillMissingHb" checked>
-                <span><strong>🩸 Hb Auto-Fill:</strong> Missing Hb auto-fill karein</span>
+            <label class="option-item" style="background: #fff7ed; border-color: #fed7aa;">
+                <input type="checkbox" id="optRemoveUnmatchedPortal" checked style="accent-color: #ea580c; width: 18px; height: 18px;">
+                <span>
+                    <strong style="color: #c2410c;">🗑️ Remove Unmatched Portal Students:</strong><br>
+                    <span style="font-size: 12px; color: #9a3412;">Portal export ke jo bache physical register me nahi mile (jo school chhod chuke ya merge ho gaye), unhe output file se remove karein. Final sheet me sirf <strong>[Matched Students] + [New Registrations]</strong> hi rahenge.</span>
+                </span>
             </label>
             <label class="option-item">
                 <input type="checkbox" id="optCalcAge" checked>
-                <span>DOB se exact Age auto calculate karein</span>
+                <span>
+                    <strong>📅 Auto Calculate Age:</strong><br>
+                    <span style="font-size: 12px; color: #64748b;">Naye registration bacho ke DOB se exact Age (Years/Months) auto-calculate karein.</span>
+                </span>
             </label>
             <label class="option-item">
                 <input type="checkbox" id="optExtractPhone" checked>
-                <span>Defect text me se 10-digit Mobile number nikalein</span>
-            </label>
-            <label class="option-item">
-                <input type="checkbox" id="optDefaultBP" checked>
-                <span>Naye bacho ke liye Normal BP (Age-wise) bharein</span>
-            </label>
-            <label class="option-item">
-                <input type="checkbox" id="optDefaultVision" checked>
-                <span>Naye bacho ke liye Normal Vision (6/6) bharein</span>
-            </label>
-
-            <!-- Hb Target Range & Auto-Defect Calculation -->
-            <div class="option-item" style="grid-column: 1 / -1; display:flex; flex-direction:column; gap:8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; margin-top:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <div>
-                        <strong style="color:#0f172a;">🩸 Hemoglobin (Hb) Target Range & Defect Calculation:</strong>
-                        <div style="font-size:12px; color:#64748b; margin-top:2px;">Missing Hb kis target range me bharein aur uske hisab se Anaemia defect auto-calculate karein:</div>
-                    </div>
-                    <select id="optHbRange" onchange="toggleCustomHb(this.value)" style="padding:6px 12px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; color:#0f172a; background:#fff; outline:none; cursor:pointer;">
-                        <option value="normal" selected>Normal (11.5 - 13.8 g/dL) ➔ Healthy</option>
-                        <option value="mild">Mild Anaemia (10.0 - 11.4 g/dL) ➔ 51. Mild Anaemia</option>
-                        <option value="moderate">Moderate Anaemia (7.0 - 9.9 g/dL) ➔ 52. Moderate Anaemia</option>
-                        <option value="custom">Custom Range (Aapke mutabiq)</option>
-                    </select>
-                </div>
-                <div id="customHbRow" style="display:none; align-items:center; gap:8px; padding-top:6px; border-top:1px dashed #cbd5e1;">
-                    <span style="font-size:12px; font-weight:600;">Custom Min Hb:</span>
-                    <input type="number" id="customHbMin" step="0.1" value="11.5" style="width:70px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px;">
-                    <span style="font-size:12px; font-weight:600;">Max Hb:</span>
-                    <input type="number" id="customHbMax" step="0.1" value="13.5" style="width:70px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px;">
-                </div>
-                <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; font-size:12px; color:#475569;">
-                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" id="optHbAutoDefect" checked>
-                        <span><strong>Auto Defect by Hb:</strong> Agar physical defect na ho to Hb &lt; 11.5 par Anaemia defect auto-mark karein</span>
-                    </label>
-                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" id="optHbDecimals" checked>
-                        <span>Allow 1 Decimal Place (jaise 12.4, 11.8)</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <!-- Option to remove portal students not present in AI Register -->
-        <div style="grid-column: 1 / -1; margin-top: 10px; background: #fff7ed; border: 1.5px solid #fed7aa; padding: 12px 16px; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
-            <input type="checkbox" id="optRemoveUnmatchedPortal" checked style="width: 20px; height: 20px; accent-color: #ea580c; cursor: pointer; margin-top: 2px;">
-            <label for="optRemoveUnmatchedPortal" style="cursor: pointer;">
-                <span style="font-weight: 700; color: #c2410c; font-size: 14px;">🗑️ Remove Unmatched Portal Students (Keep Only Present Students from AI Register)</span>
-                <br><span style="font-size: 12px; color: #9a3412;">Portal export ke jo bachhe physical/AI register me nahi mile (jo school chhod chuke ya next class me merge ho gaye), unhe final Excel file se remove karein. Final sheet me sirf <strong>[AI Register ke matched bachhe] + [Register ke new registration bachhe]</strong> hi rahenge.</span>
+                <span>
+                    <strong>📞 Extract Mobile Numbers:</strong><br>
+                    <span style="font-size: 12px; color: #64748b;">Defect ya remark text me se 10-digit mobile number auto-detect karke Mobile column me bharein.</span>
+                </span>
             </label>
         </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="action-row" style="display:flex; justify-content:center; align-items:center; gap:16px; flex-wrap:wrap;">
+    <!-- Action Row -->
+    <div class="action-row">
         <button id="btnProcess" class="btn-primary" disabled onclick="processFiles()">
-            <span>⚡ Match & Merge RBSK Data</span>
-        </button>
-        <button id="btnFillNormalTop" class="btn-fill-normal" style="padding: 14px 28px; font-size: 15px;" onclick="fillNormalValues()" title="Jo parameters blank/empty hain sirf unhe Normal values se fill karein. AI register se li gayi values bilkul change nahi hongi.">
-            <span>🩺 Fill Normal Values (Missing Only)</span>
+            <span>⚡ Compare & Merge RBSK Data</span>
         </button>
     </div>
 
-    <!-- Results / Editable Spreadsheet Section -->
+    <!-- Results Section -->
     <div class="results-card" id="resultsSection">
         <div class="results-header">
             <div>
                 <h2 id="resultsTitle" style="font-size: 20px; font-weight: 700;">✅ RBSK Screening Spreadsheet</h2>
-                <p id="resultsSubtitle" style="font-size: 13px; color: var(--text-muted);">Data successfully loaded. Click any cell to edit — edits are live and auto-sync to Excel.</p>
+                <p id="resultsSubtitle" style="font-size: 13px; color: var(--text-muted);">Data load ho gaya hai. Aap kisi bhi cell par click karke direct edit kar sakte hain ya kisi student ko 🗑️ Delete kar sakte hain.</p>
             </div>
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                <button id="btnFillNormal" class="btn-fill-normal" onclick="fillNormalValues()" title="Jo parameters blank hain sirf unhe Normal values se fill karein. AI register se li gayi values change nahi hongi.">
-                    <span>🩺 Fill Normal Values (Missing Only)</span>
-                </button>
+            <div>
                 <button id="btnDownload" class="btn-download" onclick="downloadMergedFile()">
                     <span>📥 Download Updated RBSK Sheet (.xlsx)</span>
                 </button>
@@ -307,18 +231,18 @@
         <div class="stats-grid">
             <div class="stat-box">
                 <div class="stat-num" id="statFormatTotal">0</div>
-                <div class="stat-label">Format Sheet Records</div>
+                <div class="stat-label">Portal Format Records</div>
             </div>
             <div class="stat-box">
                 <div class="stat-num" id="statUserTotal">0</div>
-                <div class="stat-label">AI Sheet Students</div>
+                <div class="stat-label">AI Register Students</div>
             </div>
             <div class="stat-box highlight">
                 <div class="stat-num" id="statMatched">0</div>
-                <div class="stat-label">Matched & Updated</div>
+                <div class="stat-label">Matched & Kept</div>
             </div>
-            <div class="stat-box" style="background: #fff1f2; border-color: #fecdd3;">
-                <div class="stat-num" id="statRemovedPortal" style="color: #e11d48;">0</div>
+            <div class="stat-box danger">
+                <div class="stat-num" id="statRemovedPortal">0</div>
                 <div class="stat-label">Removed (Not in Register)</div>
             </div>
             <div class="stat-box highlight">
@@ -329,39 +253,34 @@
                 <div class="stat-num" id="statFinalTotal" style="color: #16a34a;">0</div>
                 <div class="stat-label">Final Output Students</div>
             </div>
-            <div class="stat-box highlight" style="background: #eff6ff; border-color: #bfdbfe;">
-                <div class="stat-num" id="statAutoFilled" style="color: #1d4ed8;">0</div>
-                <div class="stat-label">Auto-Filled (Missing H/W)</div>
-            </div>
         </div>
 
-        <!-- Table Toolbar: Search & Badges -->
+        <!-- Toolbar -->
         <div class="table-toolbar">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search any student by Name, PEN, Class, Defect, Mobile..." oninput="onFilterTable(this.value)">
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <button class="btn-fill-normal" style="padding: 6px 12px; font-size: 12px;" onclick="fillNormalValues()" title="Jo parameters blank hain sirf unhe Normal values se fill karein. AI register se li gayi values change nahi hongi.">
-                    <span>🩺 Fill Normal Values</span>
-                </button>
-                <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700;">✏️ Live Editable (Click cell to edit)</span>
-                <span id="searchResultCount" style="font-size:12px; color:#64748b; font-weight:600;"></span>
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search student by Name, PEN, Class, Defect, Mobile..." oninput="onFilterTable(this.value)">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">✏️ Live Editable</span>
+                <span class="badge" style="background: #fee2e2; color: #b91c1c; font-weight: 700;">🗑️ Delete Supported</span>
+                <span id="searchResultCount" style="font-size: 12px; color: #64748b; font-weight: 600;"></span>
             </div>
         </div>
 
         <!-- Tabs -->
         <div class="tabs-bar">
-            <button class="tab-btn active" data-tab="tabAll" onclick="switchTab('tabAll')">📑 Full RBSK Sheet (<span id="countTabAll">0</span>)</button>
-            <button class="tab-btn" data-tab="tabMatched" onclick="switchTab('tabMatched')">Matched & Kept (<span id="countTabMatched">0</span>)</button>
-            <button class="tab-btn" data-tab="tabAppended" onclick="switchTab('tabAppended')">New Registrations (<span id="countTabAppended">0</span>)</button>
+            <button class="tab-btn active" data-tab="tabAll" onclick="switchTab('tabAll')">📑 Final Merged Sheet (<span id="countTabAll">0</span>)</button>
+            <button class="tab-btn" data-tab="tabMatched" onclick="switchTab('tabMatched')">✅ Matched & Kept (<span id="countTabMatched">0</span>)</button>
+            <button class="tab-btn" data-tab="tabAppended" onclick="switchTab('tabAppended')">➕ New Registrations (<span id="countTabAppended">0</span>)</button>
             <button class="tab-btn" data-tab="tabRemoved" onclick="switchTab('tabRemoved')">🗑️ Removed Portal Students (<span id="countTabRemoved">0</span>)</button>
-            <button class="tab-btn" data-tab="tabDefects" onclick="switchTab('tabDefects')">Defects & Referrals (<span id="countTabDefects">0</span>)</button>
+            <button class="tab-btn" data-tab="tabDefects" onclick="switchTab('tabDefects')">⚠️ Defects & Referrals (<span id="countTabDefects">0</span>)</button>
         </div>
 
-        <!-- Tab 0: Full RBSK Sheet (All Rows) -->
+        <!-- Tab 0: All Rows -->
         <div class="tab-pane active" id="tabAll">
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
                             <th>Row</th>
                             <th>SN</th>
                             <th>PEN ID</th>
@@ -395,6 +314,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
                             <th>Row</th>
                             <th>PEN ID</th>
                             <th>Student Name</th>
@@ -412,12 +332,13 @@
             </div>
         </div>
 
-        <!-- Tab 2: Appended (New Registrations) -->
+        <!-- Tab 2: Appended -->
         <div class="tab-pane" id="tabAppended">
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
                             <th>New SN</th>
                             <th>Student Name</th>
                             <th>Gender</th>
@@ -436,7 +357,7 @@
             </div>
         </div>
 
-        <!-- Tab: Removed from Portal -->
+        <!-- Tab 3: Removed -->
         <div class="tab-pane" id="tabRemoved">
             <div class="table-responsive">
                 <table>
@@ -448,7 +369,7 @@
                             <th>Class</th>
                             <th>DOB</th>
                             <th>Father's Name</th>
-                            <th>Reason for Removal</th>
+                            <th>Reason</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -457,17 +378,18 @@
             </div>
         </div>
 
-        <!-- Tab 3: Defects -->
+        <!-- Tab 4: Defects -->
         <div class="tab-pane" id="tabDefects">
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
                             <th>Student Name</th>
                             <th>Class</th>
                             <th>Mobile</th>
-                            <th>Original Raw Note</th>
-                            <th>Official RBSK Defect</th>
+                            <th>Raw Register Defect</th>
+                            <th>Official Defect</th>
                             <th>Referred Facility</th>
                         </tr>
                     </thead>
@@ -475,79 +397,73 @@
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
-<!-- Floating Toast Notification -->
-<div id="editToast" class="toast">✓ Edit saved in memory! Download Excel to export.</div>
+<div id="editToast">✓ Live edit saved!</div>
+
+<!-- JSZip Library -->
+<script src="jszip.min.js"></script>
+<script>
+if (typeof JSZip === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');
+}
+</script>
 
 <script>
+"use strict";
+
+// Application State
 let fileFormatBuffer = null;
 let fileUserBuffer = null;
-let mergedBlob = null;
 let mergedFileName = "actual format to be filled into_UPDATED.xlsx";
+let mergedBlob = null;
+let allRowsData = [];
 let globalZipFormat = null;
 let globalFormatDoc = null;
 let globalSheetNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-let allRowsData = [];
+
 let lastMatchedList = [];
 let lastAppendedList = [];
 let lastRemovedList = [];
 let lastDefectsList = [];
 
-function toggleCustomHb(val) {
-    const row = document.getElementById('customHbRow');
-    if (row) row.style.display = (val === 'custom') ? 'flex' : 'none';
-}
-
+// Toast notification helper
 function showEditToast(msg) {
-    const t = document.getElementById('editToast');
-    if (!t) return;
-    t.innerText = msg;
-    t.style.display = 'flex';
-    clearTimeout(t._timer);
-    t._timer = setTimeout(() => { t.style.display = 'none'; }, 2500);
+    const toast = document.getElementById('editToast');
+    if (!toast) return;
+    toast.innerText = msg;
+    toast.style.display = 'block';
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => { toast.style.display = 'none'; }, 2200);
 }
 
+// Tab Switching
 function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-    if (btn) btn.classList.add('active');
-    const pane = document.getElementById(tabId);
-    if (pane) pane.classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === tabId);
+    });
 }
 
-// Setup Drag & Drop
-setupDropZone('dropFormat', 'inputFormat', async (file, buf) => {
-    fileFormatBuffer = buf;
-    document.getElementById('dropFormat').classList.add('loaded');
-    document.getElementById('statusFormat').innerText = '✓ ' + file.name;
-    mergedFileName = file.name.replace(/\.xlsx$/i, '') + '_UPDATED.xlsx';
-    checkCanProcess();
-    await previewInitialFormat(file, buf);
-});
-
-setupDropZone('dropUser', 'inputUser', (file, buf) => {
-    fileUserBuffer = buf;
-    document.getElementById('dropUser').classList.add('loaded');
-    document.getElementById('statusUser').innerText = '✓ ' + file.name;
-    checkCanProcess();
-});
-
+// Drag & Drop Setup
 function setupDropZone(dropId, inputId, onLoaded) {
     const drop = document.getElementById(dropId);
     const input = document.getElementById(inputId);
 
-    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('dragover'); });
-    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.borderColor = 'var(--primary)'; });
+    drop.addEventListener('dragleave', () => { drop.style.borderColor = ''; });
     drop.addEventListener('drop', (e) => {
         e.preventDefault();
-        drop.classList.remove('dragover');
+        drop.style.borderColor = '';
         if (e.dataTransfer.files.length) {
             handleFile(e.dataTransfer.files[0], onLoaded);
         }
     });
+
     input.addEventListener('change', (e) => {
         if (e.target.files.length) {
             handleFile(e.target.files[0], onLoaded);
@@ -562,23 +478,21 @@ function handleFile(file, callback) {
 }
 
 function checkCanProcess() {
+    const can = (fileFormatBuffer !== null && fileUserBuffer !== null);
     const btn = document.getElementById('btnProcess');
-    if (fileFormatBuffer && fileUserBuffer) {
-        btn.disabled = false;
-    } else {
-        btn.disabled = true;
-    }
+    if (btn) btn.disabled = !can;
 }
 
 function showAlert(msg, isError = false) {
     const box = document.getElementById('alertBox');
-    box.className = 'alert-box ' + (isError ? 'error' : 'success');
+    box.className = 'alert-box ' + (isError ? 'alert-error' : 'alert-success');
     box.innerText = msg;
     box.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// XML Cell Helper
 function setXmlCell(rowElem, colLetter, rNum, value, style, formula) {
-    if (!globalFormatDoc) return;
     let c = rowElem.querySelector(`c[r="${colLetter}${rNum}"]`);
     if (!c) {
         c = globalFormatDoc.createElementNS(globalSheetNs, 'c');
@@ -588,6 +502,7 @@ function setXmlCell(rowElem, colLetter, rNum, value, style, formula) {
         rowElem.appendChild(c);
     }
     if (style && !c.getAttribute('s')) c.setAttribute('s', style);
+
     if (formula) {
         let f = c.getElementsByTagName('f')[0];
         if (!f) {
@@ -596,6 +511,7 @@ function setXmlCell(rowElem, colLetter, rNum, value, style, formula) {
         }
         f.textContent = formula;
     }
+
     let v = c.getElementsByTagName('v')[0];
     if (!v) {
         v = globalFormatDoc.createElementNS(globalSheetNs, 'v');
@@ -604,44 +520,27 @@ function setXmlCell(rowElem, colLetter, rNum, value, style, formula) {
     v.textContent = (value !== undefined && value !== null) ? String(value) : '';
 }
 
+// Live Cell Editing
 function saveCellEdit(rNum, colLetter, val) {
     if (!globalFormatDoc) return;
     const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
     const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
     if (!rowElem) return;
 
-    let finalVal = String(val || '').replace(/WHO/g, '').trim();
+    let finalVal = String(val || '').trim();
 
-    // 1. Column-specific normalizations
     if (colLetter === 'G') {
         finalVal = mapClass(finalVal);
     } else if (colLetter === 'H') {
         finalVal = cleanMobile(finalVal);
-    } else if (colLetter === 'S') {
-        const defInfo = normalizeDefect(finalVal);
-        finalVal = defInfo.defect;
-        setXmlCell(rowElem, 'S', rNum, defInfo.defect);
-        setXmlCell(rowElem, 'R', rNum, defInfo.facility);
-        if (item) {
-            item.S = defInfo.defect;
-            item.R = defInfo.facility;
-        }
-        document.querySelectorAll(`td[data-row="${rNum}"][data-col="R"]`).forEach(td => {
-            td.innerText = defInfo.facility;
-            td.classList.add('cell-edited');
-        });
-        document.querySelectorAll(`select.defect-select[data-row="${rNum}"]`).forEach(sel => {
-            sel.value = defInfo.defect;
-        });
     }
 
     setXmlCell(rowElem, colLetter, rNum, finalVal);
 
-    // 2. In-memory master array update
     const item = allRowsData.find(x => x.rowNum == rNum);
     if (item) item[colLetter] = finalVal;
 
-    // 3. Recalculate BP if L or M is modified
+    // Recalculate BP if L or M is modified
     if (colLetter === 'L' || colLetter === 'M') {
         const cL = rowElem.querySelector(`c[r="L${rNum}"] v`)?.textContent || '';
         const cM = rowElem.querySelector(`c[r="M${rNum}"] v`)?.textContent || '';
@@ -651,68 +550,140 @@ function saveCellEdit(rNum, colLetter, val) {
         document.querySelectorAll(`td[data-row="${rNum}"][data-col="N"]`).forEach(td => td.innerText = bpStr);
     }
 
-    // 4. Auto-classify Anemia Defect if Q (Hb) is modified
-    if (colLetter === 'Q') {
-        const optHbAutoDefect = document.getElementById('optHbAutoDefect');
-        if (!optHbAutoDefect || optHbAutoDefect.checked) {
-            const currentDefect = rowElem.querySelector(`c[r="S${rNum}"] v`)?.textContent || '';
-            if (!currentDefect || currentDefect === 'Healthy' || currentDefect.includes('Anaemia') || currentDefect.includes('Anemia')) {
-                const hbDef = calculateDefectFromHb(finalVal);
-                if (hbDef) {
-                    setXmlCell(rowElem, 'S', rNum, hbDef.defect);
-                    setXmlCell(rowElem, 'R', rNum, hbDef.facility);
-                    if (item) {
-                        item.S = hbDef.defect;
-                        item.R = hbDef.facility;
+    // Highlight cell as edited
+    const td = document.querySelector(`td[data-row="${rNum}"][data-col="${colLetter}"]`);
+    if (td) td.classList.add('cell-edited');
+
+    mergedBlob = null;
+    showEditToast(`✓ Cell ${colLetter}${rNum} updated to "${finalVal}"`);
+}
+
+// Student Row Deletion Logic (Instant One-Click Deletion - No Confirmation)
+function deleteStudentRow(rNum) {
+    const student = allRowsData.find(x => x.rowNum == rNum);
+    const sName = student ? (student.C || 'Student') : 'Student';
+    const sSn = student ? (student.A || rNum) : rNum;
+
+    // 1. Remove <row r="${rNum}"> from globalFormatDoc XML
+    if (globalFormatDoc) {
+        const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+        if (sheetData) {
+            const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
+            if (rowElem) {
+                sheetData.removeChild(rowElem);
+            }
+
+            // 2. Renumber all remaining student rows sequentially (Rows 1 & 2 are headers)
+            const remainingXmlRows = Array.from(sheetData.getElementsByTagName('row')).filter(r => {
+                return parseInt(r.getAttribute('r'), 10) > 2;
+            });
+            remainingXmlRows.sort((a, b) => parseInt(a.getAttribute('r'), 10) - parseInt(b.getAttribute('r'), 10));
+
+            let curR = 3;
+            let curSN = 1;
+            for (const rElem of remainingXmlRows) {
+                rElem.setAttribute('r', String(curR));
+                const cells = rElem.getElementsByTagName('c');
+                for (const c of cells) {
+                    const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                    c.setAttribute('r', colLetter + curR);
+                    if (colLetter === 'A') {
+                        let v = c.getElementsByTagName('v')[0];
+                        if (!v) {
+                            v = globalFormatDoc.createElementNS(globalSheetNs, 'v');
+                            c.appendChild(v);
+                        }
+                        v.textContent = String(curSN);
                     }
-                    document.querySelectorAll(`td[data-row="${rNum}"][data-col="S"]`).forEach(td => {
-                        td.innerHTML = `<span class="pill ${hbDef.defect === 'Healthy' ? 'pill-healthy' : 'pill-defect'}">${hbDef.defect}</span>`;
-                    });
-                    document.querySelectorAll(`td[data-row="${rNum}"][data-col="R"]`).forEach(td => td.innerText = hbDef.facility);
                 }
+                curR++;
+                curSN++;
+            }
+
+            // Update sheet dimension ref
+            const dim = globalFormatDoc.getElementsByTagName('dimension')[0];
+            if (dim) {
+                dim.setAttribute('ref', `A1:U${curR - 1}`);
+            }
+            const ie = globalFormatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
+            if (ie) {
+                ie.setAttribute('sqref', `A1:U${curR - 1}`);
             }
         }
     }
 
-    // Update active cell DOM if normalized
-    document.querySelectorAll(`td[data-row="${rNum}"][data-col="${colLetter}"]`).forEach(td => {
-        if (td.innerText.replace(/WHO/g, '').trim() !== finalVal) {
-            td.innerText = finalVal;
-        }
-        td.classList.add('cell-edited');
-    });
+    // 3. Remove from in-memory allRowsData & renumber
+    allRowsData = allRowsData.filter(x => x.rowNum != rNum);
+    let nextR = 3;
+    let nextSN = 1;
+    for (const item of allRowsData) {
+        item.rowNum = nextR;
+        item.A = String(nextSN);
+        nextR++;
+        nextSN++;
+    }
 
-    mergedBlob = null; // Invalidate cache so download generates fresh from globalFormatDoc
-    showEditToast(`✓ Row ${rNum} (${colLetter}) updated! Changes saved to Excel.`);
+    // 4. Update matched, appended, defects lists
+    lastMatchedList = lastMatchedList.filter(m => m.row != rNum);
+    lastAppendedList = lastAppendedList.filter(a => a.row != rNum);
+    lastDefectsList = lastDefectsList.filter(d => d.row != rNum);
+
+    // 5. Update UI stats
+    updateSummaryStats();
+
+    // 6. Re-render tables
+    renderAllTables(allRowsData, lastMatchedList, lastAppendedList, lastRemovedList, lastDefectsList);
+
+    mergedBlob = null;
+    showEditToast(`🗑️ "${sName}" delete ho gaya aur S.N. re-number ho gaye.`);
 }
 
-function onFilterTable(query) {
-    const q = (query || '').toLowerCase().trim();
-    const rows = document.querySelectorAll('#tbodyAll tr, #tbodyMatched tr, #tbodyAppended tr, #tbodyRemoved tr, #tbodyDefects tr');
-    let matchedCount = 0;
-    rows.forEach(tr => {
-        if (!q) {
-            tr.style.display = '';
-            matchedCount++;
-            return;
-        }
-        const sel = tr.querySelector('select.defect-select');
-        const selText = sel ? (sel.options[sel.selectedIndex]?.text || sel.value) : '';
-        const text = (tr.innerText + ' ' + selText).toLowerCase();
-        if (text.includes(q)) {
-            tr.style.display = '';
-            matchedCount++;
-        } else {
-            tr.style.display = 'none';
-        }
-    });
-
-    const countElem = document.getElementById('searchResultCount');
-    if (countElem) {
-        countElem.innerText = q ? `Found ${matchedCount} records` : '';
+function updateSummaryStats() {
+    const total = allRowsData.length;
+    if (document.getElementById('statFinalTotal')) {
+        document.getElementById('statFinalTotal').innerText = total;
+    }
+    if (document.getElementById('countTabAll')) {
+        document.getElementById('countTabAll').innerText = total;
+    }
+    if (document.getElementById('countTabMatched')) {
+        document.getElementById('countTabMatched').innerText = lastMatchedList.length;
+    }
+    if (document.getElementById('countTabAppended')) {
+        document.getElementById('countTabAppended').innerText = lastAppendedList.length;
+    }
+    if (document.getElementById('countTabRemoved')) {
+        document.getElementById('countTabRemoved').innerText = lastRemovedList.length;
+    }
+    if (document.getElementById('countTabDefects')) {
+        document.getElementById('countTabDefects').innerText = lastDefectsList.length;
+    }
+    const resTitle = document.getElementById('resultsTitle');
+    if (resTitle) {
+        resTitle.innerText = `✅ RBSK Screening Spreadsheet (${total} Total Students)`;
     }
 }
 
+// Table Filter
+function onFilterTable(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#tbodyAll tr');
+    let visibleCount = 0;
+
+    rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        const show = !q || text.includes(q);
+        r.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+
+    const cntSpan = document.getElementById('searchResultCount');
+    if (cntSpan) {
+        cntSpan.innerText = q ? `Showing ${visibleCount} of ${rows.length} rows` : '';
+    }
+}
+
+// Preview initial format sheet on load
 async function previewInitialFormat(file, buf) {
     try {
         if (typeof JSZip === 'undefined') return;
@@ -736,7 +707,6 @@ async function previewInitialFormat(file, buf) {
                 rowObj[colLetter] = v ? v.textContent.trim() : '';
             }
 
-            // Normalize Class & Mobile if present
             if (rowObj.G) {
                 const normG = mapClass(rowObj.G);
                 if (normG !== rowObj.G) {
@@ -758,7 +728,7 @@ async function previewInitialFormat(file, buf) {
         document.getElementById('statFormatTotal').innerText = allRowsData.length;
         document.getElementById('countTabAll').innerText = allRowsData.length;
         document.getElementById('resultsTitle').innerText = `📑 Loaded Format Sheet (${allRowsData.length} Students) — Live Editable`;
-        document.getElementById('resultsSubtitle').innerText = `Aap kisi bhi cell par click karke direct edit kar sakte hain. AI sheet upload karke 'Match & Merge' bhi kar sakte hain.`;
+        document.getElementById('resultsSubtitle').innerText = `Aap kisi bhi cell par click karke direct edit kar sakte hain ya student delete kar sakte hain.`;
 
         lastMatchedList = [];
         lastAppendedList = [];
@@ -766,13 +736,13 @@ async function previewInitialFormat(file, buf) {
         lastDefectsList = [];
         renderAllTables(allRowsData, [], [], [], []);
         document.getElementById('resultsSection').style.display = 'block';
-        showEditToast(`✓ Format sheet loaded (${allRowsData.length} students). Click any cell to edit.`);
+        showEditToast(`✓ Format sheet loaded (${allRowsData.length} students).`);
     } catch (e) {
         console.error("Initial preview error:", e);
     }
 }
 
-// Cleaning & Mapping Helpers
+// Helpers for data cleanup
 function cleanNumber(val) {
     if (!val) return "";
     let s = String(val).trim().replace(/[^\d\.]/g, '');
@@ -783,251 +753,235 @@ function cleanNumber(val) {
 }
 
 function normalizeDate(str) {
-    if (!str) return "";
+    if (!str) return '';
     str = String(str).trim();
-    const d = new Date(str);
-    if (!isNaN(d.getTime())) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    }
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-    const parts = str.split(/[-\/]/);
+    let parts = str.split(/[\/\-\.]/);
     if (parts.length === 3) {
-        if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-        if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        if (parts[0].length === 4) {
+            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        }
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    // Excel serial date number
+    const num = Number(str);
+    if (!isNaN(num) && num > 1000) {
+        const utc_days = Math.floor(num - 25569);
+        const utc_value = utc_days * 86400;
+        const date_info = new Date(utc_value * 1000);
+        return date_info.toISOString().split('T')[0];
     }
     return str;
 }
 
 function mapClass(cls) {
-    if (!cls) return "";
-    let s = String(cls).trim().toLowerCase();
-    s = s.replace(/^(class|std|standard|grade|कक्षा|वर्ग)\s*[-:]?\s*/i, '').trim();
+    if (!cls) return '';
+    cls = String(cls).trim().toLowerCase();
+    
+    if (cls === 'first' || cls === '1st' || cls === 'class 1' || cls === '1') return '1';
+    if (cls === 'second' || cls === '2nd' || cls === 'class 2' || cls === '2') return '2';
+    if (cls === 'third' || cls === '3rd' || cls === 'class 3' || cls === '3') return '3';
+    if (cls === 'fourth' || cls === '4th' || cls === 'class 4' || cls === '4') return '4';
+    if (cls === 'fifth' || cls === '5th' || cls === 'class 5' || cls === '5') return '5';
+    if (cls === 'sixth' || cls === '6th' || cls === 'class 6' || cls === '6') return '6';
+    if (cls === 'seventh' || cls === '7th' || cls === 'class 7' || cls === '7') return '7';
+    if (cls === 'eighth' || cls === '8th' || cls === 'class 8' || cls === '8') return '8';
+    if (cls === 'ninth' || cls === '9th' || cls === 'class 9' || cls === '9') return '9';
+    if (cls === 'tenth' || cls === '10th' || cls === 'class 10' || cls === '10') return '10';
+    if (cls === 'eleventh' || cls === '11th' || cls === 'class 11' || cls === '11') return '11';
+    if (cls === 'twelfth' || cls === '12th' || cls === 'class 12' || cls === '12') return '12';
 
-    if (/\b(twelfth|twelve|12th|12|xii)\b/i.test(s) || s === 'xii') return 'Class 12';
-    if (/\b(eleventh|eleven|11th|11|xi)\b/i.test(s) || s === 'xi') return 'Class 11';
-    if (/\b(tenth|ten|10th|10|x)\b/i.test(s) || s === 'x') return 'Class 10';
-    if (/\b(nineth|ninth|nine|9th|9|ix)\b/i.test(s) || s === 'ix') return 'Class 9';
-    if (/\b(eighth|eight|8th|8|viii)\b/i.test(s) || s === 'viii') return 'Class 8';
-    if (/\b(seventh|seven|7th|7|vii)\b/i.test(s) || s === 'vii') return 'Class 7';
-    if (/\b(sixth|six|6th|6|vi)\b/i.test(s) || s === 'vi') return 'Class 6';
-    if (/\b(fifth|five|5th|5|v)\b/i.test(s) || s === 'v') return 'Class 5';
-    if (/\b(fourth|four|4th|4|iv)\b/i.test(s) || s === 'iv') return 'Class 4';
-    if (/\b(third|three|3rd|3|iii)\b/i.test(s) || s === 'iii') return 'Class 3';
-    if (/\b(second|two|2nd|2|ii)\b/i.test(s) || s === 'ii') return 'Class 2';
-    if (/\b(first|one|1st|1|i)\b/i.test(s) || s === 'i') return 'Class 1';
+    if (cls.includes('balvatika 3') || cls.includes('balvatika-3') || cls.includes('bv3') || cls.includes('ukg') || cls.includes('kg 2')) return 'Balvatika 3';
+    if (cls.includes('balvatika 2') || cls.includes('balvatika-2') || cls.includes('bv2') || cls.includes('lkg') || cls.includes('kg 1')) return 'Balvatika 2';
+    if (cls.includes('balvatika 1') || cls.includes('balvatika-1') || cls.includes('bv1') || cls.includes('nursery')) return 'Balvatika 1';
+    if (cls.includes('balvatika') || cls.includes('kg')) return 'Balvatika 3';
 
-    if (s.includes('balvatika') || s.includes('bal vatika') || s.includes('balwadi')) return 'Balvatika';
-    if (s.includes('nursery') || s.includes('nur')) return 'Nursery';
-    if (s.includes('lkg') || s.includes('l.k.g')) return 'LKG';
-    if (s.includes('ukg') || s.includes('u.k.g')) return 'UKG';
-    if (s.includes('kg')) return 'KG';
-
-    return cls.trim();
+    let m = cls.match(/\d+/);
+    return m ? m[0] : cls;
 }
 
 function calculateAge(dobStr) {
-    if (!dobStr) return "";
-    const dob = new Date(dobStr);
-    if (isNaN(dob.getTime())) return "";
+    if (!dobStr) return '';
+    const parts = dobStr.split('-');
+    if (parts.length !== 3) return '';
+    const birthYear = parseInt(parts[0], 10);
+    const birthMonth = parseInt(parts[1], 10) - 1;
+    const birthDay = parseInt(parts[2], 10);
     const now = new Date();
-    let years = now.getFullYear() - dob.getFullYear();
-    let months = now.getMonth() - dob.getMonth();
-    if (now.getDate() < dob.getDate()) months--;
+    let years = now.getFullYear() - birthYear;
+    let months = now.getMonth() - birthMonth;
+    if (now.getDate() < birthDay) months--;
     if (months < 0) {
         years--;
         months += 12;
     }
-    return `${years} years ${months} months`;
+    if (years <= 0 && months <= 0) return '1m';
+    if (years < 1) return `${months}m`;
+    if (months === 0) return `${years}y`;
+    return `${years}y ${months}m`;
 }
 
 function cleanMobile(val) {
     if (!val) return '';
-    let s = String(val).trim().replace(/\.0+$/, '');
-    let digits = s.replace(/\D/g, '');
-    if (!digits) return '';
-    if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
-    if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
-    if (digits.length > 10) return digits.slice(0, 10);
-    return digits;
+    let s = String(val).replace(/\D/g, '');
+    if (s.length === 12 && s.startsWith('91')) s = s.substring(2);
+    if (s.length === 11 && s.startsWith('0')) s = s.substring(1);
+    if (s.length === 10 && /^[6-9]/.test(s)) return s;
+    return '';
 }
 
-function generateTargetHb() {
-    const rangeType = document.getElementById('optHbRange') ? document.getElementById('optHbRange').value : 'normal';
-    const useDecimals = document.getElementById('optHbDecimals') ? document.getElementById('optHbDecimals').checked : true;
-    let min = 11.5;
-    let max = 13.8;
-
-    if (rangeType === 'mild') {
-        min = 10.0;
-        max = 11.4;
-    } else if (rangeType === 'moderate') {
-        min = 7.0;
-        max = 9.9;
-    } else if (rangeType === 'custom') {
-        min = parseFloat(document.getElementById('customHbMin')?.value) || 11.5;
-        max = parseFloat(document.getElementById('customHbMax')?.value) || 13.5;
-        if (min > max) { const tmp = min; min = max; max = tmp; }
-    }
-
-    const val = min + Math.random() * (max - min);
-    return useDecimals ? String(Number(val.toFixed(1))) : String(Math.round(val));
-}
-
-// --- RBSK 4Ds & Adolescent Defect Directory & Grouped Mapping ---
+// Complete 59 Defects Directory
 const DEFECT_DIRECTORY = [
-    // Healthy / Normal
     {
         category: "Healthy / Normal",
         items: [
             { value: "Healthy", label: "Healthy / Normal", facility: "", keywords: ["healthy", "normal", "nil", "none", "fit", "ok", "fine", "theek", "thik", "swasth"] }
         ]
     },
-    // 1. Defects at Birth
     {
         category: "1. Defects at Birth",
         items: [
-            { value: "1. Neural Tube Defect", label: "Neural Tube Defect", facility: "DEIC", keywords: ["neural tube", "ntd", "spina bifida", "meningocele", "encephalocele"] },
+            { value: "1. Neural Tube Defect", label: "Neural Tube Defect", facility: "DEIC", keywords: ["neural tube", "ntd", "spina bifida"] },
             { value: "2. Downs Syndrome", label: "Down's Syndrome", facility: "DEIC", keywords: ["down", "downs", "down's", "trisomy 21"] },
-            { value: "3. Cleft Lip and Palate", label: "Cleft Lip & Palate", facility: "DEIC", keywords: ["cleft", "cleft lip", "cleft palate", "harelip"] },
+            { value: "3. Cleft Lip and Palate", label: "Cleft Lip & Palate", facility: "DEIC", keywords: ["cleft", "cleft lip", "cleft palate"] },
             { value: "4. Talipes (club foot)", label: "Talipes (Club Foot)", facility: "DEIC", keywords: ["talipes", "club foot", "clubfoot", "ctev"] },
-            { value: "5. Developmental Dysplasia of Hip", label: "Developmental Dysplasia of Hip", facility: "DEIC", keywords: ["ddh", "dysplasia", "hip dysplasia", "dislocation of hip"] },
-            { value: "6. Congenital Cataract", label: "Congenital Cataract", facility: "DEIC", keywords: ["cataract", "congenital cataract", "phaco", "motiyabind"] },
-            { value: "7. Congenital Deafness", label: "Congenital Deafness", facility: "DEIC", keywords: ["deaf", "deafness", "congenital deafness", "hearing loss at birth", "behra"] },
-            { value: "8. Congenital Heart Disease", label: "Congenital Heart Disease", facility: "DEIC", keywords: ["congenital heart", "heart disease", "chd", "vsd", "asd", "tof", "pda", "dil me chhed"] },
-            { value: "9. Retinopathy of Prematurity (only at DH)", label: "Retinopathy of Prematurity", facility: "District Level Facility", keywords: ["retinopathy", "rop", "prematurity"] },
-            { value: "42. Microcephaly", label: "Microcephaly", facility: "DEIC", keywords: ["microcephaly", "small head", "chota sir"] },
-            { value: "43. Macrocephaly", label: "Macrocephaly", facility: "DEIC", keywords: ["macrocephaly", "large head", "bada sir", "hydrocephalus"] },
-            { value: "47. Congenital Ear Problems", label: "Congenital Ear Defects", facility: "DEIC", keywords: ["ear defect", "congenital ear", "microtia", "anotia", "ear deformity"] },
-            { value: "48. Neck and Face Defects", label: "Neck & Face Defects", facility: "DEIC", keywords: ["neck defect", "face defect", "neck & face", "torticollis", "facial asymmetry", "branchial"] },
-            { value: "50. Congenital Eye Problems", label: "Congenital Eye Defects", facility: "DEIC", keywords: ["eye defect", "congenital eye", "squint", "strabismus", "coloboma", "microphthalmia", "bheengapan"] }
+            { value: "5. Developmental Dysplasia of Hip", label: "Developmental Dysplasia of Hip", facility: "DEIC", keywords: ["ddh", "dysplasia", "hip dysplasia"] },
+            { value: "6. Congenital Cataract", label: "Congenital Cataract", facility: "DEIC", keywords: ["cataract", "congenital cataract", "motiyabind"] },
+            { value: "7. Congenital Deafness", label: "Congenital Deafness", facility: "DEIC", keywords: ["deaf", "deafness", "congenital deafness", "behra"] },
+            { value: "8. Congenital Heart Disease", label: "Congenital Heart Disease", facility: "DEIC", keywords: ["congenital heart", "heart disease", "chd", "vsd", "asd", "dil me chhed"] },
+            { value: "9. Retinopathy of Prematurity (only at DH)", label: "Retinopathy of Prematurity", facility: "District Level Facility", keywords: ["retinopathy", "rop"] },
+            { value: "42. Microcephaly", label: "Microcephaly", facility: "DEIC", keywords: ["microcephaly", "chota sir"] },
+            { value: "43. Macrocephaly", label: "Macrocephaly", facility: "DEIC", keywords: ["macrocephaly", "bada sir", "hydrocephalus"] },
+            { value: "47. Congenital Ear Problems", label: "Congenital Ear Defects", facility: "DEIC", keywords: ["ear defect", "congenital ear", "microtia"] },
+            { value: "48. Neck and Face Defects", label: "Neck & Face Defects", facility: "DEIC", keywords: ["neck defect", "face defect", "neck & face"] },
+            { value: "50. Congenital Eye Problems", label: "Congenital Eye Defects", facility: "DEIC", keywords: ["eye defect", "congenital eye", "squint", "bheengapan"] }
         ]
     },
-    // 2. Deficiencies
     {
         category: "2. Deficiencies",
         items: [
-            { value: "10. Severe Anemia", label: "Severe Anemia", facility: "DEIC", keywords: ["severe anemia", "severe anemic", "hb < 7", "severe anaemia", "khoon ki kami severe"] },
-            { value: "11. Vitamin A Deficiency", label: "Vit A Deficiency (Bitot Spot)", facility: "Block Level Facility", keywords: ["vitamin a", "vit a", "bitot", "bitot spot", "night blindness", "ratondhi"] },
-            { value: "12. Vitamin D Deficiency (Rickets)", label: "Vit D Deficiency (Rickets)", facility: "Block Level Facility", keywords: ["vitamin d", "vit d deficiency (rickets)", "rickets", "bow legs", "knock knee"] },
-            { value: "13. SAM/Severe Thinness/SUW", label: "SAM / Severe Thinness / SUW", facility: "NRC", keywords: ["sam", "severe acute malnutrition", "severe thinness", "suw", "severe underweight", "kuposhan severe"] },
-            { value: "14. Goiter", label: "Goiter", facility: "Block Level Facility", keywords: ["goiter", "goitre", "gala phoolna", "thyroid", "iodine deficiency"] },
-            { value: "41. Severe Stunting", label: "Severe Stunting", facility: "NRC", keywords: ["severe stunting", "stunted", "stunting"] },
-            { value: "44. Vitamin B Complex Deficiency", label: "Vit B Complex Deficiency", facility: "Block Level Facility", keywords: ["vitamin b", "vit b", "b complex", "cheilosis", "glossitis", "mouth ulcer", "stomatitis", "jeebh/hoth chhilna"] },
+            { value: "10. Severe Anemia", label: "Severe Anemia", facility: "DEIC", keywords: ["severe anemia", "severe anemic", "severe anaemia"] },
+            { value: "11. Vitamin A Deficiency", label: "Vit A Deficiency (Bitot Spot)", facility: "Block Level Facility", keywords: ["vitamin a", "vit a", "bitot", "ratondhi"] },
+            { value: "12. Vitamin D Deficiency (Rickets)", label: "Vit D Deficiency (Rickets)", facility: "Block Level Facility", keywords: ["vitamin d", "rickets", "bow legs"] },
+            { value: "13. SAM/Severe Thinness/SUW", label: "SAM / Severe Thinness / SUW", facility: "NRC", keywords: ["sam", "severe thinness", "suw", "kuposhan severe"] },
+            { value: "14. Goiter", label: "Goiter", facility: "Block Level Facility", keywords: ["goiter", "goitre", "gala phoolna", "thyroid"] },
+            { value: "41. Severe Stunting", label: "Severe Stunting", facility: "NRC", keywords: ["severe stunting", "stunted"] },
+            { value: "44. Vitamin B Complex Deficiency", label: "Vit B Complex Deficiency", facility: "Block Level Facility", keywords: ["vitamin b", "vit b", "b complex", "mouth ulcer", "stomatitis", "jeebh chhilna"] },
             { value: "45. Obesity", label: "Obesity", facility: "Block Level Facility", keywords: ["obesity", "obese", "overweight", "motapa"] },
-            { value: "52. Moderate Anaemia", label: "Moderate Anaemia", facility: "Block Level Facility", keywords: ["moderate anemia", "moderate anaemia", "hb 7-10", "madhyam khoon ki kami"] },
-            { value: "89. Mild Anaemia", label: "Mild Anaemia", facility: "Block Level Facility", keywords: ["mild anemia", "mild anaemia", "hb 10-11.5", "halka anemic"] },
-            { value: "90. MAM", label: "MAM", facility: "Block Level Facility", keywords: ["mam", "moderate acute malnutrition", "kuposhan mam"] },
-            { value: "120. Vitamin D Deficiency", label: "Vitamin D Deficiency", facility: "Block Level Facility", keywords: ["vitamin d deficiency", "vit d"] }
+            { value: "52. Moderate Anaemia", label: "Moderate Anaemia", facility: "Block Level Facility", keywords: ["moderate anemia", "moderate anaemia"] },
+            { value: "89. Mild Anaemia", label: "Mild Anaemia", facility: "Block Level Facility", keywords: ["mild anemia", "mild anaemia", "anemia", "anaemia"] },
+            { value: "90. MAM", label: "MAM", facility: "Block Level Facility", keywords: ["mam", "moderate acute malnutrition"] },
+            { value: "120. Vitamin D Deficiency", label: "Vitamin D Deficiency", facility: "Block Level Facility", keywords: ["vitamin d deficiency"] }
         ]
     },
-    // 3. Childhood Diseases
     {
         category: "3. Childhood Diseases",
         items: [
             { value: "15. Skin Conditions", label: "Skin Conditions", facility: "Block Level Facility", keywords: ["skin", "scabies", "eczema", "ringworm", "fungal", "rash", "khujli", "charm rog"] },
-            { value: "16. Otitis Media", label: "Otitis Media", facility: "Block Level Facility", keywords: ["otitis", "otitis media", "csom", "asom", "ear discharge", "kan behna", "ear pain"] },
-            { value: "17. Rheumatic Heart Disease", label: "Rheumatic Heart Disease", facility: "DEIC", keywords: ["rheumatic", "rhd", "rheumatic heart"] },
-            { value: "18. Reactive Airway Disease", label: "Reactive Airway Disease", facility: "Block Level Facility", keywords: ["reactive airway", "rad", "wheezing", "saans lene me takleef"] },
-            { value: "19. Dental Conditions", label: "Dental Conditions", facility: "Block Level Facility", keywords: ["dental", "caries", "cavity", "teeth", "tooth", "dant", "daant kharab"] },
+            { value: "16. Otitis Media", label: "Otitis Media", facility: "Block Level Facility", keywords: ["otitis", "otitis media", "csom", "ear discharge", "kan behna", "ear pain"] },
+            { value: "17. Rheumatic Heart Disease", label: "Rheumatic Heart Disease", facility: "DEIC", keywords: ["rheumatic", "rhd"] },
+            { value: "18. Reactive Airway Disease", label: "Reactive Airway Disease", facility: "Block Level Facility", keywords: ["reactive airway", "rad", "wheezing"] },
+            { value: "19. Dental Conditions", label: "Dental Conditions", facility: "Block Level Facility", keywords: ["dental", "caries", "cavity", "teeth", "tooth", "dant", "daant"] },
             { value: "20. Convulsive Disorders", label: "Convulsive Disorders", facility: "DEIC", keywords: ["convulsive", "convulsions", "seizure", "epilepsy", "fits", "daura"] },
-            { value: "39. Childhood Leprosy Disease", label: "Childhood Leprosy", facility: "Leprosy Centers", keywords: ["leprosy", "kusth", "hansen"] },
-            { value: "40. Childhood Tuberculosis Pulmonary", label: "Tuberculosis Pulmonary", facility: "TB Centres", keywords: ["tb pulmonary", "pulmonary tb", "tuberculosis", "tb"] },
-            { value: "46. Stage 2 Hypertension", label: "Stage 2 Hypertension", facility: "District Level Facility", keywords: ["stage 2 hypertension", "high bp stage 2", "severe hypertension"] },
-            { value: "49. Referactive Problems", label: "Refractive Problems", facility: "Block Level Facility", keywords: ["refractive", "refractive problems", "vision", "glasses", "chashma", "kam dikhna", "r.e", "re", "refraction"] },
-            { value: "140. Childhood Tuberculosis (Extra Pulmonary)", label: "TB Extra Pulmonary", facility: "TB Centres", keywords: ["extra pulmonary", "tb extra", "tuberculosis extra pulmonary", "lymph node tb"] },
-            { value: "150. Skin Condtions Not Leprosy", label: "Skin Conditions (Not Leprosy)", facility: "Block Level Facility", keywords: ["skin not leprosy", "skin conditions not leprosy"] },
-            { value: "180. Bronchail Asthma(Reactive Aiirway Disease)", label: "Bronchial Asthma", facility: "Block Level Facility", keywords: ["asthma", "bronchial asthma", "dama"] },
-            { value: "460. Prehypertension", label: "Prehypertension", facility: "Block Level Facility", keywords: ["prehypertension", "pre-hypertension"] },
-            { value: "461. Stage 1 Hypertension", label: "Stage 1 Hypertension", facility: "Block Level Facility", keywords: ["stage 1 hypertension", "high bp", "hypertension"] }
+            { value: "39. Childhood Leprosy Disease", label: "Childhood Leprosy", facility: "Leprosy Centers", keywords: ["leprosy", "kusth"] },
+            { value: "40. Childhood Tuberculosis Pulmonary", label: "Tuberculosis Pulmonary", facility: "TB Centres", keywords: ["tb pulmonary", "pulmonary tb", "tb"] },
+            { value: "46. Stage 2 Hypertension", label: "Stage 2 Hypertension", facility: "District Level Facility", keywords: ["stage 2 hypertension"] },
+            { value: "49. Referactive Problems", label: "Refractive Problems", facility: "Block Level Facility", keywords: ["refractive", "refractive problems", "vision", "glasses", "chashma", "kam dikhna"] },
+            { value: "51. Tuberculosis Extra Pulmonary", label: "TB Extra Pulmonary", facility: "TB Centres", keywords: ["extra pulmonary", "tb extra"] },
+            { value: "53. Skin Conditions (other than Leprosy)", label: "Skin Conditions (Not Leprosy)", facility: "Block Level Facility", keywords: ["skin other"] },
+            { value: "117. Bronchial Asthma", label: "Bronchial Asthma", facility: "Block Level Facility", keywords: ["asthma", "bronchial asthma", "dama"] },
+            { value: "118. Prehypertension", label: "Prehypertension", facility: "Block Level Facility", keywords: ["prehypertension"] },
+            { value: "119. Stage 1 Hypertension", label: "Stage 1 Hypertension", facility: "Block Level Facility", keywords: ["stage 1 hypertension"] }
         ]
     },
-    // 4. Development Delay
     {
         category: "4. Development Delay",
         items: [
-            { value: "21. Vision Impairment", label: "Vision Impairment", facility: "DEIC", keywords: ["vision impairment", "blind", "low vision", "drishti dosh"] },
-            { value: "22. Hearing Impairment", label: "Hearing Impairment", facility: "DEIC", keywords: ["hearing impairment", "hard of hearing", "hearing loss"] },
-            { value: "23. Neuro-Motor", label: "Neuro-Motor Impairment", facility: "DEIC", keywords: ["neuro-motor", "neuromotor", "cerebral palsy", "cp"] },
-            { value: "24. Motor Delay", label: "Motor Delay", facility: "DEIC", keywords: ["motor delay", "gross motor", "fine motor", "chalne me deri"] },
-            { value: "25. Cognitive Delay", label: "Cognitive Delay", facility: "DEIC", keywords: ["cognitive", "cognitive delay", "mental delay", "developmental delay"] },
-            { value: "26. Language Delay", label: "Language Delay", facility: "DEIC", keywords: ["language delay", "speech delay", "bolne me deri", "totlana", "stammering"] },
-            { value: "27. Behaviour Disorder(Autism)", label: "Behavior Disorder (Autism)", facility: "DEIC", keywords: ["autism", "asd", "behaviour disorder", "behavior disorder"] },
-            { value: "28. Learning Disorder", label: "Learning Disorder", facility: "DEIC", keywords: ["learning disorder", "dyslexia", "padhne me dikkat"] },
-            { value: "29. Attention Deficit Hyperactivity Disorder", label: "ADHD", facility: "DEIC", keywords: ["adhd", "hyperactive", "attention deficit"] },
-            { value: "51. Convulsive Disorders(Developmental delay)", label: "Convulsive Disorders (Dev Delay)", facility: "DEIC", keywords: ["convulsive dev delay", "convulsive disorders(developmental delay)"] }
+            { value: "21. Vision Impairment", label: "Vision Impairment", facility: "DEIC", keywords: ["vision impairment", "blind", "low vision"] },
+            { value: "22. Hearing Impairment", label: "Hearing Impairment", facility: "DEIC", keywords: ["hearing impairment", "sunai kam"] },
+            { value: "23. Neuro-motor Impairment", label: "Neuro-Motor Impairment", facility: "DEIC", keywords: ["neuro motor", "cerebral palsy", "cp"] },
+            { value: "24. Motor Delay", label: "Motor Delay", facility: "DEIC", keywords: ["motor delay", "chalne me deri"] },
+            { value: "25. Cognitive Delay", label: "Cognitive Delay", facility: "DEIC", keywords: ["cognitive", "mental delay", "mr"] },
+            { value: "26. Language Delay", label: "Language Delay", facility: "DEIC", keywords: ["language delay", "speech delay", "bolne me deri"] },
+            { value: "27. Behavior Disorder (Autism)", label: "Behavior Disorder (Autism)", facility: "DEIC", keywords: ["autism", "asd", "behavior"] },
+            { value: "28. Learning Disorder", label: "Learning Disorder", facility: "DEIC", keywords: ["learning disorder", "dyslexia"] },
+            { value: "29. Attention Deficit Hyperactivity Disorder", label: "ADHD", facility: "DEIC", keywords: ["adhd", "hyperactive"] },
+            { value: "54. Convulsive Disorders (Dev Delay)", label: "Convulsive Disorders (Dev Delay)", facility: "DEIC", keywords: ["convulsive dev"] }
         ]
     },
-    // 5. Adolescent Health concerns
     {
         category: "5. Adolescent Health concerns",
         items: [
-            { value: "31. Growing up concerns", label: "Growing Up Concerns", facility: "AFHC", keywords: ["growing up", "growing up concerns", "puberty", "kishorawastha samasya"] },
-            { value: "32. Substance abuse", label: "Substance Abuse", facility: "AFHC", keywords: ["substance abuse", "substance", "nasha", "drug", "tobacco", "smoking"] },
-            { value: "33. Feel depressed", label: "Feel Depressed", facility: "AFHC", keywords: ["feel depressed", "depression", "anxiety", "udasi", "tanaav"] },
-            { value: "34. Delay in menstruation cycles", label: "Delay in Menstruation", facility: "AFHC", keywords: ["delay in menstruation", "menstruation delay", "periods delay", "mahawari me deri"] },
-            { value: "35. Irregular periods", label: "Irregular Periods", facility: "AFHC", keywords: ["irregular periods", "aniyamit mahawari", "irregular menses", "periods problem"] },
-            { value: "36. Experience any pain or burning sensation while urinating", label: "Pain/Burning Urinating", facility: "AFHC", keywords: ["burning sensation while urinating", "pain urinating", "peshab me jalan", "dysuria", "uti"] },
-            { value: "37. Discharge/foul smelling discharge from the genitor-urinary area", label: "Genito-Urinary Discharge", facility: "AFHC", keywords: ["discharge", "genitor-urinary", "foul smelling discharge", "safed pani", "leucorrhea"] },
-            { value: "38. Pain during menstruation", label: "Pain During Menstruation", facility: "AFHC", keywords: ["pain during menstruation", "dysmenorrhea", "periods pain", "mahawari me dard"] }
+            { value: "30. Growing Up Concerns", label: "Growing Up Concerns", facility: "AFHC", keywords: ["growing up", "growing"] },
+            { value: "31. Substance Abuse", label: "Substance Abuse", facility: "AFHC", keywords: ["substance", "nashapan", "bidi", "gutkha"] },
+            { value: "32. Feel Depressed", label: "Feel Depressed", facility: "AFHC", keywords: ["depressed", "depression", "udaas"] },
+            { value: "33. Delay in Menstruation", label: "Delay in Menstruation", facility: "AFHC", keywords: ["delay in menstruation", "amenorrhea"] },
+            { value: "34. Irregular Periods", label: "Irregular Periods", facility: "AFHC", keywords: ["irregular periods", "period samasya"] },
+            { value: "35. Pain / Burning While Urinating", label: "Pain/Burning Urinating", facility: "AFHC", keywords: ["burning urinating", "uti", "peshab me jalan"] },
+            { value: "36. Discharge (Genito-Urinary)", label: "Genito-Urinary Discharge", facility: "AFHC", keywords: ["discharge", "white discharge"] },
+            { value: "37. Pain During Menstruation", label: "Pain During Menstruation", facility: "AFHC", keywords: ["pain during menstruation", "dysmenorrhea"] }
         ]
     }
 ];
 
-// Flat value map for fast lookup
-const DEFECT_VALUE_MAP = {};
-for (const cat of DEFECT_DIRECTORY) {
-    for (const item of cat.items) {
-        DEFECT_VALUE_MAP[item.value] = item;
-    }
-}
-
 function normalizeDefect(raw) {
-    if (!raw) return { defect: "Healthy", facility: "" };
+    if (!raw) return { defect: "Healthy", facility: "", phone: null };
     const str = String(raw).trim();
-    if (!str || str.toLowerCase() === 'healthy' || str.toLowerCase() === 'normal' || str.toLowerCase() === 'fit' || str.toLowerCase() === 'ok') {
-        return { defect: "Healthy", facility: "" };
+    if (str === "" || str === "Healthy" || str === "Healthy / Normal") {
+        return { defect: "Healthy", facility: "", phone: null };
     }
-    // Exact match by official code string
-    if (DEFECT_VALUE_MAP[str]) {
-        return { defect: DEFECT_VALUE_MAP[str].value, facility: DEFECT_VALUE_MAP[str].facility };
-    }
-    // Case-insensitive match on code or display label
-    const sLow = str.toLowerCase();
+
+    // Exact value match
     for (const cat of DEFECT_DIRECTORY) {
         for (const it of cat.items) {
-            if (it.value.toLowerCase() === sLow || it.label.toLowerCase() === sLow) {
-                return { defect: it.value, facility: it.facility };
+            if (it.value === str || it.label === str) {
+                return { defect: it.value, facility: it.facility, phone: null };
             }
         }
     }
-    // Match by keywords / aliases
-    for (const cat of DEFECT_DIRECTORY) {
-        for (const it of cat.items) {
-            if (it.keywords && it.keywords.some(kw => sLow.includes(kw))) {
-                return { defect: it.value, facility: it.facility };
+
+    // Number prefix match e.g. "15." or "15"
+    const mNum = str.match(/^(\d+)[\.\s]/);
+    if (mNum) {
+        const num = mNum[1];
+        for (const cat of DEFECT_DIRECTORY) {
+            for (const it of cat.items) {
+                if (it.value.startsWith(num + ".") || it.value.startsWith(num + " ")) {
+                    return { defect: it.value, facility: it.facility, phone: null };
+                }
             }
         }
     }
-    return { defect: str, facility: "Block Level Facility" };
+
+    // Keyword match
+    const lower = str.toLowerCase();
+    for (const cat of DEFECT_DIRECTORY) {
+        for (const it of cat.items) {
+            for (const kw of it.keywords) {
+                if (lower.includes(kw)) {
+                    return { defect: it.value, facility: it.facility, phone: null };
+                }
+            }
+        }
+    }
+
+    return { defect: "Healthy", facility: "", phone: null };
 }
 
-function calculateDefectFromHb(hbVal) {
-    if (!hbVal) return null;
-    const num = parseFloat(hbVal);
-    if (isNaN(num)) return null;
+function mapDefectAndFacility(rawDefect) {
+    if (!rawDefect) return { defect: "Healthy", facility: "", phone: "" };
+    
+    // Extract phone if embedded in text
+    let phone = "";
+    const phoneMatch = String(rawDefect).match(/\b([6-9]\d{9})\b/);
+    if (phoneMatch) phone = phoneMatch[1];
 
-    if (num < 7.0) {
-        return { defect: "10. Severe Anemia", facility: "DEIC" };
-    } else if (num < 10.0) {
-        return { defect: "52. Moderate Anaemia", facility: "Block Level Facility" };
-    } else if (num < 11.5) {
-        return { defect: "89. Mild Anaemia", facility: "Block Level Facility" };
-    } else {
-        return { defect: "Healthy", facility: "" };
-    }
+    const def = normalizeDefect(rawDefect);
+    return {
+        defect: def.defect,
+        facility: def.facility,
+        phone: phone
+    };
 }
 
 function getDefectSelectHtml(rowNum, selectedValue) {
@@ -1070,453 +1024,18 @@ function onDefectSelectChange(rNum, selectedValue) {
     showEditToast(`✓ Row ${rNum}: Defect set to "${defInfo.defect}" -> Facility: "${defInfo.facility || 'None'}"`);
 }
 
-function mapDefectAndFacility(rawDefect, hb) {
-    const res = { defect: "Healthy", facility: "", phone: "", raw: rawDefect || "" };
-
-    if (rawDefect) {
-        const phoneMatch = rawDefect.match(/(?:\b|\D)(\d{10,12})(?:\b|\D)/);
-        if (phoneMatch) res.phone = cleanMobile(phoneMatch[1]);
-
-        const mapped = normalizeDefect(rawDefect);
-        if (mapped && mapped.defect !== 'Healthy') {
-            res.defect = mapped.defect;
-            res.facility = mapped.facility;
-        }
-    }
-
-    // Auto Defect by Hb if no specific anatomical/physical defect detected
-    const optHbAutoDefect = document.getElementById('optHbAutoDefect');
-    const autoDefectActive = optHbAutoDefect ? optHbAutoDefect.checked : true;
-    if (res.defect === "Healthy" && hb && autoDefectActive) {
-        const hbDef = calculateDefectFromHb(hb);
-        if (hbDef && hbDef.defect !== "Healthy") {
-            res.defect = hbDef.defect;
-            res.facility = hbDef.facility;
-        }
-    }
-
-    return res;
-}
-
-// --- WHO & RBSK Growth Computation Engine (Exact growthCore.js) ---
-const GROWTH_DATA_BOYS = {
-    // Months (2m to 11m) - WHO Child Growth Standards (Whole Numbers, No BP, No Hb, Normal WHO Head & MUAC)
-    "2m": { h: 58, w: 6, head: 39.0, muac: 13.5, bp: "", hb: "" },
-    "3m": { h: 61, w: 6, head: 40.5, muac: 13.5, bp: "", hb: "" },
-    "4m": { h: 64, w: 7, head: 41.6, muac: 13.5, bp: "", hb: "" },
-    "5m": { h: 66, w: 8, head: 42.6, muac: 13.5, bp: "", hb: "" },
-    "6m": { h: 68, w: 8, head: 43.3, muac: 13.5, bp: "", hb: "" },
-    "7m": { h: 69, w: 8, head: 44.0, muac: 13.5, bp: "", hb: "" },
-    "8m": { h: 71, w: 9, head: 44.5, muac: 13.5, bp: "", hb: "" },
-    "9m": { h: 72, w: 9, head: 45.0, muac: 13.5, bp: "", hb: "" },
-    "10m": { h: 73, w: 9, head: 45.4, muac: 13.5, bp: "", hb: "" },
-    "11m": { h: 75, w: 9, head: 45.8, muac: 13.5, bp: "", hb: "" },
-
-    // Years 1 to 5 - RBSK / Indian Reference Standards (No BP, No Hb, Whole Numbers, Normal WHO Head & MUAC)
-    1: { h: 76, w: 10, head: 46.1, muac: 13.5, bp: "", hb: "" },
-    2: { h: 88, w: 12, head: 48.3, muac: 13.5, bp: "", hb: "" },
-    3: { h: 97, w: 14, head: 49.5, muac: 13.5, bp: "", hb: "" },
-    4: { h: 105, w: 16, head: 50.4, muac: 13.5, bp: "", hb: "" },
-    5: { h: 111, w: 18, head: 51.1, muac: 13.5, bp: "", hb: "" },
-
-    // Years 6 to 20 - RBSK / Indian & WHO Reference Standards (Realistic Natural Heights & Weights)
-    6: { h: 116, w: 21, head: null, muac: null, bp: "98/65", hb: 12 },
-    7: { h: 121, w: 23, head: null, muac: null, bp: "100/66", hb: 12 },
-    8: { h: 127, w: 26, head: null, muac: null, bp: "102/68", hb: 12 },
-    9: { h: 132, w: 28, head: null, muac: null, bp: "104/68", hb: 13 },
-    10: { h: 137, w: 32, head: null, muac: null, bp: "106/70", hb: 13 },
-    11: { h: 143, w: 36, head: null, muac: null, bp: "108/70", hb: 13 },
-    12: { h: 149, w: 40, head: null, muac: null, bp: "110/72", hb: 13 },
-    13: { h: 156, w: 45, head: null, muac: null, bp: "112/72", hb: 13 },
-    14: { h: 163, w: 50, head: null, muac: null, bp: "114/74", hb: 13 },
-    15: { h: 169, w: 56, head: null, muac: null, bp: "115/74", hb: 14 },
-    16: { h: 173, w: 61, head: null, muac: null, bp: "116/75", hb: 14 },
-    17: { h: 175, w: 64, head: null, muac: null, bp: "116/75", hb: 14 },
-    18: { h: 176, w: 66, head: null, muac: null, bp: "118/76", hb: 14 },
-    19: { h: 177, w: 67, head: null, muac: null, bp: "118/76", hb: 14 },
-    20: { h: 177, w: 68, head: null, muac: null, bp: "118/76", hb: 14 }
-};
-
-const GROWTH_DATA_GIRLS = {
-    // Months (2m to 11m) - WHO Child Growth Standards (Whole Numbers, No BP, No Hb, Normal WHO Head & MUAC)
-    "2m": { h: 57, w: 5, head: 38.2, muac: 13.5, bp: "", hb: "" },
-    "3m": { h: 60, w: 6, head: 39.5, muac: 13.5, bp: "", hb: "" },
-    "4m": { h: 62, w: 6, head: 40.6, muac: 13.5, bp: "", hb: "" },
-    "5m": { h: 64, w: 7, head: 41.5, muac: 13.5, bp: "", hb: "" },
-    "6m": { h: 66, w: 7, head: 42.2, muac: 13.5, bp: "", hb: "" },
-    "7m": { h: 67, w: 8, head: 42.8, muac: 13.5, bp: "", hb: "" },
-    "8m": { h: 69, w: 8, head: 43.3, muac: 13.5, bp: "", hb: "" },
-    "9m": { h: 70, w: 8, head: 43.8, muac: 13.5, bp: "", hb: "" },
-    "10m": { h: 72, w: 9, head: 44.2, muac: 13.5, bp: "", hb: "" },
-    "11m": { h: 73, w: 9, head: 44.6, muac: 13.5, bp: "", hb: "" },
-
-    // Years 1 to 5 - RBSK / Indian Reference Standards (No BP, No Hb, Whole Numbers, Normal WHO Head & MUAC)
-    1: { h: 74, w: 9, head: 44.9, muac: 13.5, bp: "", hb: "" },
-    2: { h: 86, w: 12, head: 47.2, muac: 13.5, bp: "", hb: "" },
-    3: { h: 95, w: 14, head: 48.5, muac: 13.5, bp: "", hb: "" },
-    4: { h: 103, w: 16, head: 49.5, muac: 13.5, bp: "", hb: "" },
-    5: { h: 109, w: 18, head: 50.2, muac: 13.5, bp: "", hb: "" },
-
-    // Years 6 to 20 - RBSK / Indian & WHO Reference Standards (Realistic Natural Heights & Weights)
-    6: { h: 115, w: 20, head: null, muac: null, bp: "98/65", hb: 12 },
-    7: { h: 120, w: 22, head: null, muac: null, bp: "100/66", hb: 12 },
-    8: { h: 126, w: 25, head: null, muac: null, bp: "102/68", hb: 12 },
-    9: { h: 132, w: 28, head: null, muac: null, bp: "104/68", hb: 13 },
-    10: { h: 138, w: 32, head: null, muac: null, bp: "105/70", hb: 13 },
-    11: { h: 144, w: 36, head: null, muac: null, bp: "107/70", hb: 13 },
-    12: { h: 151, w: 41, head: null, muac: null, bp: "109/72", hb: 13 },
-    13: { h: 156, w: 46, head: null, muac: null, bp: "110/72", hb: 13 },
-    14: { h: 159, w: 49, head: null, muac: null, bp: "112/74", hb: 13 },
-    15: { h: 161, w: 52, head: null, muac: null, bp: "114/74", hb: 13 },
-    16: { h: 162, w: 53, head: null, muac: null, bp: "115/75", hb: 13 },
-    17: { h: 163, w: 54, head: null, muac: null, bp: "115/75", hb: 13 },
-    18: { h: 163, w: 55, head: null, muac: null, bp: "116/76", hb: 13 },
-    19: { h: 163, w: 55, head: null, muac: null, bp: "118/76", hb: 14 },
-    20: { h: 164, w: 56, head: null, muac: null, bp: "118/76", hb: 14 }
-};
-
-// Legacy alias for any code accessing GROWTH_DATA directly
-const GROWTH_DATA = GROWTH_DATA_BOYS;
-
-// Active customizable in-memory tables that default to standard WHO/RBSK references
-const ACTIVE_GROWTH_DATA_BOYS = JSON.parse(JSON.stringify(GROWTH_DATA_BOYS));
-const ACTIVE_GROWTH_DATA_GIRLS = JSON.parse(JSON.stringify(GROWTH_DATA_GIRLS));
-
-function syncCustomGrowthData(custom) {
-    if (!custom || typeof custom !== "object") return;
-    if (custom.boys && typeof custom.boys === "object") {
-        for (const k in custom.boys) {
-            ACTIVE_GROWTH_DATA_BOYS[k] = Object.assign({}, ACTIVE_GROWTH_DATA_BOYS[k] || {}, custom.boys[k]);
-        }
-    }
-    if (custom.girls && typeof custom.girls === "object") {
-        for (const k in custom.girls) {
-            ACTIVE_GROWTH_DATA_GIRLS[k] = Object.assign({}, ACTIVE_GROWTH_DATA_GIRLS[k] || {}, custom.girls[k]);
-        }
-    }
-}
-
-try {
-    if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-        chrome.storage.local.get(["rbskCustomGrowthData"], (res) => {
-            if (res && res.rbskCustomGrowthData) {
-                syncCustomGrowthData(res.rbskCustomGrowthData);
-            }
-        });
-        chrome.storage.onChanged.addListener((changes, area) => {
-            if (area === "local" && changes.rbskCustomGrowthData) {
-                if (changes.rbskCustomGrowthData.newValue) {
-                    syncCustomGrowthData(changes.rbskCustomGrowthData.newValue);
-                } else {
-                    for (const k in ACTIVE_GROWTH_DATA_BOYS) delete ACTIVE_GROWTH_DATA_BOYS[k];
-                    for (const k in ACTIVE_GROWTH_DATA_GIRLS) delete ACTIVE_GROWTH_DATA_GIRLS[k];
-                    Object.assign(ACTIVE_GROWTH_DATA_BOYS, JSON.parse(JSON.stringify(GROWTH_DATA_BOYS)));
-                    Object.assign(ACTIVE_GROWTH_DATA_GIRLS, JSON.parse(JSON.stringify(GROWTH_DATA_GIRLS)));
-                }
-            }
-        });
-    }
-} catch (_) {}
-
-function normalizeGender(g) {
-    const s = String(g || "").toLowerCase().trim();
-    if (s.startsWith("f") || s.includes("girl") || s.includes("fem") || s.includes("female") || s.includes("stri") || s.includes("mahila")) {
-        return "female";
-    }
-    return "male";
-}
-
-function parseDetailedAge(ageStr) {
-    if (ageStr && typeof ageStr === "object" && ("years" in ageStr || "months" in ageStr)) {
-        return {
-            years: Number(ageStr.years || 0),
-            months: Number(ageStr.months || 0)
-        };
-    }
-    const str = String(ageStr || "").toLowerCase().trim();
-    if (!str) return { years: 1, months: 0 };
-
-    const yMatch = str.match(/(\d+)\s*(?:year|yr|y|वर्ष|साल)/);
-    const mMatch = str.match(/(\d+)\s*(?:month|mo|m|माह|महीने)/);
-
-    let years = yMatch ? parseInt(yMatch[1], 10) : 0;
-    let months = mMatch ? parseInt(mMatch[1], 10) : 0;
-
-    if (!yMatch && !mMatch && /^\d+(\.\d+)?$/.test(str)) {
-        const num = parseFloat(str);
-        years = Math.floor(num);
-        months = Math.round((num - years) * 12);
-    }
-
-    return { years, months };
-}
-
-// WHO Standard Reference Tables for Head Circumference (0 to 60 Months)
-const WHO_HC_DATA = {
-    male: [
-        { age: 0, m: 34.5, sd1neg: 33.2, sd1pos: 35.8, sd2neg: 31.9, sd2pos: 37.0 },
-        { age: 1, m: 37.3, sd1neg: 36.0, sd1pos: 38.6, sd2neg: 34.7, sd2pos: 39.8 },
-        { age: 2, m: 39.0, sd1neg: 37.7, sd1pos: 40.2, sd2neg: 36.4, sd2pos: 41.5 },
-        { age: 3, m: 40.5, sd1neg: 39.2, sd1pos: 41.8, sd2neg: 37.9, sd2pos: 43.0 },
-        { age: 4, m: 41.6, sd1neg: 40.2, sd1pos: 42.9, sd2neg: 38.9, sd2pos: 44.1 },
-        { age: 5, m: 42.6, sd1neg: 41.2, sd1pos: 43.9, sd2neg: 39.9, sd2pos: 45.1 },
-        { age: 6, m: 43.3, sd1neg: 42.1, sd1pos: 44.6, sd2neg: 40.8, sd2pos: 45.8 },
-        { age: 7, m: 44.0, sd1neg: 42.7, sd1pos: 45.2, sd2neg: 41.4, sd2pos: 46.4 },
-        { age: 8, m: 44.5, sd1neg: 43.2, sd1pos: 45.7, sd2neg: 41.9, sd2pos: 47.0 },
-        { age: 9, m: 45.0, sd1neg: 43.7, sd1pos: 46.2, sd2neg: 42.5, sd2pos: 47.5 },
-        { age: 10, m: 45.4, sd1neg: 44.1, sd1pos: 46.6, sd2neg: 42.9, sd2pos: 48.0 },
-        { age: 11, m: 45.8, sd1neg: 44.5, sd1pos: 47.0, sd2neg: 43.3, sd2pos: 48.4 },
-        { age: 12, m: 46.1, sd1neg: 44.8, sd1pos: 47.3, sd2neg: 43.6, sd2pos: 48.6 },
-        { age: 18, m: 47.4, sd1neg: 46.1, sd1pos: 48.6, sd2neg: 44.9, sd2pos: 49.9 },
-        { age: 24, m: 48.3, sd1neg: 47.0, sd1pos: 49.5, sd2neg: 45.8, sd2pos: 50.8 },
-        { age: 36, m: 49.5, sd1neg: 48.2, sd1pos: 50.8, sd2neg: 46.9, sd2pos: 52.1 },
-        { age: 48, m: 50.4, sd1neg: 49.1, sd1pos: 51.7, sd2neg: 47.8, sd2pos: 53.0 },
-        { age: 60, m: 51.1, sd1neg: 49.7, sd1pos: 52.4, sd2neg: 48.4, sd2pos: 53.7 }
-    ],
-    female: [
-        { age: 0, m: 33.9, sd1neg: 32.7, sd1pos: 35.1, sd2neg: 31.5, sd2pos: 36.2 },
-        { age: 1, m: 36.5, sd1neg: 35.2, sd1pos: 37.7, sd2neg: 34.0, sd2pos: 38.9 },
-        { age: 2, m: 38.2, sd1neg: 36.8, sd1pos: 39.4, sd2neg: 35.5, sd2pos: 40.5 },
-        { age: 3, m: 39.5, sd1neg: 38.2, sd1pos: 40.8, sd2neg: 36.9, sd2pos: 42.0 },
-        { age: 4, m: 40.6, sd1neg: 39.2, sd1pos: 41.8, sd2neg: 38.0, sd2pos: 43.0 },
-        { age: 5, m: 41.5, sd1neg: 40.1, sd1pos: 42.7, sd2neg: 38.8, sd2pos: 43.9 },
-        { age: 6, m: 42.2, sd1neg: 40.9, sd1pos: 43.5, sd2neg: 39.6, sd2pos: 44.8 },
-        { age: 7, m: 42.8, sd1neg: 41.5, sd1pos: 44.0, sd2neg: 40.2, sd2pos: 45.4 },
-        { age: 8, m: 43.3, sd1neg: 42.0, sd1pos: 44.5, sd2neg: 40.7, sd2pos: 45.9 },
-        { age: 9, m: 43.8, sd1neg: 42.5, sd1pos: 45.1, sd2neg: 41.2, sd2pos: 46.4 },
-        { age: 10, m: 44.2, sd1neg: 42.9, sd1pos: 45.5, sd2neg: 41.6, sd2pos: 46.8 },
-        { age: 11, m: 44.6, sd1neg: 43.3, sd1pos: 45.9, sd2neg: 42.0, sd2pos: 47.2 },
-        { age: 12, m: 44.9, sd1neg: 43.6, sd1pos: 46.2, sd2neg: 42.3, sd2pos: 47.5 },
-        { age: 18, m: 46.2, sd1neg: 44.9, sd1pos: 47.5, sd2neg: 43.6, sd2pos: 48.8 },
-        { age: 24, m: 47.2, sd1neg: 45.9, sd1pos: 48.5, sd2neg: 44.6, sd2pos: 49.8 },
-        { age: 36, m: 48.5, sd1neg: 47.1, sd1pos: 49.8, sd2neg: 45.8, sd2pos: 51.2 },
-        { age: 48, m: 49.5, sd1neg: 48.1, sd1pos: 50.8, sd2neg: 46.8, sd2pos: 52.2 },
-        { age: 60, m: 50.2, sd1neg: 48.8, sd1pos: 51.5, sd2neg: 47.5, sd2pos: 52.9 }
-    ]
-};
-
-function getWhoNormalHeadCircumference(totalMonths, gender) {
-    const g = normalizeGender(gender) === "female" ? "female" : "male";
-    const refList = WHO_HC_DATA[g];
-    let ref = refList[0];
-    for (let i = 0; i < refList.length; i++) {
-        if (totalMonths >= refList[i].age) {
-            ref = refList[i];
-        }
-    }
-    const naturalOffsets = [-0.2, -0.1, 0, 0.1, 0.2];
-    const offset = naturalOffsets[Math.floor(Math.random() * naturalOffsets.length)];
-    let val = Number((ref.m + offset).toFixed(1));
-    val = Math.max(ref.sd1neg + 0.1, Math.min(ref.sd1pos - 0.1, val));
-    return Number(val.toFixed(1));
-}
-
-function getWhoNormalMuac() {
-    const options = [13.2, 13.4, 13.5, 13.6, 13.8];
-    return options[Math.floor(Math.random() * options.length)];
-}
-
-const WHO_UNDER5_BOYS = {
-    0: { h: 50, w: 3 }, 1: { h: 55, w: 5 }, 2: { h: 58, w: 6 }, 3: { h: 61, w: 6 },
-    4: { h: 64, w: 7 }, 5: { h: 66, w: 8 }, 6: { h: 68, w: 8 }, 7: { h: 69, w: 8 },
-    8: { h: 71, w: 9 }, 9: { h: 72, w: 9 }, 10: { h: 73, w: 9 }, 11: { h: 75, w: 9 },
-    12: { h: 76, w: 10 }, 13: { h: 77, w: 10 }, 14: { h: 78, w: 10 }, 15: { h: 79, w: 10 },
-    16: { h: 80, w: 11 }, 17: { h: 81, w: 11 }, 18: { h: 82, w: 11 }, 19: { h: 83, w: 11 },
-    20: { h: 84, w: 11 }, 21: { h: 85, w: 12 }, 22: { h: 86, w: 12 }, 23: { h: 87, w: 12 },
-    24: { h: 88, w: 12 }, 25: { h: 89, w: 12 }, 26: { h: 89, w: 13 }, 27: { h: 90, w: 13 },
-    28: { h: 91, w: 13 }, 29: { h: 92, w: 13 }, 30: { h: 93, w: 13 }, 31: { h: 93, w: 14 },
-    32: { h: 94, w: 14 }, 33: { h: 95, w: 14 }, 34: { h: 96, w: 14 }, 35: { h: 96, w: 14 },
-    36: { h: 97, w: 14 }, 37: { h: 98, w: 15 }, 38: { h: 98, w: 15 }, 39: { h: 99, w: 15 },
-    40: { h: 100, w: 15 }, 41: { h: 100, w: 15 }, 42: { h: 101, w: 15 }, 43: { h: 102, w: 16 },
-    44: { h: 102, w: 16 }, 45: { h: 103, w: 16 }, 46: { h: 103, w: 16 }, 47: { h: 104, w: 16 },
-    48: { h: 105, w: 16 }, 49: { h: 105, w: 17 }, 50: { h: 106, w: 17 }, 51: { h: 106, w: 17 },
-    52: { h: 107, w: 17 }, 53: { h: 107, w: 17 }, 54: { h: 108, w: 17 }, 55: { h: 108, w: 18 },
-    56: { h: 109, w: 18 }, 57: { h: 110, w: 18 }, 58: { h: 110, w: 18 }, 59: { h: 111, w: 18 },
-    60: { h: 111, w: 18 }
-};
-
-const WHO_UNDER5_GIRLS = {
-    0: { h: 49, w: 3 }, 1: { h: 54, w: 4 }, 2: { h: 57, w: 5 }, 3: { h: 60, w: 6 },
-    4: { h: 62, w: 6 }, 5: { h: 64, w: 7 }, 6: { h: 66, w: 7 }, 7: { h: 67, w: 8 },
-    8: { h: 69, w: 8 }, 9: { h: 70, w: 8 }, 10: { h: 72, w: 9 }, 11: { h: 73, w: 9 },
-    12: { h: 74, w: 9 }, 13: { h: 75, w: 9 }, 14: { h: 76, w: 9 }, 15: { h: 78, w: 10 },
-    16: { h: 79, w: 10 }, 17: { h: 80, w: 10 }, 18: { h: 81, w: 10 }, 19: { h: 82, w: 10 },
-    20: { h: 83, w: 11 }, 21: { h: 84, w: 11 }, 22: { h: 85, w: 11 }, 23: { h: 86, w: 11 },
-    24: { h: 86, w: 12 }, 25: { h: 87, w: 12 }, 26: { h: 88, w: 12 }, 27: { h: 89, w: 12 },
-    28: { h: 90, w: 12 }, 29: { h: 90, w: 13 }, 30: { h: 91, w: 13 }, 31: { h: 92, w: 13 },
-    32: { h: 93, w: 13 }, 33: { h: 93, w: 13 }, 34: { h: 94, w: 14 }, 35: { h: 95, w: 14 },
-    36: { h: 95, w: 14 }, 37: { h: 96, w: 14 }, 38: { h: 97, w: 14 }, 39: { h: 97, w: 14 },
-    40: { h: 98, w: 15 }, 41: { h: 99, w: 15 }, 42: { h: 99, w: 15 }, 43: { h: 100, w: 15 },
-    44: { h: 101, w: 15 }, 45: { h: 101, w: 16 }, 46: { h: 102, w: 16 }, 47: { h: 102, w: 16 },
-    48: { h: 103, w: 16 }, 49: { h: 103, w: 16 }, 50: { h: 104, w: 16 }, 51: { h: 105, w: 17 },
-    52: { h: 105, w: 17 }, 53: { h: 106, w: 17 }, 54: { h: 106, w: 17 }, 55: { h: 107, w: 17 },
-    56: { h: 107, w: 18 }, 57: { h: 108, w: 18 }, 58: { h: 108, w: 18 }, 59: { h: 109, w: 18 },
-    60: { h: 109, w: 18 }
-};
-
-function getGrowthData(ageInput, genderInput = "male") {
-    const gender = normalizeGender(genderInput);
-    const table = gender === "female" ? ACTIVE_GROWTH_DATA_GIRLS : ACTIVE_GROWTH_DATA_BOYS;
-    const under5Table = gender === "female" ? WHO_UNDER5_GIRLS : WHO_UNDER5_BOYS;
-
-    const { years, months } = parseDetailedAge(ageInput);
-    const totalMonths = (years * 12) + (months || 0);
-
-    const isUnderFive = totalMonths > 0 ? totalMonths <= 60 : (years <= 5 && months === 0);
-
-    let data = null;
-    let ageKey = "";
-    let finalH = 0;
-    let finalW = 0;
-    let finalHead = null;
-    let finalMuac = null;
-    let finalBp = "";
-    let finalHb = "";
-
-    const getRandomOffset = () => [-1, 0, 1][Math.floor(Math.random() * 3)];
-
-    if (isUnderFive) {
-        const m = Math.max(1, Math.min(60, totalMonths || (years ? years * 12 : (months || 1))));
-        ageKey = `${m}m`;
-
-        const customEntry = table[ageKey] || (months === 0 && table[years]);
-        const whoEntry = under5Table[m] || under5Table[12];
-
-        const baseH = Math.round(Number(customEntry?.h || whoEntry.h) || 0);
-        const baseW = Math.round(Number(customEntry?.w || whoEntry.w) || 0);
-
-        finalH = baseH;
-        finalW = baseW;
-
-        finalHead = String(getWhoNormalHeadCircumference(m, gender));
-        finalMuac = String(getWhoNormalMuac());
-        finalBp = "";
-        finalHb = "";
-    } else {
-        let y = years;
-        if (y <= 5) y = 6;
-        y = Math.max(6, Math.min(20, y));
-        ageKey = String(y);
-
-        data = table[y] || table[6];
-        const baseH = Math.round(Number(data.h) || 120);
-        const baseW = Math.round(Number(data.w) || 22);
-
-        finalH = Math.max(100, baseH + getRandomOffset());
-        finalW = Math.max(15, baseW + getRandomOffset());
-
-        const hM = finalH / 100;
-        const curBmi = finalW / (hM * hM);
-        if (curBmi < 14.8) {
-            finalW = Math.ceil(15.2 * hM * hM);
-        } else if (curBmi > 23.0) {
-            finalW = Math.floor(22.0 * hM * hM);
-        }
-
-        if (data.bp) {
-            finalBp = String(data.bp).trim();
-        } else {
-            finalBp = "105/70";
-        }
-
-        const baseHb = Math.round(Number(data.hb) || 12);
-        finalHb = String(Math.max(11, Math.min(15, baseHb + getRandomOffset())));
-
-        finalHead = null;
-        finalMuac = null;
-    }
-
-    return {
-        gender: gender,
-        ageKey: ageKey,
-        isUnderFive: isUnderFive,
-        h: String(finalH),
-        w: String(finalW),
-        head: finalHead,
-        muac: finalMuac,
-        bp: finalBp,
-        hb: finalHb
-    };
-}
-
-function getStudentAgeInfo(dobVal, ageText, classText) {
-    if (dobVal) {
-        const dob = new Date(dobVal);
-        if (!isNaN(dob.getTime())) {
-            const now = new Date();
-            let years = now.getFullYear() - dob.getFullYear();
-            let months = now.getMonth() - dob.getMonth();
-            if (now.getDate() < dob.getDate()) months--;
-            if (months < 0) { years--; months += 12; }
-            if (years >= 0 && years <= 25) {
-                return { years, months, totalMonths: (years * 12) + months };
-            }
-        }
-    }
-    const ageStr = String(ageText || '').toLowerCase();
-    const yM = ageStr.match(/(\d+)\s*(?:year|yr|y|वर्ष|साल)/);
-    const mM = ageStr.match(/(\d+)\s*(?:month|mo|m|माह|महीने)/);
-    if (yM || mM) {
-        const y = yM ? parseInt(yM[1], 10) : 0;
-        const m = mM ? parseInt(mM[1], 10) : 0;
-        return { years: y, months: m, totalMonths: (y * 12) + m };
-    }
-    const clsStr = String(classText || '').toLowerCase();
-    const cM = clsStr.match(/\b(1[0-2]|[1-9])\b/);
-    if (cM) {
-        const y = parseInt(cM[1], 10) + 5;
-        return { years: y, months: 6, totalMonths: (y * 12) + 6 };
-    }
-    return { years: 10, months: 0, totalMonths: 120 };
-}
-
-function computeAutoGrowth(student) {
-    const ageInfo = getStudentAgeInfo(student.dob, student.age, student.class);
-    const growth = getGrowthData(ageInfo, student.gender || 'male');
-    return {
-        height: growth.h,
-        weight: growth.w,
-        hb: growth.hb || "12",
-        bp: growth.bp || "106/70",
-        head: growth.head,
-        muac: growth.muac
-    };
-}
-
-window.GROWTH_DATA = GROWTH_DATA;
-window.GROWTH_DATA_BOYS = GROWTH_DATA_BOYS;
-window.GROWTH_DATA_GIRLS = GROWTH_DATA_GIRLS;
-window.ACTIVE_GROWTH_DATA_BOYS = ACTIVE_GROWTH_DATA_BOYS;
-window.ACTIVE_GROWTH_DATA_GIRLS = ACTIVE_GROWTH_DATA_GIRLS;
-window.WHO_UNDER5_BOYS = WHO_UNDER5_BOYS;
-window.WHO_UNDER5_GIRLS = WHO_UNDER5_GIRLS;
-window.WHO_HC_DATA = WHO_HC_DATA;
-window.getWhoNormalHeadCircumference = getWhoNormalHeadCircumference;
-window.getWhoNormalMuac = getWhoNormalMuac;
-window.syncCustomGrowthData = syncCustomGrowthData;
-window.getGrowthData = getGrowthData;
-window.normalizeGender = normalizeGender;
-window.parseDetailedAge = parseDetailedAge;
-window.getStudentAgeInfo = getStudentAgeInfo;
-window.computeAutoGrowth = computeAutoGrowth;
-window.DEFECT_DIRECTORY = DEFECT_DIRECTORY;
-window.normalizeDefect = normalizeDefect;
-window.calculateDefectFromHb = calculateDefectFromHb;
-window.getDefectSelectHtml = getDefectSelectHtml;
-window.onDefectSelectChange = onDefectSelectChange;
-
-// Main Processing Engine
+// MAIN COMPARE & MERGE ENGINE
 async function processFiles() {
     const btn = document.getElementById('btnProcess');
     btn.disabled = true;
-    btn.innerHTML = '⏳ Processing Data...';
+    btn.innerHTML = '⏳ Comparing & Reconciling Data...';
 
     try {
         if (typeof JSZip === 'undefined') {
-            throw new Error("JSZip library load nahi hui. Kripya internet check karein ya jszip.min.js ko folder me rakhein.");
+            throw new Error("JSZip library load nahi hui. Kripya jszip.min.js folder me rakhein ya internet check karein.");
         }
 
-        // 1. Read User Sheet
+        // 1. Read User Sheet (AI register)
         const zipUser = await JSZip.loadAsync(fileUserBuffer);
         const userSharedStrings = [];
         if (zipUser.file('xl/sharedStrings.xml')) {
@@ -1536,7 +1055,7 @@ async function processFiles() {
         const userDoc = new DOMParser().parseFromString(userSheetXml, 'text/xml');
         const userRows = userDoc.getElementsByTagName('row');
 
-        // Detect columns from row 1 of user sheet
+        // Detect user sheet columns
         const userColMap = { sr: 'A', uid: 'B', class: 'C', name: 'D', gender: 'E', dob: 'F', father: 'G', weight: 'H', height: 'I', hb: 'J', defect: 'K' };
         if (userRows.length > 0) {
             const headerCells = userRows[0].getElementsByTagName('c');
@@ -1604,7 +1123,7 @@ async function processFiles() {
             });
         }
 
-        // 2. Read Template Format Sheet
+        // 2. Read Format Template Sheet
         const zipFormat = await JSZip.loadAsync(fileFormatBuffer);
         const formatSheetXml = await zipFormat.file('xl/worksheets/sheet1.xml').async('text');
         const formatDoc = new DOMParser().parseFromString(formatSheetXml, 'text/xml');
@@ -1612,7 +1131,7 @@ async function processFiles() {
         const sheetData = formatDoc.getElementsByTagName('sheetData')[0];
         const existingRows = sheetData.getElementsByTagName('row');
 
-        // Parse Format Students
+        // Parse existing students in format sheet
         const formatStudents = [];
         let maxSN = 0;
         let maxRowNum = 2;
@@ -1675,10 +1194,16 @@ async function processFiles() {
                 v = formatDoc.createElementNS(sheetNs, 'v');
                 c.appendChild(v);
             }
-            v.textContent = value;
+            v.textContent = (value !== undefined && value !== null) ? String(value) : '';
         }
 
-        // Matching & Updating
+        function getCellVal(cMap, col) {
+            if (!cMap[col]) return '';
+            const v = cMap[col].getElementsByTagName('v')[0];
+            return v ? v.textContent : '';
+        }
+
+        // Matching
         const matchedList = [];
         const matchedUserIndices = new Set();
         const matchedFormatRowNums = new Set();
@@ -1686,15 +1211,10 @@ async function processFiles() {
         const removedList = [];
 
         const optRemoveUnmatchedPortal = document.getElementById('optRemoveUnmatchedPortal') ? document.getElementById('optRemoveUnmatchedPortal').checked : true;
-        const optAutoFillMissing = document.getElementById('optAutoFillMissing').checked;
-        const optFillMissingHb = document.getElementById('optFillMissingHb').checked;
-        const optCalcAge = document.getElementById('optCalcAge').checked;
-        const optDefaultBP = document.getElementById('optDefaultBP').checked;
-        const optDefaultVision = document.getElementById('optDefaultVision').checked;
-        const optExtractPhone = document.getElementById('optExtractPhone').checked;
-        let autoFillCount = 0;
+        const optCalcAge = document.getElementById('optCalcAge') ? document.getElementById('optCalcAge').checked : true;
+        const optExtractPhone = document.getElementById('optExtractPhone') ? document.getElementById('optExtractPhone').checked : true;
 
-        // First Pass: Find all matches between User Students and Format Students
+        // Match pass: User register -> Portal Format
         for (let u of userStudents) {
             let match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName && f.dob === u.dobNorm);
             
@@ -1715,12 +1235,6 @@ async function processFiles() {
                 match.isMatched = true;
                 match.matchedUser = u;
             }
-        }
-
-        function getCellVal(cMap, col) {
-            if (!cMap[col]) return '';
-            const v = cMap[col].getElementsByTagName('v')[0];
-            return v ? v.textContent : '';
         }
 
         let nextRowNum = 3;
@@ -1766,40 +1280,14 @@ async function processFiles() {
                         if (!v) { v = formatDoc.createElementNS(sheetNs, 'v'); c.appendChild(v); }
                         v.textContent = String(newSN);
                     }
-                    if (colLetter === 'N') {
-                        let fElem = c.getElementsByTagName('f')[0];
-                        if (fElem) {
-                            fElem.textContent = `IF(OR(L${newRNum}="",M${newRNum}=""),"",CONCATENATE(L${newRNum},"/",M${newRNum}))`;
-                        }
-                    }
                 }
                 f.cMap = newCMap;
-                f.rowNum = newRNum;
-                f.sn = newSN;
 
-                const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
+                // Merge REAL data from AI register if present (No synthetic WHO values)
+                const defectInfo = mapDefectAndFacility(u.defectRaw);
                 let w = u.weight || getCellVal(f.cMap, 'J');
                 let h = u.height || getCellVal(f.cMap, 'K');
                 let hb = u.hb || getCellVal(f.cMap, 'Q');
-
-                let wasWeightAuto = false;
-                let wasHeightAuto = false;
-                let wasHbAuto = false;
-
-                if (optAutoFillMissing) {
-                    if (!w || !h || (!hb && optFillMissingHb)) {
-                        const growth = computeAutoGrowth({
-                            dob: f.dob,
-                            age: getCellVal(f.cMap, 'F'),
-                            class: f.class,
-                            gender: getCellVal(f.cMap, 'D') || u.gender
-                        });
-                        if (!w) { w = growth.weight; wasWeightAuto = true; }
-                        if (!h) { h = growth.height; wasHeightAuto = true; }
-                        if (!hb && optFillMissingHb) { hb = growth.hb; wasHbAuto = true; }
-                    }
-                }
-                if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
 
                 if (w) setCell(f.rowElem, f.cMap, 'J', newRNum, w);
                 if (h) setCell(f.rowElem, f.cMap, 'K', newRNum, h);
@@ -1822,9 +1310,6 @@ async function processFiles() {
                     weight: w,
                     height: h,
                     hb: hb,
-                    wasWeightAuto: wasWeightAuto,
-                    wasHeightAuto: wasHeightAuto,
-                    wasHbAuto: wasHbAuto,
                     defect: defectInfo.defect,
                     facility: defectInfo.facility
                 });
@@ -1842,35 +1327,16 @@ async function processFiles() {
                 }
             }
         } else {
-            // Keep all format students (legacy mode)
+            // Keep all portal students (no removal)
             for (let f of formatStudents) {
                 if (f.isMatched) {
                     const u = f.matchedUser;
                     const rNum = f.rowNum;
-                    const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
+                    const defectInfo = mapDefectAndFacility(u.defectRaw);
 
                     let w = u.weight || getCellVal(f.cMap, 'J');
                     let h = u.height || getCellVal(f.cMap, 'K');
                     let hb = u.hb || getCellVal(f.cMap, 'Q');
-
-                    let wasWeightAuto = false;
-                    let wasHeightAuto = false;
-                    let wasHbAuto = false;
-
-                    if (optAutoFillMissing) {
-                        if (!w || !h || (!hb && optFillMissingHb)) {
-                            const growth = computeAutoGrowth({
-                                dob: f.dob,
-                                age: getCellVal(f.cMap, 'F'),
-                                class: f.class,
-                                gender: getCellVal(f.cMap, 'D') || u.gender
-                            });
-                            if (!w) { w = growth.weight; wasWeightAuto = true; }
-                            if (!h) { h = growth.height; wasHeightAuto = true; }
-                            if (!hb && optFillMissingHb) { hb = growth.hb; wasHbAuto = true; }
-                        }
-                    }
-                    if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
 
                     if (w) setCell(f.rowElem, f.cMap, 'J', rNum, w);
                     if (h) setCell(f.rowElem, f.cMap, 'K', rNum, h);
@@ -1893,9 +1359,6 @@ async function processFiles() {
                         weight: w,
                         height: h,
                         hb: hb,
-                        wasWeightAuto: wasWeightAuto,
-                        wasHeightAuto: wasHeightAuto,
-                        wasHbAuto: wasHbAuto,
                         defect: defectInfo.defect,
                         facility: defectInfo.facility
                     });
@@ -1911,64 +1374,22 @@ async function processFiles() {
                             facility: defectInfo.facility
                         });
                     }
-                } else if (optAutoFillMissing) {
-                    let curW = getCellVal(f.cMap, 'J');
-                    let curH = getCellVal(f.cMap, 'K');
-                    let curHb = getCellVal(f.cMap, 'Q');
-
-                    if (!curW || !curH || (!curHb && optFillMissingHb)) {
-                        const growth = computeAutoGrowth({
-                            dob: f.dob,
-                            age: getCellVal(f.cMap, 'F'),
-                            class: f.class,
-                            gender: getCellVal(f.cMap, 'D') || 'male'
-                        });
-                        let touched = false;
-                        if (!curW) { setCell(f.rowElem, f.cMap, 'J', f.rowNum, growth.weight); touched = true; }
-                        if (!curH) { setCell(f.rowElem, f.cMap, 'K', f.rowNum, growth.height); touched = true; }
-                        if (!curHb && optFillMissingHb) { setCell(f.rowElem, f.cMap, 'Q', f.rowNum, growth.hb); touched = true; }
-                        if (touched) autoFillCount++;
-                    }
                 }
             }
             nextRowNum = maxRowNum + 1;
             nextSN = maxSN + 1;
         }
 
-        // Appending Unmatched Students as New Registrations
+        // Appending Unmatched AI Register Students as New Registrations
         const appendedList = [];
-
         for (let u of userStudents) {
             if (matchedUserIndices.has(u.userRowIndex)) continue;
 
             const rNum = nextRowNum++;
             const sn = nextSN++;
-            const defectInfo = mapDefectAndFacility(u.defectRaw, u.hb);
+            const defectInfo = mapDefectAndFacility(u.defectRaw);
             const normCls = mapClass(u.class);
             const ageCalc = optCalcAge ? calculateAge(u.dobNorm) : '';
-
-            let w = u.weight;
-            let h = u.height;
-            let hb = u.hb;
-
-            let wasWeightAuto = false;
-            let wasHeightAuto = false;
-            let wasHbAuto = false;
-
-            if (optAutoFillMissing) {
-                if (!w || !h || (!hb && optFillMissingHb)) {
-                    const growth = computeAutoGrowth({
-                        dob: u.dobNorm,
-                        age: ageCalc,
-                        class: normCls,
-                        gender: u.gender
-                    });
-                    if (!w) { w = growth.weight; wasWeightAuto = true; }
-                    if (!h) { h = growth.height; wasHeightAuto = true; }
-                    if (!hb && optFillMissingHb) { hb = growth.hb; wasHbAuto = true; }
-                }
-            }
-            if (wasWeightAuto || wasHeightAuto || wasHbAuto) autoFillCount++;
 
             const rowElem = formatDoc.createElementNS(sheetNs, 'row');
             rowElem.setAttribute('r', String(rNum));
@@ -1984,7 +1405,7 @@ async function processFiles() {
                     c.appendChild(f);
                 }
                 const v = formatDoc.createElementNS(sheetNs, 'v');
-                v.textContent = val !== undefined && val !== null ? String(val) : '';
+                v.textContent = (val !== undefined && val !== null) ? String(val) : '';
                 c.appendChild(v);
                 rowElem.appendChild(c);
             }
@@ -1998,18 +1419,18 @@ async function processFiles() {
             addC('G', normCls);                                      // Class
             addC('H', optExtractPhone ? defectInfo.phone : '');      // Mobile
             addC('I', '');                                           // Address
-            addC('J', w || '');                                      // Weight
-            addC('K', h || '');                                      // Height
-            addC('L', optDefaultBP ? '106' : '');                    // High
-            addC('M', optDefaultBP ? '70' : '');                     // Low
-            addC('N', optDefaultBP ? '106/70' : '', null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`); // BP
-            addC('O', optDefaultVision ? '6/6' : '', '1');           // Vision L
-            addC('P', optDefaultVision ? '6/6' : '', '1');           // Vision R
-            addC('Q', hb || '');                                     // HB
-            addC('R', defectInfo.facility);                          // Facility
-            addC('S', defectInfo.defect);                            // Defect
-            addC('T', '');                                           // Mother
-            addC('U', u.father);                                     // Father
+            addC('J', u.weight || '');                               // Weight (Real value only)
+            addC('K', u.height || '');                               // Height (Real value only)
+            addC('L', '');                                           // High BP
+            addC('M', '');                                           // Low BP
+            addC('N', '', null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
+            addC('O', '');                                           // Vision L
+            addC('P', '');                                           // Vision R
+            addC('Q', u.hb || '');                                   // HB (Real value only)
+            addC('R', defectInfo.facility || '');                    // Facility
+            addC('S', defectInfo.defect || 'Healthy');               // Defect
+            addC('T', '');                                           // Remark
+            addC('U', u.father || '');                               // Father
 
             sheetData.appendChild(rowElem);
 
@@ -2022,12 +1443,9 @@ async function processFiles() {
                 age: ageCalc,
                 class: normCls,
                 father: u.father,
-                weight: w,
-                height: h,
-                hb: hb,
-                wasWeightAuto: wasWeightAuto,
-                wasHeightAuto: wasHeightAuto,
-                wasHbAuto: wasHbAuto,
+                weight: u.weight || '',
+                height: u.height || '',
+                hb: u.hb || '',
                 defect: defectInfo.defect,
                 facility: defectInfo.facility
             });
@@ -2059,13 +1477,12 @@ async function processFiles() {
             }
         }
 
-        // Update Dimension
+        // Update sheet dimension ref
         const dim = formatDoc.getElementsByTagName('dimension')[0];
         if (dim) {
             dim.setAttribute('ref', `A1:U${nextRowNum - 1}`);
         }
 
-        // Update ignoredErrors if present
         const ie = formatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
         if (ie) {
             ie.setAttribute('sqref', `A1:U${nextRowNum - 1}`);
@@ -2075,7 +1492,7 @@ async function processFiles() {
         globalFormatDoc = formatDoc;
         globalSheetNs = sheetNs;
 
-        // Populate allRowsData from final XML rows for full editable view
+        // Populate allRowsData from final XML rows
         allRowsData = [];
         const finalRows = sheetData.getElementsByTagName('row');
         for (let i = 2; i < finalRows.length; i++) {
@@ -2088,57 +1505,25 @@ async function processFiles() {
                 const v = c.getElementsByTagName('v')[0];
                 rowObj[colLetter] = v ? v.textContent.trim() : '';
             }
-
-            const mInfo = matchedList.find(m => m.row === rNum);
-            const aInfo = appendedList.find(a => a.row === rNum);
-            if (mInfo) {
-                rowObj.wasWeightAuto = mInfo.wasWeightAuto;
-                rowObj.wasHeightAuto = mInfo.wasHeightAuto;
-                rowObj.wasHbAuto = mInfo.wasHbAuto;
-            } else if (aInfo) {
-                rowObj.wasWeightAuto = aInfo.wasWeightAuto;
-                rowObj.wasHeightAuto = aInfo.wasHeightAuto;
-                rowObj.wasHbAuto = aInfo.wasHbAuto;
-            }
-
             allRowsData.push(rowObj);
         }
 
-        // Serialize and update JSZip
-        const serializer = new XMLSerializer();
-        const updatedXmlStr = serializer.serializeToString(formatDoc);
-        zipFormat.file('xl/worksheets/sheet1.xml', updatedXmlStr);
-
-        mergedBlob = await zipFormat.generateAsync({
-            type: 'blob',
-            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
-
-        // Display Results
+        // Update stats
         document.getElementById('statFormatTotal').innerText = formatStudents.length;
         document.getElementById('statUserTotal').innerText = userStudents.length;
         document.getElementById('statMatched').innerText = matchedList.length;
-        if (document.getElementById('statRemovedPortal')) {
-            document.getElementById('statRemovedPortal').innerText = removedList.length;
-        }
+        document.getElementById('statRemovedPortal').innerText = removedList.length;
         document.getElementById('statAppended').innerText = appendedList.length;
-        if (document.getElementById('statFinalTotal')) {
-            document.getElementById('statFinalTotal').innerText = allRowsData.length;
-        }
-        if (document.getElementById('statAutoFilled')) {
-            document.getElementById('statAutoFilled').innerText = autoFillCount;
-        }
+        document.getElementById('statFinalTotal').innerText = allRowsData.length;
 
         document.getElementById('countTabAll').innerText = allRowsData.length;
         document.getElementById('countTabMatched').innerText = matchedList.length;
         document.getElementById('countTabAppended').innerText = appendedList.length;
-        if (document.getElementById('countTabRemoved')) {
-            document.getElementById('countTabRemoved').innerText = removedList.length;
-        }
+        document.getElementById('countTabRemoved').innerText = removedList.length;
         document.getElementById('countTabDefects').innerText = defectsList.length;
 
         document.getElementById('resultsTitle').innerText = `✅ Processing Complete! (${allRowsData.length} Total Students)`;
-        document.getElementById('resultsSubtitle').innerText = `Matched: ${matchedList.length} | Removed Unmatched Portal: ${removedList.length} | New Registrations: ${appendedList.length}. Click any cell or select Defect from dropdown to live edit.`;
+        document.getElementById('resultsSubtitle').innerText = `Matched & Kept: ${matchedList.length} | Removed Unmatched: ${removedList.length} | New Registrations: ${appendedList.length}. Har row ke aage 🗑️ Delete button uplabdh hai.`;
 
         lastMatchedList = matchedList;
         lastAppendedList = appendedList;
@@ -2148,10 +1533,9 @@ async function processFiles() {
         renderAllTables(allRowsData, matchedList, appendedList, removedList, defectsList);
         document.getElementById('resultsSection').style.display = 'block';
 
-        let alertMsg = `Merge Safal! ${matchedList.length} students matched aur update hue.`;
-        if (removedList.length > 0) alertMsg += ` ${removedList.length} unmatched portal records remove kiye gaye.`;
-        if (appendedList.length > 0) alertMsg += ` ${appendedList.length} new registration bache add hue.`;
-        if (autoFillCount > 0) alertMsg += ` (${autoFillCount} students me missing height/weight/hb WHO standard se auto-fill kiye gaye).`;
+        let alertMsg = `Comparison & Merge Safal! ${matchedList.length} students matched aur update hue.`;
+        if (removedList.length > 0) alertMsg += ` ${removedList.length} anupasthit portal records remove kiye gaye.`;
+        if (appendedList.length > 0) alertMsg += ` ${appendedList.length} naye registration bache add hue.`;
         showAlert(alertMsg, false);
 
     } catch (err) {
@@ -2159,23 +1543,19 @@ async function processFiles() {
         showAlert('Processing Error: ' + err.message, true);
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '⚡ Match & Merge RBSK Data';
+        btn.innerHTML = '⚡ Compare & Merge RBSK Data';
     }
 }
 
+// Render Tables Function
 function renderAllTables(allRows, matched, appended, removed, defects) {
-    const formatGrowthCell = (val, isAuto) => {
-        if (!val) return '-';
-        if (isAuto) {
-            return `<span style="color:#059669; font-weight:700;">${val} <span class="badge-who">WHO</span></span>`;
-        }
-        return val;
-    };
-
-    // 1. Tab 0: Full RBSK Sheet (All Students)
+    // 1. Tab 0: Final Merged Sheet (All Students)
     const tbAll = document.getElementById('tbodyAll');
     tbAll.innerHTML = allRows.map(r => `
         <tr data-row="${r.rowNum}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${r.rowNum})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
             <td style="color:#64748b; font-weight:700;">${r.rowNum}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="A" onblur="saveCellEdit(${r.rowNum}, 'A', this.innerText)">${r.A || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="B" onblur="saveCellEdit(${r.rowNum}, 'B', this.innerText)"><code>${r.B || '--'}</code></td>
@@ -2185,14 +1565,14 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
             <td contenteditable="true" data-row="${r.rowNum}" data-col="F" onblur="saveCellEdit(${r.rowNum}, 'F', this.innerText)">${r.F || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="G" onblur="saveCellEdit(${r.rowNum}, 'G', this.innerText)">${r.G || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="H" onblur="saveCellEdit(${r.rowNum}, 'H', this.innerText)">${r.H || ''}</td>
-            <td contenteditable="true" data-row="${r.rowNum}" data-col="J" onblur="saveCellEdit(${r.rowNum}, 'J', this.innerText)">${formatGrowthCell(r.J, r.wasWeightAuto)}</td>
-            <td contenteditable="true" data-row="${r.rowNum}" data-col="K" onblur="saveCellEdit(${r.rowNum}, 'K', this.innerText)">${formatGrowthCell(r.K, r.wasHeightAuto)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="J" onblur="saveCellEdit(${r.rowNum}, 'J', this.innerText)">${r.J || '-'}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="K" onblur="saveCellEdit(${r.rowNum}, 'K', this.innerText)">${r.K || '-'}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="L" onblur="saveCellEdit(${r.rowNum}, 'L', this.innerText)">${r.L || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="M" onblur="saveCellEdit(${r.rowNum}, 'M', this.innerText)">${r.M || ''}</td>
             <td data-row="${r.rowNum}" data-col="N" style="color:#64748b;">${r.N || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="O" onblur="saveCellEdit(${r.rowNum}, 'O', this.innerText)">${r.O || ''}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="P" onblur="saveCellEdit(${r.rowNum}, 'P', this.innerText)">${r.P || ''}</td>
-            <td contenteditable="true" data-row="${r.rowNum}" data-col="Q" onblur="saveCellEdit(${r.rowNum}, 'Q', this.innerText)">${formatGrowthCell(r.Q, r.wasHbAuto)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="Q" onblur="saveCellEdit(${r.rowNum}, 'Q', this.innerText)">${r.Q || '-'}</td>
             <td data-row="${r.rowNum}" data-col="S">${getDefectSelectHtml(r.rowNum, r.S)}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="R" onblur="saveCellEdit(${r.rowNum}, 'R', this.innerText)"><strong>${r.R || ''}</strong></td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="U" onblur="saveCellEdit(${r.rowNum}, 'U', this.innerText)">${r.U || ''}</td>
@@ -2203,33 +1583,39 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
     const tbMatched = document.getElementById('tbodyMatched');
     tbMatched.innerHTML = matched.map(m => `
         <tr data-row="${m.row}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${m.row})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
             <td>${m.row}</td>
             <td contenteditable="true" data-row="${m.row}" data-col="B" onblur="saveCellEdit(${m.row}, 'B', this.innerText)"><code>${m.pen}</code></td>
             <td contenteditable="true" data-row="${m.row}" data-col="C" onblur="saveCellEdit(${m.row}, 'C', this.innerText)"><strong>${m.name}</strong></td>
             <td contenteditable="true" data-row="${m.row}" data-col="E" onblur="saveCellEdit(${m.row}, 'E', this.innerText)">${m.dob}</td>
             <td contenteditable="true" data-row="${m.row}" data-col="G" onblur="saveCellEdit(${m.row}, 'G', this.innerText)">${m.class}</td>
-            <td contenteditable="true" data-row="${m.row}" data-col="J" onblur="saveCellEdit(${m.row}, 'J', this.innerText)">${formatGrowthCell(m.weight, m.wasWeightAuto)}</td>
-            <td contenteditable="true" data-row="${m.row}" data-col="K" onblur="saveCellEdit(${m.row}, 'K', this.innerText)">${formatGrowthCell(m.height, m.wasHeightAuto)}</td>
-            <td contenteditable="true" data-row="${m.row}" data-col="Q" onblur="saveCellEdit(${m.row}, 'Q', this.innerText)">${formatGrowthCell(m.hb, m.wasHbAuto)}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="J" onblur="saveCellEdit(${m.row}, 'J', this.innerText)">${m.weight || '-'}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="K" onblur="saveCellEdit(${m.row}, 'K', this.innerText)">${m.height || '-'}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="Q" onblur="saveCellEdit(${m.row}, 'Q', this.innerText)">${m.hb || '-'}</td>
             <td data-row="${m.row}" data-col="S">${getDefectSelectHtml(m.row, m.defect)}</td>
-            <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)"><strong>${m.facility || '-'}</strong></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)"><strong>${m.facility}</strong></td>
         </tr>
     `).join('');
 
-    // 3. Tab 2: Appended
+    // 3. Tab 2: Appended (New Registrations)
     const tbAppended = document.getElementById('tbodyAppended');
     tbAppended.innerHTML = appended.map(a => `
         <tr data-row="${a.row}">
-            <td><span class="pill pill-new">SN ${a.sn}</span></td>
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${a.row})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
+            <td>${a.sn}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="C" onblur="saveCellEdit(${a.row}, 'C', this.innerText)"><strong>${a.name}</strong></td>
             <td contenteditable="true" data-row="${a.row}" data-col="D" onblur="saveCellEdit(${a.row}, 'D', this.innerText)">${a.gender}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="E" onblur="saveCellEdit(${a.row}, 'E', this.innerText)">${a.dob}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="F" onblur="saveCellEdit(${a.row}, 'F', this.innerText)">${a.age}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="G" onblur="saveCellEdit(${a.row}, 'G', this.innerText)">${a.class}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="U" onblur="saveCellEdit(${a.row}, 'U', this.innerText)">${a.father}</td>
-            <td contenteditable="true" data-row="${a.row}" data-col="J" onblur="saveCellEdit(${a.row}, 'J', this.innerText)">${formatGrowthCell(a.weight, a.wasWeightAuto)}</td>
-            <td contenteditable="true" data-row="${a.row}" data-col="K" onblur="saveCellEdit(${a.row}, 'K', this.innerText)">${formatGrowthCell(a.height, a.wasHeightAuto)}</td>
-            <td contenteditable="true" data-row="${a.row}" data-col="Q" onblur="saveCellEdit(${a.row}, 'Q', this.innerText)">${formatGrowthCell(a.hb, a.wasHbAuto)}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="J" onblur="saveCellEdit(${a.row}, 'J', this.innerText)">${a.weight || '-'}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="K" onblur="saveCellEdit(${a.row}, 'K', this.innerText)">${a.height || '-'}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="Q" onblur="saveCellEdit(${a.row}, 'Q', this.innerText)">${a.hb || '-'}</td>
             <td data-row="${a.row}" data-col="S">${getDefectSelectHtml(a.row, a.defect)}</td>
         </tr>
     `).join('');
@@ -2255,6 +1641,9 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
     const tbDefects = document.getElementById('tbodyDefects');
     tbDefects.innerHTML = defects.map(d => `
         <tr data-row="${d.row}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${d.row})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
             <td contenteditable="true" data-row="${d.row}" data-col="C" onblur="saveCellEdit(${d.row}, 'C', this.innerText)"><strong>${d.name}</strong></td>
             <td contenteditable="true" data-row="${d.row}" data-col="G" onblur="saveCellEdit(${d.row}, 'G', this.innerText)">${d.class}</td>
             <td contenteditable="true" data-row="${d.row}" data-col="H" onblur="saveCellEdit(${d.row}, 'H', this.innerText)">${d.phone ? '📞 ' + d.phone : '-'}</td>
@@ -2265,160 +1654,7 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
     `).join('');
 }
 
-function fillNormalValues() {
-    if (!globalFormatDoc || !allRowsData || allRowsData.length === 0) {
-        showAlert("Kripya pehle RBSK Format Template upload karein.", true);
-        return;
-    }
-
-    const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
-    if (!sheetData) return;
-
-    let filledCount = 0;
-    let studentsTouched = 0;
-
-    for (let rowObj of allRowsData) {
-        const rNum = rowObj.rowNum;
-        const rElem = sheetData.querySelector(`row[r="${rNum}"]`);
-        if (!rElem) continue;
-
-        let touchedThisStudent = false;
-
-        // Gender & Age for WHO growth calculations
-        const gender = rowObj.D || 'male';
-        const ageInfo = getStudentAgeInfo(rowObj.E, rowObj.F, rowObj.G);
-        const growth = getGrowthData(ageInfo, gender);
-
-        // 1. Weight (Col J) - Strictly ONLY fill if empty/missing/'-' (Never overwrite real AI register value)
-        if (!rowObj.J || rowObj.J.trim() === '' || rowObj.J === '-') {
-            const wVal = growth.w;
-            rowObj.J = wVal;
-            rowObj.wasWeightAuto = true;
-            setXmlCell(rElem, 'J', rNum, wVal);
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        // 2. Height (Col K) - Strictly ONLY fill if empty/missing/'-' (Never overwrite real AI register value)
-        if (!rowObj.K || rowObj.K.trim() === '' || rowObj.K === '-') {
-            const hVal = growth.h;
-            rowObj.K = hVal;
-            rowObj.wasHeightAuto = true;
-            setXmlCell(rElem, 'K', rNum, hVal);
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        // 3. Blood Pressure High (Col L) & Low (Col M) - Only fill if empty/missing
-        const bpStr = growth.bp || "106/70";
-        const bpParts = bpStr.split('/');
-        const defaultHigh = bpParts[0] || '106';
-        const defaultLow = bpParts[1] || '70';
-
-        if (!rowObj.L || rowObj.L.trim() === '') {
-            rowObj.L = defaultHigh;
-            setXmlCell(rElem, 'L', rNum, defaultHigh);
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        if (!rowObj.M || rowObj.M.trim() === '') {
-            rowObj.M = defaultLow;
-            setXmlCell(rElem, 'M', rNum, defaultLow);
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        // 4. Blood Pressure Formula & Value (Col N)
-        if (rowObj.L && rowObj.M) {
-            const combinedBp = `${rowObj.L}/${rowObj.M}`;
-            if (rowObj.N !== combinedBp) {
-                rowObj.N = combinedBp;
-                setXmlCell(rElem, 'N', rNum, combinedBp, null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
-            }
-        }
-
-        // 5. Vision Left Eye (Col O) & Right Eye (Col P) - Normal standard is 6/6
-        if (!rowObj.O || rowObj.O.trim() === '') {
-            rowObj.O = '6/6';
-            setXmlCell(rElem, 'O', rNum, '6/6', '1');
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        if (!rowObj.P || rowObj.P.trim() === '') {
-            rowObj.P = '6/6';
-            setXmlCell(rElem, 'P', rNum, '6/6', '1');
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        // 6. HB Count (Col Q) - Strictly ONLY fill if empty/missing/'-' (Never overwrite real AI register value)
-        if (!rowObj.Q || rowObj.Q.trim() === '' || rowObj.Q === '-') {
-            const normHb = generateTargetHb();
-            rowObj.Q = normHb;
-            rowObj.wasHbAuto = true;
-            setXmlCell(rElem, 'Q', rNum, normHb);
-            filledCount++;
-            touchedThisStudent = true;
-        }
-
-        // 7. Defect Name (Col S) & Facility (Col R) - Only if empty
-        if (!rowObj.S || rowObj.S.trim() === '') {
-            rowObj.S = 'Healthy';
-            setXmlCell(rElem, 'S', rNum, 'Healthy');
-            rowObj.R = '';
-            setXmlCell(rElem, 'R', rNum, '');
-            filledCount++;
-            touchedThisStudent = true;
-        } else if (rowObj.S === 'Healthy' && rowObj.R) {
-            rowObj.R = '';
-            setXmlCell(rElem, 'R', rNum, '');
-        }
-
-        // 8. Age (Col F) - If missing and DOB available
-        if ((!rowObj.F || rowObj.F.trim() === '') && rowObj.E) {
-            const calcA = calculateAge(rowObj.E);
-            if (calcA) {
-                rowObj.F = calcA;
-                setXmlCell(rElem, 'F', rNum, calcA);
-            }
-        }
-
-        // Sync with lastMatchedList and lastAppendedList
-        const mItem = lastMatchedList.find(x => x.row == rNum);
-        if (mItem) {
-            if (!mItem.weight) { mItem.weight = rowObj.J; mItem.wasWeightAuto = true; }
-            if (!mItem.height) { mItem.height = rowObj.K; mItem.wasHeightAuto = true; }
-            if (!mItem.hb) { mItem.hb = rowObj.Q; mItem.wasHbAuto = true; }
-            if (!mItem.defect) { mItem.defect = rowObj.S; }
-            if (!mItem.facility) { mItem.facility = rowObj.R; }
-        }
-        const aItem = lastAppendedList.find(x => x.row == rNum);
-        if (aItem) {
-            if (!aItem.weight) { aItem.weight = rowObj.J; aItem.wasWeightAuto = true; }
-            if (!aItem.height) { aItem.height = rowObj.K; aItem.wasHeightAuto = true; }
-            if (!aItem.hb) { aItem.hb = rowObj.Q; aItem.wasHbAuto = true; }
-            if (!aItem.defect) { aItem.defect = rowObj.S; }
-        }
-
-        if (touchedThisStudent) studentsTouched++;
-    }
-
-    mergedBlob = null; // Re-generate fresh XLSX on download
-
-    // Re-render UI tables
-    renderAllTables(allRowsData, lastMatchedList, lastAppendedList, lastRemovedList, lastDefectsList);
-
-    const statAuto = document.getElementById('statAutoFilled');
-    if (statAuto) {
-        statAuto.innerText = String(parseInt(statAuto.innerText || '0', 10) + studentsTouched);
-    }
-
-    showEditToast(`✓ ${filledCount} missing values normal parameters se fill ho gayi! AI Register values bilkul surakshit hain.`);
-    showAlert(`Normal Values Feed Safal! ${studentsTouched} students me kul ${filledCount} missing parameters (Normal BP, 6/6 Vision, Normal Hb, WHO Height/Weight) auto-fill ho gaye. AI register se aayi hui real values bilkul safe aur unchanged hain.`, false);
-}
-
+// Download Excel File
 async function downloadMergedFile() {
     if (!globalZipFormat || !globalFormatDoc) {
         showAlert("Pehle file load ya merge karein.", true);
@@ -2447,7 +1683,7 @@ async function downloadMergedFile() {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        showEditToast('✓ Excel downloaded with all live edits!');
+        showEditToast('✓ Excel downloaded with all live edits and deletions!');
     } catch (err) {
         console.error(err);
         showAlert('Download Error: ' + err.message, true);
@@ -2457,8 +1693,32 @@ async function downloadMergedFile() {
     }
 }
 
-window.fillNormalValues = fillNormalValues;
+// Initialize File Drop Handlers
+window.addEventListener('DOMContentLoaded', () => {
+    setupDropZone('dropFormat', 'inputFormat', (file, buf) => {
+        fileFormatBuffer = buf;
+        mergedFileName = file.name.replace(/\.xlsx$/i, '_RECONCILED.xlsx');
+        document.getElementById('statusFormat').innerText = '✓ ' + file.name;
+        document.getElementById('dropFormat').classList.add('loaded');
+        checkCanProcess();
+        previewInitialFormat(file, buf);
+    });
+
+    setupDropZone('dropUser', 'inputUser', (file, buf) => {
+        fileUserBuffer = buf;
+        document.getElementById('statusUser').innerText = '✓ ' + file.name;
+        document.getElementById('dropUser').classList.add('loaded');
+        checkCanProcess();
+    });
+});
+
+window.deleteStudentRow = deleteStudentRow;
+window.saveCellEdit = saveCellEdit;
+window.onDefectSelectChange = onDefectSelectChange;
 window.downloadMergedFile = downloadMergedFile;
+window.processFiles = processFiles;
+window.switchTab = switchTab;
+window.onFilterTable = onFilterTable;
 </script>
 </body>
 </html>
