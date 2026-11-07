@@ -325,6 +325,30 @@
       transition: all 0.15s;
     }
 
+    
+    .btn-emerald {
+      background: #ecfdf5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+      font-weight: 700;
+    }
+    .btn-emerald:hover {
+      background: #d1fae5;
+      color: #065f46;
+      border-color: #6ee7b7;
+    }
+    .btn-rose {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      font-weight: 700;
+    }
+    .btn-rose:hover {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #f87171;
+    }
+
     .btn-danger:hover {
       background: #dc2626;
       color: white;
@@ -636,6 +660,12 @@
           <button class="btn btn-secondary" id="addRowBtn" type="button">
             ➕ Add Student
           </button>
+          <button class="btn btn-emerald" id="fillMobileTopBtn" type="button" title="Fill 10-digit mobile from Aadhaar (starts with 9, 8, 7, 6, max 6 matches)">
+            🎲 Fill Random Mobile
+          </button>
+          <button class="btn btn-rose" id="deleteNoAadhaarTopBtn" type="button" title="Delete students without Aadhaar silently">
+            🗑️ Delete Students with No Adhar
+          </button>
           <button class="btn btn-primary" id="downloadTopBtn" type="button">
             📥 Download ABHA Excel
           </button>
@@ -683,9 +713,17 @@
         <span style="font-size: 12.5px; color: var(--text-muted);">
           All edits are saved in real-time. Serial Numbers (SN) auto-update.
         </span>
-        <button class="btn btn-primary" id="downloadBottomBtn" type="button">
-          📥 Download ABHA Master Excel File
-        </button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-emerald" id="fillMobileBottomBtn" type="button">
+            🎲 Fill Random Mobile
+          </button>
+          <button class="btn btn-rose" id="deleteNoAadhaarBottomBtn" type="button">
+            🗑️ Delete Students with No Adhar
+          </button>
+          <button class="btn btn-primary" id="downloadBottomBtn" type="button">
+            📥 Download ABHA Master Excel File
+          </button>
+        </div>
       </div>
     </section>
 
@@ -1031,6 +1069,114 @@
       renderTable();
     });
 
+    
+    // Mobile generation from Aadhaar
+    function generateMobileFromAadhaar(aadhaarStr, mobileCounts) {
+      const digits = String(aadhaarStr || '').replace(/\D/g, '');
+      const validStarts = ['9', '8', '7', '6'];
+      const candidates = [];
+
+      // 1. 10-digit continuous slice from Aadhaar starting with 9, 8, 7, or 6
+      if (digits.length >= 10) {
+        for (let i = 0; i <= digits.length - 10; i++) {
+          const slice = digits.slice(i, i + 10);
+          if (validStarts.includes(slice[0])) {
+            candidates.push(slice);
+          }
+        }
+      }
+
+      // 2. Valid prefix (9, 8, 7, 6) + 9 digits from Aadhaar
+      if (digits.length >= 9) {
+        const last9 = digits.slice(-9);
+        const first9 = digits.slice(0, 9);
+        for (const p of validStarts) {
+          candidates.push(p + last9);
+          if (first9 !== last9) {
+            candidates.push(p + first9);
+          }
+        }
+      } else if (digits.length > 0) {
+        const padded = (digits.repeat(10)).slice(0, 9);
+        for (const p of validStarts) {
+          candidates.push(p + padded);
+        }
+      }
+
+      // 3. Find first candidate with usage count < 6
+      for (const cand of candidates) {
+        if ((mobileCounts[cand] || 0) < 6) {
+          mobileCounts[cand] = (mobileCounts[cand] || 0) + 1;
+          return cand;
+        }
+      }
+
+      // 4. Fallback if candidates exhausted or reached limit of 6 (or no aadhaar)
+      for (let attempt = 0; attempt < 1000; attempt++) {
+        const prefix = validStarts[Math.floor(Math.random() * validStarts.length)];
+        let rest = '';
+        if (digits.length >= 8) {
+          rest = digits.slice(-8) + Math.floor(Math.random() * 10);
+        } else {
+          rest = String(Math.floor(100000000 + Math.random() * 900000000));
+        }
+        const fallback = prefix + rest.slice(0, 9);
+        if ((mobileCounts[fallback] || 0) < 6) {
+          mobileCounts[fallback] = (mobileCounts[fallback] || 0) + 1;
+          return fallback;
+        }
+      }
+
+      const finalNum = '9' + String(Date.now()).slice(-9);
+      mobileCounts[finalNum] = (mobileCounts[finalNum] || 0) + 1;
+      return finalNum;
+    }
+
+    function fillRandomMobileNumbers() {
+      if (!students || students.length === 0) {
+        showToast('पहले Excel फ़ाइल अपलोड करें!', '⚠️');
+        return;
+      }
+
+      const mobileCounts = {};
+      let updatedCount = 0;
+
+      students.forEach(st => {
+        const generated = generateMobileFromAadhaar(st.aadhaar, mobileCounts);
+        st.mobile = generated;
+        updatedCount++;
+      });
+
+      renderTable();
+      showToast(`${updatedCount} Mobile Numbers Filled!`, '🎲');
+      showStatus(`सफलतापूर्वक <b>${updatedCount}</b> छात्रों के 10-अंक वाले मोबाइल नंबर आधार से भर दिए गए (9, 8, 7, 6 से शुरू, अधिकतम 6 बार मैच लिमिट)।`, 'ok');
+    }
+
+    function deleteStudentsWithNoAadhaar() {
+      if (!students || students.length === 0) {
+        showToast('कोई रिकॉर्ड मौजूद नहीं है!', '⚠️');
+        return;
+      }
+
+      const beforeCount = students.length;
+      students = students.filter(st => {
+        const d = String(st.aadhaar || '').replace(/\D/g, '');
+        return d.length >= 8 && !/^0+$/.test(d);
+      });
+
+      const deletedCount = beforeCount - students.length;
+      renderTable();
+
+      // Silently without any alert dialog or browser confirmation
+      if (deletedCount > 0) {
+        showToast(`${deletedCount} Records Deleted!`, '🗑️');
+        showStatus(`बिना आधार वाले <b>${deletedCount}</b> छात्रों को हटाया गया। शेष छात्र: <b>${students.length}</b>`, 'ok');
+      } else {
+        showToast('सभी छात्रों के पास वैध आधार नंबर है!', 'ℹ️');
+        showStatus(`सभी <b>${students.length}</b> छात्रों के पास वैध आधार नंबर मौजूद है।`, 'ok');
+      }
+    }
+
     function downloadExcel() {
       if (!students || students.length === 0) {
         alert('डाउनलोड करने के लिए कम से कम 1 छात्र का रिकॉर्ड होना चाहिए।');
@@ -1080,6 +1226,17 @@
         alert('Download Error: ' + (err.message || 'Could not export Excel file.'));
       }
     }
+
+    
+    const fillMobileTopBtn = document.getElementById('fillMobileTopBtn');
+    const fillMobileBottomBtn = document.getElementById('fillMobileBottomBtn');
+    const deleteNoAadhaarTopBtn = document.getElementById('deleteNoAadhaarTopBtn');
+    const deleteNoAadhaarBottomBtn = document.getElementById('deleteNoAadhaarBottomBtn');
+
+    if (fillMobileTopBtn) fillMobileTopBtn.addEventListener('click', fillRandomMobileNumbers);
+    if (fillMobileBottomBtn) fillMobileBottomBtn.addEventListener('click', fillRandomMobileNumbers);
+    if (deleteNoAadhaarTopBtn) deleteNoAadhaarTopBtn.addEventListener('click', deleteStudentsWithNoAadhaar);
+    if (deleteNoAadhaarBottomBtn) deleteNoAadhaarBottomBtn.addEventListener('click', deleteStudentsWithNoAadhaar);
 
     downloadTopBtn.addEventListener('click', downloadExcel);
     downloadBottomBtn.addEventListener('click', downloadExcel);
