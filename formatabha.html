@@ -1038,12 +1038,10 @@
       const targetIndex = students.findIndex(s => s.id === id);
       if (targetIndex >= 0) {
         const studentName = students[targetIndex].name || `Row #${targetIndex + 1}`;
-        if (confirm(`क्या आप ${studentName} का रिकॉर्ड हटाना चाहते हैं?`)) {
-          students.splice(targetIndex, 1);
-          renderTable();
-          showToast(`Record deleted`, '🗑️');
-          showStatus(`1 रिकॉर्ड हटाया गया। शेष छात्र: <b>${students.length}</b>`, 'ok');
-        }
+        students.splice(targetIndex, 1);
+        renderTable();
+        showToast(`${studentName} deleted`, '🗑️');
+        showStatus(`1 रिकॉर्ड हटाया गया (${studentName})। शेष छात्र: <b>${students.length}</b>`, 'ok');
       }
     }
 
@@ -1132,6 +1130,15 @@
       return finalNum;
     }
 
+        function isMobileInvalidOrNeedsReplace(mob) {
+      if (!mob) return true;
+      const digits = String(mob).replace(/\D/g, '');
+      if (digits.length !== 10) return true;
+      const first = digits[0];
+      if (['0', '1', '2', '3', '4', '5'].includes(first)) return true;
+      return false; // Valid 10-digit starting with 6, 7, 8, or 9
+    }
+
     function fillRandomMobileNumbers() {
       if (!students || students.length === 0) {
         showToast('पहले Excel फ़ाइल अपलोड करें!', '⚠️');
@@ -1139,17 +1146,32 @@
       }
 
       const mobileCounts = {};
+
+      // 1. Account for already valid mobile numbers (do not replace them)
+      students.forEach(st => {
+        if (!isMobileInvalidOrNeedsReplace(st.mobile)) {
+          const d = String(st.mobile).replace(/\D/g, '');
+          mobileCounts[d] = (mobileCounts[d] || 0) + 1;
+        }
+      });
+
+      // 2. Only replace empty or invalid numbers starting with 0..5 or not 10 digits
       let updatedCount = 0;
+      let keptCount = 0;
 
       students.forEach(st => {
-        const generated = generateMobileFromAadhaar(st.aadhaar, mobileCounts);
-        st.mobile = generated;
-        updatedCount++;
+        if (isMobileInvalidOrNeedsReplace(st.mobile)) {
+          const generated = generateMobileFromAadhaar(st.aadhaar, mobileCounts);
+          st.mobile = generated;
+          updatedCount++;
+        } else {
+          keptCount++;
+        }
       });
 
       renderTable();
-      showToast(`${updatedCount} Mobile Numbers Filled!`, '🎲');
-      showStatus(`सफलतापूर्वक <b>${updatedCount}</b> छात्रों के 10-अंक वाले मोबाइल नंबर आधार से भर दिए गए (9, 8, 7, 6 से शुरू, अधिकतम 6 बार मैच लिमिट)।`, 'ok');
+      showToast(`${updatedCount} Mobiles Filled, ${keptCount} Kept!`, '🎲');
+      showStatus(`<b>${updatedCount}</b> खाली/अमान्य मोबाइल नंबर आधार से (9,8,7,6 से शुरू) भर दिए गए। <b>${keptCount}</b> सही मोबाइल नंबर सुरक्षित रखे गए।`, 'ok');
     }
 
     function deleteStudentsWithNoAadhaar() {
