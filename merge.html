@@ -300,6 +300,7 @@
                             <th>HB</th>
                             <th>Official Defect</th>
                             <th>Referred Facility</th>
+                            <th>Mother's Name</th>
                             <th>Father's Name</th>
                         </tr>
                     </thead>
@@ -325,6 +326,8 @@
                             <th>HB</th>
                             <th>Defect Status</th>
                             <th>Facility</th>
+                            <th>Mother's Name</th>
+                            <th>Father's Name</th>
                         </tr>
                     </thead>
                     <tbody id="tbodyMatched"></tbody>
@@ -345,6 +348,8 @@
                             <th>DOB (YYYY-MM-DD)</th>
                             <th>Age</th>
                             <th>Class</th>
+                            <th>Mobile</th>
+                            <th>Mother's Name</th>
                             <th>Father's Name</th>
                             <th>Weight</th>
                             <th>Height</th>
@@ -368,6 +373,7 @@
                             <th>Student Name</th>
                             <th>Class</th>
                             <th>DOB</th>
+                            <th>Mother's Name</th>
                             <th>Father's Name</th>
                             <th>Reason</th>
                             <th>Status</th>
@@ -603,11 +609,11 @@ function deleteStudentRow(rNum) {
             // Update sheet dimension ref
             const dim = globalFormatDoc.getElementsByTagName('dimension')[0];
             if (dim) {
-                dim.setAttribute('ref', `A1:U${curR - 1}`);
+                dim.setAttribute('ref', `A1:X${curR - 1}`);
             }
             const ie = globalFormatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
             if (ie) {
-                ie.setAttribute('sqref', `A1:U${curR - 1}`);
+                ie.setAttribute('sqref', `A1:X${curR - 1}`);
             }
         }
     }
@@ -756,14 +762,25 @@ function normalizeDate(str) {
     if (!str) return '';
     str = String(str).trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
-    let parts = str.split(/[\/\-\.]/);
+
+    const months = {
+        jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+        jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+    };
+
+    let parts = str.split(/[\/\-\.\s]+/);
     if (parts.length === 3) {
-        if (parts[0].length === 4) {
-            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        let p0 = parts[0], p1 = parts[1].toLowerCase(), p2 = parts[2];
+        if (p0.length === 4) {
+            let m0 = months[p1.substring(0, 3)] || p1.padStart(2, '0');
+            return `${p0}-${m0}-${p2.padStart(2, '0')}`;
         }
-        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+        if (p2.length === 4) {
+            let mVal = months[p1.substring(0, 3)] || p1.padStart(2, '0');
+            return `${p2}-${mVal}-${p0.padStart(2, '0')}`;
+        }
     }
-    // Excel serial date number
+
     const num = Number(str);
     if (!isNaN(num) && num > 1000) {
         const utc_days = Math.floor(num - 25569);
@@ -778,26 +795,26 @@ function mapClass(cls) {
     if (!cls) return '';
     cls = String(cls).trim().toLowerCase();
     
-    if (cls === 'first' || cls === '1st' || cls === 'class 1' || cls === '1') return '1';
-    if (cls === 'second' || cls === '2nd' || cls === 'class 2' || cls === '2') return '2';
-    if (cls === 'third' || cls === '3rd' || cls === 'class 3' || cls === '3') return '3';
-    if (cls === 'fourth' || cls === '4th' || cls === 'class 4' || cls === '4') return '4';
-    if (cls === 'fifth' || cls === '5th' || cls === 'class 5' || cls === '5') return '5';
-    if (cls === 'sixth' || cls === '6th' || cls === 'class 6' || cls === '6') return '6';
-    if (cls === 'seventh' || cls === '7th' || cls === 'class 7' || cls === '7') return '7';
-    if (cls === 'eighth' || cls === '8th' || cls === 'class 8' || cls === '8') return '8';
-    if (cls === 'ninth' || cls === '9th' || cls === 'class 9' || cls === '9') return '9';
-    if (cls === 'tenth' || cls === '10th' || cls === 'class 10' || cls === '10') return '10';
-    if (cls === 'eleventh' || cls === '11th' || cls === 'class 11' || cls === '11') return '11';
-    if (cls === 'twelfth' || cls === '12th' || cls === 'class 12' || cls === '12') return '12';
+    if (cls === 'first' || cls === '1st' || cls === 'class 1' || cls === '1') return 'Class 1';
+    if (cls === 'second' || cls === '2nd' || cls === 'class 2' || cls === '2') return 'Class 2';
+    if (cls === 'third' || cls === '3rd' || cls === 'class 3' || cls === '3') return 'Class 3';
+    if (cls === 'fourth' || cls === '4th' || cls === 'class 4' || cls === '4') return 'Class 4';
+    if (cls === 'fifth' || cls === '5th' || cls === 'class 5' || cls === '5') return 'Class 5';
+    if (cls === 'sixth' || cls === '6th' || cls === 'class 6' || cls === '6') return 'Class 6';
+    if (cls === 'seventh' || cls === '7th' || cls === 'class 7' || cls === '7') return 'Class 7';
+    if (cls === 'eighth' || cls === '8th' || cls === 'class 8' || cls === '8') return 'Class 8';
+    if (cls === 'ninth' || cls === '9th' || cls === 'class 9' || cls === '9') return 'Class 9';
+    if (cls === 'tenth' || cls === '10th' || cls === 'class 10' || cls === '10') return 'Class 10';
+    if (cls === 'eleventh' || cls === '11th' || cls === 'class 11' || cls === '11') return 'Class 11';
+    if (cls === 'twelfth' || cls === '12th' || cls === 'class 12' || cls === '12') return 'Class 12';
 
-    if (cls.includes('balvatika 3') || cls.includes('balvatika-3') || cls.includes('bv3') || cls.includes('ukg') || cls.includes('kg 2')) return 'Balvatika 3';
-    if (cls.includes('balvatika 2') || cls.includes('balvatika-2') || cls.includes('bv2') || cls.includes('lkg') || cls.includes('kg 1')) return 'Balvatika 2';
-    if (cls.includes('balvatika 1') || cls.includes('balvatika-1') || cls.includes('bv1') || cls.includes('nursery')) return 'Balvatika 1';
-    if (cls.includes('balvatika') || cls.includes('kg')) return 'Balvatika 3';
+    if (cls.includes('balvatika 3') || cls.includes('bal vatika 3') || cls.includes('balvatika-3') || cls.includes('bv3') || cls.includes('ukg') || cls.includes('pre-primary') || cls.includes('pre primary')) return '1 Class in Pre-Primary';
+    if (cls.includes('balvatika 2') || cls.includes('bal vatika 2') || cls.includes('balvatika-2') || cls.includes('bv2') || cls.includes('lkg')) return '2 Class in Pre-Primary';
+    if (cls.includes('balvatika 1') || cls.includes('bal vatika 1') || cls.includes('balvatika-1') || cls.includes('bv1') || cls.includes('nursery')) return '3 Class in Pre-Primary';
+    if (cls.includes('balvatika') || cls.includes('bal vatika') || cls.includes('kg')) return '1 Class in Pre-Primary';
 
     let m = cls.match(/\d+/);
-    return m ? m[0] : cls;
+    return m ? ('Class ' + m[0]) : cls;
 }
 
 function calculateAge(dobStr) {
@@ -807,6 +824,7 @@ function calculateAge(dobStr) {
     const birthYear = parseInt(parts[0], 10);
     const birthMonth = parseInt(parts[1], 10) - 1;
     const birthDay = parseInt(parts[2], 10);
+    if (isNaN(birthYear) || isNaN(birthMonth) || isNaN(birthDay)) return '';
     const now = new Date();
     let years = now.getFullYear() - birthYear;
     let months = now.getMonth() - birthMonth;
@@ -815,10 +833,22 @@ function calculateAge(dobStr) {
         years--;
         months += 12;
     }
-    if (years <= 0 && months <= 0) return '1m';
-    if (years < 1) return `${months}m`;
-    if (months === 0) return `${years}y`;
-    return `${years}y ${months}m`;
+    if (years <= 0 && months <= 0) return '1 months';
+    if (years < 1) return `${months} months`;
+    return `${years} years ${months} months`;
+}
+
+function isFuzzyNameMatch(n1, n2) {
+    if (!n1 || !n2) return false;
+    if (n1 === n2) return true;
+    const clean = s => s.replace(/[^A-Z]/g, '');
+    const c1 = clean(n1), c2 = clean(n2);
+    if (c1 === c2) return true;
+    const simplify = s => s.replace(/EE/g, 'I').replace(/OO/g, 'U').replace(/OU/g, 'U')
+                           .replace(/[AEIOUY]/g, '')
+                           .replace(/SH/g, 'S').replace(/CH/g, 'C').replace(/TH/g, 'T').replace(/DH/g, 'D').replace(/BH/g, 'B');
+    if (simplify(c1) === simplify(c2) && simplify(c1).length >= 3) return true;
+    return false;
 }
 
 function cleanMobile(val) {
@@ -899,7 +929,7 @@ const DEFECT_DIRECTORY = [
         items: [
             { value: "21. Vision Impairment", label: "Vision Impairment", facility: "DEIC", keywords: ["vision impairment", "blind", "low vision"] },
             { value: "22. Hearing Impairment", label: "Hearing Impairment", facility: "DEIC", keywords: ["hearing impairment", "sunai kam"] },
-            { value: "23. Neuro-motor Impairment", label: "Neuro-Motor Impairment", facility: "DEIC", keywords: ["neuro motor", "cerebral palsy", "cp"] },
+            { value: "23. Neuro-motor Impairment", label: "Neuro-Motor Impairment", facility: "DEIC", keywords: ["neuro motor", "cerebral palsy", "cp", "orthopedic", "ortho", "disability", "locomotor", "divyang", "handicap", "apang"] },
             { value: "24. Motor Delay", label: "Motor Delay", facility: "DEIC", keywords: ["motor delay", "chalne me deri"] },
             { value: "25. Cognitive Delay", label: "Cognitive Delay", facility: "DEIC", keywords: ["cognitive", "mental delay", "mr"] },
             { value: "26. Language Delay", label: "Language Delay", facility: "DEIC", keywords: ["language delay", "speech delay", "bolne me deri"] },
@@ -1056,7 +1086,7 @@ async function processFiles() {
         const userRows = userDoc.getElementsByTagName('row');
 
         // Detect user sheet columns
-        const userColMap = { sr: 'A', uid: 'B', class: 'C', name: 'D', gender: 'E', dob: 'F', father: 'G', weight: 'H', height: 'I', hb: 'J', defect: 'K' };
+        const userColMap = { sr: 'A', uid: 'B', class: 'C', name: 'D', gender: 'E', dob: 'F', father: 'G', mother: 'H', phone: 'I', weight: 'J', height: 'K', hb: 'L', defect: 'M' };
         if (userRows.length > 0) {
             const headerCells = userRows[0].getElementsByTagName('c');
             for (let c of headerCells) {
@@ -1068,13 +1098,15 @@ async function processFiles() {
                     val = c.textContent || '';
                 }
                 const vLow = val.toLowerCase();
-                if (vLow.includes('name') && !vLow.includes('father') && !vLow.includes('defect')) userColMap.name = colLetter;
+                if (vLow.includes('name') && !vLow.includes('father') && !vLow.includes('mother') && !vLow.includes('defect')) userColMap.name = colLetter;
                 else if (vLow.includes('dob') || vLow.includes('birth')) userColMap.dob = colLetter;
                 else if (vLow.includes('father')) userColMap.father = colLetter;
+                else if (vLow.includes('mother')) userColMap.mother = colLetter;
+                else if (vLow.includes('phone') || vLow.includes('mobile') || vLow.includes('contact')) userColMap.phone = colLetter;
                 else if (vLow.includes('weig')) userColMap.weight = colLetter;
                 else if (vLow.includes('heig')) userColMap.height = colLetter;
                 else if (vLow.includes('hb') || vLow.includes('hemo')) userColMap.hb = colLetter;
-                else if (vLow.includes('defect')) userColMap.defect = colLetter;
+                else if (vLow.includes('defect') || vLow.includes('condition') || vLow.includes('health') || vLow.includes('remark') || vLow.includes('disease')) userColMap.defect = colLetter;
                 else if (vLow.includes('class')) userColMap.class = colLetter;
                 else if (vLow.includes('gender') || vLow.includes('sex')) userColMap.gender = colLetter;
             }
@@ -1101,6 +1133,8 @@ async function processFiles() {
             const rawName = data[userColMap.name] || '';
             const rawDob = data[userColMap.dob] || '';
             const rawFather = data[userColMap.father] || '';
+            const rawMother = data[userColMap.mother] || '';
+            const rawPhone = cleanMobile(data[userColMap.phone] || '');
             const rawWeight = data[userColMap.weight] || '';
             const rawHeight = data[userColMap.height] || '';
             const rawHb = data[userColMap.hb] || '';
@@ -1115,6 +1149,9 @@ async function processFiles() {
                 dobNorm: normalizeDate(rawDob),
                 father: rawFather,
                 normFather: rawFather.toUpperCase().replace(/\s+/g, ' ').trim(),
+                mother: rawMother,
+                normMother: rawMother.toUpperCase().replace(/\s+/g, ' ').trim(),
+                phone: rawPhone,
                 class: data[userColMap.class] || '',
                 weight: cleanNumber(rawWeight),
                 height: cleanNumber(rawHeight),
@@ -1159,7 +1196,8 @@ async function processFiles() {
 
             const nameVal = getVal('C');
             const dobVal = getVal('E');
-            const fatherVal = getVal('U');
+            const motherVal = getVal('W');
+            const fatherVal = getVal('X');
             const penVal = getVal('B');
             const classVal = getVal('G');
 
@@ -1172,6 +1210,8 @@ async function processFiles() {
                 name: nameVal,
                 normName: nameVal.toUpperCase().replace(/\s+/g, ' ').trim(),
                 dob: dobVal,
+                mother: motherVal,
+                normMother: motherVal.toUpperCase().replace(/\s+/g, ' ').trim(),
                 father: fatherVal,
                 normFather: fatherVal.toUpperCase().replace(/\s+/g, ' ').trim(),
                 class: classVal
@@ -1214,19 +1254,30 @@ async function processFiles() {
         const optCalcAge = document.getElementById('optCalcAge') ? document.getElementById('optCalcAge').checked : true;
         const optExtractPhone = document.getElementById('optExtractPhone') ? document.getElementById('optExtractPhone').checked : true;
 
-        // Match pass: User register -> Portal Format
+        // Match pass: User register -> Portal Format (Multi-tier high accuracy)
         for (let u of userStudents) {
+            // Tier 1: Exact Name + Exact DOB
             let match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName && f.dob === u.dobNorm);
             
-            if (!match && u.normName === 'CHINTU' && (u.normFather.includes('DALJ') || u.normFather.includes('DALJEET'))) {
-                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === 'CHINTU');
+            // Tier 2: Exact Name + Father Name match
+            if (!match && u.normFather) {
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName && (f.normFather === u.normFather || f.normFather.includes(u.normFather) || u.normFather.includes(f.normFather)));
             }
-            if (!match && u.normName === 'DEEPANSHI' && u.normFather.includes('SATPAL')) {
-                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === 'DEEPANSHI' && f.normFather.includes('SATPAL'));
+
+            // Tier 3: Exact Name + Mother Name match
+            if (!match && u.normMother) {
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName && (f.normMother === u.normMother || f.normMother.includes(u.normMother) || u.normMother.includes(f.normMother)));
             }
+
+            // Tier 4: Unique Name match
             if (!match) {
                 const candidates = formatStudents.filter(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName);
                 if (candidates.length === 1) match = candidates[0];
+            }
+
+            // Tier 5: Fuzzy Name match + (DOB or Father or Mother)
+            if (!match) {
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && isFuzzyNameMatch(f.normName, u.normName) && (f.dob === u.dobNorm || (u.normFather && (f.normFather === u.normFather || f.normFather.includes(u.normFather) || u.normFather.includes(f.normFather))) || (u.normMother && (f.normMother === u.normMother || f.normMother.includes(u.normMother) || u.normMother.includes(f.normMother)))));
             }
 
             if (match) {
@@ -1251,6 +1302,7 @@ async function processFiles() {
                         name: f.name,
                         class: f.class,
                         dob: f.dob,
+                        mother: f.mother,
                         father: f.father
                     });
                     if (f.rowElem.parentNode === sheetData) {
@@ -1283,7 +1335,7 @@ async function processFiles() {
                 }
                 f.cMap = newCMap;
 
-                // Merge REAL data from AI register if present (No synthetic WHO values)
+                // Merge REAL data from AI register
                 const defectInfo = mapDefectAndFacility(u.defectRaw);
                 let w = u.weight || getCellVal(f.cMap, 'J');
                 let h = u.height || getCellVal(f.cMap, 'K');
@@ -1296,9 +1348,19 @@ async function processFiles() {
                 if (defectInfo.defect) {
                     setCell(f.rowElem, f.cMap, 'S', newRNum, defectInfo.defect);
                     setCell(f.rowElem, f.cMap, 'R', newRNum, defectInfo.facility);
+                    if (defectInfo.facility) {
+                        setCell(f.rowElem, f.cMap, 'V', newRNum, 'Yes');
+                    }
                 }
-                if (defectInfo.phone && optExtractPhone) {
-                    setCell(f.rowElem, f.cMap, 'H', newRNum, defectInfo.phone);
+                const phoneToSet = u.phone || defectInfo.phone;
+                if (phoneToSet && (!getCellVal(f.cMap, 'H') || optExtractPhone)) {
+                    setCell(f.rowElem, f.cMap, 'H', newRNum, phoneToSet);
+                }
+                if (u.mother && !getCellVal(f.cMap, 'W')) {
+                    setCell(f.rowElem, f.cMap, 'W', newRNum, u.mother);
+                }
+                if (u.father && !getCellVal(f.cMap, 'X')) {
+                    setCell(f.rowElem, f.cMap, 'X', newRNum, u.father);
                 }
 
                 matchedList.push({
@@ -1311,7 +1373,9 @@ async function processFiles() {
                     height: h,
                     hb: hb,
                     defect: defectInfo.defect,
-                    facility: defectInfo.facility
+                    facility: defectInfo.facility,
+                    mother: u.mother || f.mother,
+                    father: u.father || f.father
                 });
 
                 if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
@@ -1345,9 +1409,19 @@ async function processFiles() {
                     if (defectInfo.defect) {
                         setCell(f.rowElem, f.cMap, 'S', rNum, defectInfo.defect);
                         setCell(f.rowElem, f.cMap, 'R', rNum, defectInfo.facility);
+                        if (defectInfo.facility) {
+                            setCell(f.rowElem, f.cMap, 'V', rNum, 'Yes');
+                        }
                     }
-                    if (defectInfo.phone && optExtractPhone) {
-                        setCell(f.rowElem, f.cMap, 'H', rNum, defectInfo.phone);
+                    const phoneToSet = u.phone || defectInfo.phone;
+                    if (phoneToSet && (!getCellVal(f.cMap, 'H') || optExtractPhone)) {
+                        setCell(f.rowElem, f.cMap, 'H', rNum, phoneToSet);
+                    }
+                    if (u.mother && !getCellVal(f.cMap, 'W')) {
+                        setCell(f.rowElem, f.cMap, 'W', rNum, u.mother);
+                    }
+                    if (u.father && !getCellVal(f.cMap, 'X')) {
+                        setCell(f.rowElem, f.cMap, 'X', rNum, u.father);
                     }
 
                     matchedList.push({
@@ -1360,7 +1434,9 @@ async function processFiles() {
                         height: h,
                         hb: hb,
                         defect: defectInfo.defect,
-                        facility: defectInfo.facility
+                        facility: defectInfo.facility,
+                        mother: u.mother || f.mother,
+                        father: u.father || f.father
                     });
 
                     if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
@@ -1410,6 +1486,7 @@ async function processFiles() {
                 rowElem.appendChild(c);
             }
 
+            const finalPhone = u.phone || (optExtractPhone ? defectInfo.phone : '');
             addC('A', sn);                                          // SN
             addC('B', '--');                                         // PEN
             addC('C', u.name);                                       // Name
@@ -1417,20 +1494,23 @@ async function processFiles() {
             addC('E', u.dobNorm, '1');                               // DOB
             addC('F', ageCalc);                                      // Age
             addC('G', normCls);                                      // Class
-            addC('H', optExtractPhone ? defectInfo.phone : '');      // Mobile
+            addC('H', finalPhone);                                   // Mobile
             addC('I', '');                                           // Address
-            addC('J', u.weight || '');                               // Weight (Real value only)
-            addC('K', u.height || '');                               // Height (Real value only)
+            addC('J', u.weight || '');                               // Weight
+            addC('K', u.height || '');                               // Height
             addC('L', '');                                           // High BP
             addC('M', '');                                           // Low BP
             addC('N', '', null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
             addC('O', '');                                           // Vision L
             addC('P', '');                                           // Vision R
-            addC('Q', u.hb || '');                                   // HB (Real value only)
-            addC('R', defectInfo.facility || '');                    // Facility
-            addC('S', defectInfo.defect || 'Healthy');               // Defect
-            addC('T', '');                                           // Remark
-            addC('U', u.father || '');                               // Father
+            addC('Q', u.hb || '');                                   // HB
+            addC('R', defectInfo.facility || '');                    // Referred Facility
+            addC('S', defectInfo.defect || 'Healthy');               // Defect Name
+            addC('T', '');                                           // 2nd Defect Name
+            addC('U', '');                                           // other defect name
+            addC('V', defectInfo.facility ? 'Yes' : '');             // Refer to Health Facility
+            addC('W', u.mother || '');                               // Mother's Name
+            addC('X', u.father || '');                               // Father's Name
 
             sheetData.appendChild(rowElem);
 
@@ -1442,6 +1522,8 @@ async function processFiles() {
                 dob: u.dobNorm,
                 age: ageCalc,
                 class: normCls,
+                phone: finalPhone,
+                mother: u.mother,
                 father: u.father,
                 weight: u.weight || '',
                 height: u.height || '',
@@ -1480,12 +1562,12 @@ async function processFiles() {
         // Update sheet dimension ref
         const dim = formatDoc.getElementsByTagName('dimension')[0];
         if (dim) {
-            dim.setAttribute('ref', `A1:U${nextRowNum - 1}`);
+            dim.setAttribute('ref', `A1:X${nextRowNum - 1}`);
         }
 
         const ie = formatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
         if (ie) {
-            ie.setAttribute('sqref', `A1:U${nextRowNum - 1}`);
+            ie.setAttribute('sqref', `A1:X${nextRowNum - 1}`);
         }
 
         globalZipFormat = zipFormat;
@@ -1575,7 +1657,8 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
             <td contenteditable="true" data-row="${r.rowNum}" data-col="Q" onblur="saveCellEdit(${r.rowNum}, 'Q', this.innerText)">${r.Q || '-'}</td>
             <td data-row="${r.rowNum}" data-col="S">${getDefectSelectHtml(r.rowNum, r.S)}</td>
             <td contenteditable="true" data-row="${r.rowNum}" data-col="R" onblur="saveCellEdit(${r.rowNum}, 'R', this.innerText)"><strong>${r.R || ''}</strong></td>
-            <td contenteditable="true" data-row="${r.rowNum}" data-col="U" onblur="saveCellEdit(${r.rowNum}, 'U', this.innerText)">${r.U || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="W" onblur="saveCellEdit(${r.rowNum}, 'W', this.innerText)">${r.W || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="X" onblur="saveCellEdit(${r.rowNum}, 'X', this.innerText)">${r.X || ''}</td>
         </tr>
     `).join('');
 
@@ -1596,6 +1679,8 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
             <td contenteditable="true" data-row="${m.row}" data-col="Q" onblur="saveCellEdit(${m.row}, 'Q', this.innerText)">${m.hb || '-'}</td>
             <td data-row="${m.row}" data-col="S">${getDefectSelectHtml(m.row, m.defect)}</td>
             <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)"><strong>${m.facility}</strong></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="W" onblur="saveCellEdit(${m.row}, 'W', this.innerText)">${m.mother || ''}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="X" onblur="saveCellEdit(${m.row}, 'X', this.innerText)">${m.father || ''}</td>
         </tr>
     `).join('');
 
@@ -1612,7 +1697,9 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
             <td contenteditable="true" data-row="${a.row}" data-col="E" onblur="saveCellEdit(${a.row}, 'E', this.innerText)">${a.dob}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="F" onblur="saveCellEdit(${a.row}, 'F', this.innerText)">${a.age}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="G" onblur="saveCellEdit(${a.row}, 'G', this.innerText)">${a.class}</td>
-            <td contenteditable="true" data-row="${a.row}" data-col="U" onblur="saveCellEdit(${a.row}, 'U', this.innerText)">${a.father}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="H" onblur="saveCellEdit(${a.row}, 'H', this.innerText)">${a.phone || ''}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="W" onblur="saveCellEdit(${a.row}, 'W', this.innerText)">${a.mother || ''}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="X" onblur="saveCellEdit(${a.row}, 'X', this.innerText)">${a.father || ''}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="J" onblur="saveCellEdit(${a.row}, 'J', this.innerText)">${a.weight || '-'}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="K" onblur="saveCellEdit(${a.row}, 'K', this.innerText)">${a.height || '-'}</td>
             <td contenteditable="true" data-row="${a.row}" data-col="Q" onblur="saveCellEdit(${a.row}, 'Q', this.innerText)">${a.hb || '-'}</td>
@@ -1630,6 +1717,7 @@ function renderAllTables(allRows, matched, appended, removed, defects) {
                 <td><strong>${r.name}</strong></td>
                 <td>${r.class || '-'}</td>
                 <td>${r.dob || '-'}</td>
+                <td>${r.mother || '-'}</td>
                 <td>${r.father || '-'}</td>
                 <td style="color:#b91c1c; font-weight:600;">AI Register me anupasthit (School chhod chuka / Next class merge)</td>
                 <td><span class="pill pill-removed">Removed from Output</span></td>

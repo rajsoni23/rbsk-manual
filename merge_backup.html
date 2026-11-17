@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBSK Student Data Comparison & Reconciliation Tool</title>
+    <style>
+        :root {
+            --primary: #059669;
+            --primary-dark: #047857;
+            --primary-light: #ecfdf5;
+            --accent: #2563eb;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; padding: 24px 16px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Header */
+        .header { background: linear-gradient(135deg, #065f46 0%, #059669 100%); color: white; padding: 26px 28px; border-radius: var(--radius); margin-bottom: 24px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .header h1 { font-size: 24px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        .header p { font-size: 14px; opacity: 0.95; max-width: 880px; }
+        .badge-bar { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+        .badge { background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(4px); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 5px; }
+
+        /* Alert message */
+        .alert-box { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500; display: none; }
+        .alert-success { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* Upload Cards */
+        .cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        @media (max-width: 768px) { .cards-grid { grid-template-columns: 1fr; } }
+        
+        .upload-card { background: var(--bg-card); border: 2px dashed var(--border); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; }
+        .upload-card:hover { border-color: var(--primary); background-color: var(--primary-light); }
+        .upload-card.loaded { border-color: var(--primary); border-style: solid; background-color: #f0fdf4; }
+        .upload-icon { font-size: 38px; margin-bottom: 10px; }
+        .upload-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; color: var(--text-main); }
+        .upload-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+        .file-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #e2e8f0; color: #475569; }
+        .upload-card.loaded .file-status { background: #bbf7d0; color: #166534; }
+        input[type="file"] { display: none; }
+
+        /* Options Panel */
+        .options-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 24px; box-shadow: var(--shadow); }
+        .options-title { font-weight: 700; font-size: 15px; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        .option-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text-main); cursor: pointer; background: #f8fafc; padding: 10px 12px; border-radius: 8px; border: 1px solid #e2e8f0; transition: border-color 0.2s; }
+        .option-item:hover { border-color: #cbd5e1; }
+        .option-item input[type="checkbox"] { margin-top: 3px; accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; }
+
+        /* Action Buttons */
+        .action-row { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .btn-primary { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; border: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3); transition: all 0.2s; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(5, 150, 105, 0.4); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        .btn-download { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); transition: all 0.2s; }
+        .btn-download:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(37, 99, 235, 0.35); }
+
+        /* Delete Button */
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn-delete:hover {
+            background: #dc2626;
+            color: #ffffff;
+            border-color: #b91c1c;
+            transform: scale(1.05);
+        }
+
+        /* Results Card */
+        .results-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 24px; box-shadow: var(--shadow); display: none; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 14px; }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+        .stat-num { font-size: 22px; font-weight: 800; color: var(--text-main); }
+        .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+        .stat-box.highlight { background: #ecfdf5; border-color: #a7f3d0; }
+        .stat-box.highlight .stat-num { color: #047857; }
+        .stat-box.danger { background: #fff1f2; border-color: #fecdd3; }
+        .stat-box.danger .stat-num { color: #e11d48; }
+
+        /* Toolbar */
+        .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+        .search-input { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; width: 340px; max-width: 100%; outline: none; }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15); }
+
+        /* Tabs */
+        .tabs-bar { display: flex; gap: 6px; border-bottom: 2px solid var(--border); margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+        .tab-btn { background: none; border: none; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px 6px 0 0; white-space: nowrap; transition: all 0.15s; }
+        .tab-btn:hover { color: var(--primary); background: #f1f5f9; }
+        .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: 700; background: #ecfdf5; }
+
+        /* Tables */
+        .table-responsive { width: 100%; overflow-x: auto; max-height: 560px; border: 1px solid var(--border); border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+        thead { background: #f8fafc; position: sticky; top: 0; z-index: 10; }
+        th { padding: 10px 12px; font-weight: 700; color: #475569; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; white-space: nowrap; color: #1e293b; }
+        tr:hover { background-color: #f8fafc; }
+        
+        td[contenteditable="true"] { cursor: cell; transition: background-color 0.15s; }
+        td[contenteditable="true"]:hover { background-color: #fef9c3; outline: 1px dashed #ca8a04; }
+        td[contenteditable="true"]:focus { background-color: #fef08a; outline: 2px solid #ca8a04; }
+        .cell-edited { background-color: #e0f2fe !important; }
+
+        select.defect-select { padding: 4px 8px; font-size: 12px; border-radius: 4px; border: 1px solid #cbd5e1; background: #fff; max-width: 240px; cursor: pointer; outline: none; }
+        select.defect-select:focus { border-color: var(--primary); }
+
+        .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .pill-healthy { background: #dcfce7; color: #166534; }
+        .pill-defect { background: #fee2e2; color: #991b1b; }
+        .pill-removed { background: #fee2e2; color: #b91c1c; font-weight: 700; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* Toast */
+        #editToast { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: white; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 9999; display: none; animation: slideUp 0.2s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📊 RBSK Child Screening - Student Data Comparison & Reconciliation Tool</h1>
+        <p>Portal export template sheet aur Physical/AI register ko compare karein: anupasthit bacho (jo school chhod chuke ya next class merge ho gaye) ko remove karein, register ke real data ko match karein, aur register ke naye registration bacho ko auto-add karein.</p>
+        <div class="badge-bar">
+            <span class="badge">⚖️ Comparison & Reconciliation Engine</span>
+            <span class="badge">🗑️ Student Row Deletion Enabled</span>
+            <span class="badge">🔒 100% Client-Side Safe</span>
+            <span class="badge">🛡️ Portal Dropdowns & Formats Preserved</span>
+        </div>
+    </div>
+
+    <div id="alertBox" class="alert-box"></div>
+
+    <div class="cards-grid">
+        <!-- Card 1: Official Format Sheet -->
+        <div class="upload-card" id="dropFormat" onclick="document.getElementById('inputFormat').click()">
+            <div class="upload-icon">📑</div>
+            <div class="upload-title">1. RBSK Format Template (.xlsx)</div>
+            <div class="upload-desc">Portal se download kiya gaya format jisme PEN IDs aur student list hain.</div>
+            <div class="file-status" id="statusFormat">Click ya Drag-and-Drop karein</div>
+            <input type="file" id="inputFormat" accept=".xlsx">
+        </div>
+
+        <!-- Card 2: User Generated AI Sheet -->
+        <div class="upload-card" id="dropUser" onclick="document.getElementById('inputUser').click()">
+            <div class="upload-icon">📝</div>
+            <div class="upload-title">2. AI Extracted Sheet (.xlsx)</div>
+            <div class="upload-desc">Physical register se extract kiya gaya real screening data (Students & Defects).</div>
+            <div class="file-status" id="statusUser">Click ya Drag-and-Drop karein</div>
+            <input type="file" id="inputUser" accept=".xlsx">
+        </div>
+    </div>
+
+    <!-- Options Panel -->
+    <div class="options-panel">
+        <div class="options-title">⚙️ Compare & Reconciliation Settings</div>
+        <div class="options-grid">
+            <label class="option-item" style="background: #fff7ed; border-color: #fed7aa;">
+                <input type="checkbox" id="optRemoveUnmatchedPortal" checked style="accent-color: #ea580c; width: 18px; height: 18px;">
+                <span>
+                    <strong style="color: #c2410c;">🗑️ Remove Unmatched Portal Students:</strong><br>
+                    <span style="font-size: 12px; color: #9a3412;">Portal export ke jo bache physical register me nahi mile (jo school chhod chuke ya merge ho gaye), unhe output file se remove karein. Final sheet me sirf <strong>[Matched Students] + [New Registrations]</strong> hi rahenge.</span>
+                </span>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" id="optCalcAge" checked>
+                <span>
+                    <strong>📅 Auto Calculate Age:</strong><br>
+                    <span style="font-size: 12px; color: #64748b;">Naye registration bacho ke DOB se exact Age (Years/Months) auto-calculate karein.</span>
+                </span>
+            </label>
+            <label class="option-item">
+                <input type="checkbox" id="optExtractPhone" checked>
+                <span>
+                    <strong>📞 Extract Mobile Numbers:</strong><br>
+                    <span style="font-size: 12px; color: #64748b;">Defect ya remark text me se 10-digit mobile number auto-detect karke Mobile column me bharein.</span>
+                </span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Action Row -->
+    <div class="action-row">
+        <button id="btnProcess" class="btn-primary" disabled onclick="processFiles()">
+            <span>⚡ Compare & Merge RBSK Data</span>
+        </button>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-card" id="resultsSection">
+        <div class="results-header">
+            <div>
+                <h2 id="resultsTitle" style="font-size: 20px; font-weight: 700;">✅ RBSK Screening Spreadsheet</h2>
+                <p id="resultsSubtitle" style="font-size: 13px; color: var(--text-muted);">Data load ho gaya hai. Aap kisi bhi cell par click karke direct edit kar sakte hain ya kisi student ko 🗑️ Delete kar sakte hain.</p>
+            </div>
+            <div>
+                <button id="btnDownload" class="btn-download" onclick="downloadMergedFile()">
+                    <span>📥 Download Updated RBSK Sheet (.xlsx)</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-num" id="statFormatTotal">0</div>
+                <div class="stat-label">Portal Format Records</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="statUserTotal">0</div>
+                <div class="stat-label">AI Register Students</div>
+            </div>
+            <div class="stat-box highlight">
+                <div class="stat-num" id="statMatched">0</div>
+                <div class="stat-label">Matched & Kept</div>
+            </div>
+            <div class="stat-box danger">
+                <div class="stat-num" id="statRemovedPortal">0</div>
+                <div class="stat-label">Removed (Not in Register)</div>
+            </div>
+            <div class="stat-box highlight">
+                <div class="stat-num" id="statAppended">0</div>
+                <div class="stat-label">New Registrations Added</div>
+            </div>
+            <div class="stat-box highlight" style="background: #f0fdf4; border-color: #bbf7d0;">
+                <div class="stat-num" id="statFinalTotal" style="color: #16a34a;">0</div>
+                <div class="stat-label">Final Output Students</div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="table-toolbar">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search student by Name, PEN, Class, Defect, Mobile..." oninput="onFilterTable(this.value)">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="badge" style="background: #e0f2fe; color: #0369a1; font-weight: 700;">✏️ Live Editable</span>
+                <span class="badge" style="background: #fee2e2; color: #b91c1c; font-weight: 700;">🗑️ Delete Supported</span>
+                <span id="searchResultCount" style="font-size: 12px; color: #64748b; font-weight: 600;"></span>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-bar">
+            <button class="tab-btn active" data-tab="tabAll" onclick="switchTab('tabAll')">📑 Final Merged Sheet (<span id="countTabAll">0</span>)</button>
+            <button class="tab-btn" data-tab="tabMatched" onclick="switchTab('tabMatched')">✅ Matched & Kept (<span id="countTabMatched">0</span>)</button>
+            <button class="tab-btn" data-tab="tabAppended" onclick="switchTab('tabAppended')">➕ New Registrations (<span id="countTabAppended">0</span>)</button>
+            <button class="tab-btn" data-tab="tabRemoved" onclick="switchTab('tabRemoved')">🗑️ Removed Portal Students (<span id="countTabRemoved">0</span>)</button>
+            <button class="tab-btn" data-tab="tabDefects" onclick="switchTab('tabDefects')">⚠️ Defects & Referrals (<span id="countTabDefects">0</span>)</button>
+        </div>
+
+        <!-- Tab 0: All Rows -->
+        <div class="tab-pane active" id="tabAll">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
+                            <th>Row</th>
+                            <th>SN</th>
+                            <th>PEN ID</th>
+                            <th>Student Name</th>
+                            <th>Gender</th>
+                            <th>DOB</th>
+                            <th>Age</th>
+                            <th>Class</th>
+                            <th>Mobile</th>
+                            <th>Weight</th>
+                            <th>Height</th>
+                            <th>High BP</th>
+                            <th>Low BP</th>
+                            <th>BP</th>
+                            <th>Vision L</th>
+                            <th>Vision R</th>
+                            <th>HB</th>
+                            <th>Official Defect</th>
+                            <th>Referred Facility</th>
+                            <th>Father's Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyAll"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 1: Matched -->
+        <div class="tab-pane" id="tabMatched">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
+                            <th>Row</th>
+                            <th>PEN ID</th>
+                            <th>Student Name</th>
+                            <th>DOB</th>
+                            <th>Class</th>
+                            <th>Weight</th>
+                            <th>Height</th>
+                            <th>HB</th>
+                            <th>Defect Status</th>
+                            <th>Facility</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyMatched"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: Appended -->
+        <div class="tab-pane" id="tabAppended">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
+                            <th>New SN</th>
+                            <th>Student Name</th>
+                            <th>Gender</th>
+                            <th>DOB (YYYY-MM-DD)</th>
+                            <th>Age</th>
+                            <th>Class</th>
+                            <th>Father's Name</th>
+                            <th>Weight</th>
+                            <th>Height</th>
+                            <th>HB</th>
+                            <th>Defect Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyAppended"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 3: Removed -->
+        <div class="tab-pane" id="tabRemoved">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Original Row</th>
+                            <th>PEN ID</th>
+                            <th>Student Name</th>
+                            <th>Class</th>
+                            <th>DOB</th>
+                            <th>Father's Name</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyRemoved"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 4: Defects -->
+        <div class="tab-pane" id="tabDefects">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 70px; text-align: center;">Action</th>
+                            <th>Student Name</th>
+                            <th>Class</th>
+                            <th>Mobile</th>
+                            <th>Raw Register Defect</th>
+                            <th>Official Defect</th>
+                            <th>Referred Facility</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyDefects"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="editToast">✓ Live edit saved!</div>
+
+<!-- JSZip Library -->
+<script src="jszip.min.js"></script>
+<script>
+if (typeof JSZip === 'undefined') {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');
+}
+</script>
+
+<script>
+"use strict";
+
+// Application State
+let fileFormatBuffer = null;
+let fileUserBuffer = null;
+let mergedFileName = "actual format to be filled into_UPDATED.xlsx";
+let mergedBlob = null;
+let allRowsData = [];
+let globalZipFormat = null;
+let globalFormatDoc = null;
+let globalSheetNs = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+let lastMatchedList = [];
+let lastAppendedList = [];
+let lastRemovedList = [];
+let lastDefectsList = [];
+
+// Toast notification helper
+function showEditToast(msg) {
+    const toast = document.getElementById('editToast');
+    if (!toast) return;
+    toast.innerText = msg;
+    toast.style.display = 'block';
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => { toast.style.display = 'none'; }, 2200);
+}
+
+// Tab Switching
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === tabId);
+    });
+}
+
+// Drag & Drop Setup
+function setupDropZone(dropId, inputId, onLoaded) {
+    const drop = document.getElementById(dropId);
+    const input = document.getElementById(inputId);
+
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.style.borderColor = 'var(--primary)'; });
+    drop.addEventListener('dragleave', () => { drop.style.borderColor = ''; });
+    drop.addEventListener('drop', (e) => {
+        e.preventDefault();
+        drop.style.borderColor = '';
+        if (e.dataTransfer.files.length) {
+            handleFile(e.dataTransfer.files[0], onLoaded);
+        }
+    });
+
+    input.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            handleFile(e.target.files[0], onLoaded);
+        }
+    });
+}
+
+function handleFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => callback(file, e.target.result);
+    reader.readAsArrayBuffer(file);
+}
+
+function checkCanProcess() {
+    const can = (fileFormatBuffer !== null && fileUserBuffer !== null);
+    const btn = document.getElementById('btnProcess');
+    if (btn) btn.disabled = !can;
+}
+
+function showAlert(msg, isError = false) {
+    const box = document.getElementById('alertBox');
+    box.className = 'alert-box ' + (isError ? 'alert-error' : 'alert-success');
+    box.innerText = msg;
+    box.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// XML Cell Helper
+function setXmlCell(rowElem, colLetter, rNum, value, style, formula) {
+    let c = rowElem.querySelector(`c[r="${colLetter}${rNum}"]`);
+    if (!c) {
+        c = globalFormatDoc.createElementNS(globalSheetNs, 'c');
+        c.setAttribute('r', colLetter + rNum);
+        c.setAttribute('t', 'str');
+        if (style) c.setAttribute('s', style);
+        rowElem.appendChild(c);
+    }
+    if (style && !c.getAttribute('s')) c.setAttribute('s', style);
+
+    if (formula) {
+        let f = c.getElementsByTagName('f')[0];
+        if (!f) {
+            f = globalFormatDoc.createElementNS(globalSheetNs, 'f');
+            c.appendChild(f);
+        }
+        f.textContent = formula;
+    }
+
+    let v = c.getElementsByTagName('v')[0];
+    if (!v) {
+        v = globalFormatDoc.createElementNS(globalSheetNs, 'v');
+        c.appendChild(v);
+    }
+    v.textContent = (value !== undefined && value !== null) ? String(value) : '';
+}
+
+// Live Cell Editing
+function saveCellEdit(rNum, colLetter, val) {
+    if (!globalFormatDoc) return;
+    const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+    const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
+    if (!rowElem) return;
+
+    let finalVal = String(val || '').trim();
+
+    if (colLetter === 'G') {
+        finalVal = mapClass(finalVal);
+    } else if (colLetter === 'H') {
+        finalVal = cleanMobile(finalVal);
+    }
+
+    setXmlCell(rowElem, colLetter, rNum, finalVal);
+
+    const item = allRowsData.find(x => x.rowNum == rNum);
+    if (item) item[colLetter] = finalVal;
+
+    // Recalculate BP if L or M is modified
+    if (colLetter === 'L' || colLetter === 'M') {
+        const cL = rowElem.querySelector(`c[r="L${rNum}"] v`)?.textContent || '';
+        const cM = rowElem.querySelector(`c[r="M${rNum}"] v`)?.textContent || '';
+        const bpStr = (cL && cM) ? `${cL}/${cM}` : '';
+        setXmlCell(rowElem, 'N', rNum, bpStr, null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
+        if (item) item.N = bpStr;
+        document.querySelectorAll(`td[data-row="${rNum}"][data-col="N"]`).forEach(td => td.innerText = bpStr);
+    }
+
+    // Highlight cell as edited
+    const td = document.querySelector(`td[data-row="${rNum}"][data-col="${colLetter}"]`);
+    if (td) td.classList.add('cell-edited');
+
+    mergedBlob = null;
+    showEditToast(`✓ Cell ${colLetter}${rNum} updated to "${finalVal}"`);
+}
+
+// Student Row Deletion Logic (Instant One-Click Deletion - No Confirmation)
+function deleteStudentRow(rNum) {
+    const student = allRowsData.find(x => x.rowNum == rNum);
+    const sName = student ? (student.C || 'Student') : 'Student';
+    const sSn = student ? (student.A || rNum) : rNum;
+
+    // 1. Remove <row r="${rNum}"> from globalFormatDoc XML
+    if (globalFormatDoc) {
+        const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+        if (sheetData) {
+            const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
+            if (rowElem) {
+                sheetData.removeChild(rowElem);
+            }
+
+            // 2. Renumber all remaining student rows sequentially (Rows 1 & 2 are headers)
+            const remainingXmlRows = Array.from(sheetData.getElementsByTagName('row')).filter(r => {
+                return parseInt(r.getAttribute('r'), 10) > 2;
+            });
+            remainingXmlRows.sort((a, b) => parseInt(a.getAttribute('r'), 10) - parseInt(b.getAttribute('r'), 10));
+
+            let curR = 3;
+            let curSN = 1;
+            for (const rElem of remainingXmlRows) {
+                rElem.setAttribute('r', String(curR));
+                const cells = rElem.getElementsByTagName('c');
+                for (const c of cells) {
+                    const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                    c.setAttribute('r', colLetter + curR);
+                    if (colLetter === 'A') {
+                        let v = c.getElementsByTagName('v')[0];
+                        if (!v) {
+                            v = globalFormatDoc.createElementNS(globalSheetNs, 'v');
+                            c.appendChild(v);
+                        }
+                        v.textContent = String(curSN);
+                    }
+                }
+                curR++;
+                curSN++;
+            }
+
+            // Update sheet dimension ref
+            const dim = globalFormatDoc.getElementsByTagName('dimension')[0];
+            if (dim) {
+                dim.setAttribute('ref', `A1:U${curR - 1}`);
+            }
+            const ie = globalFormatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
+            if (ie) {
+                ie.setAttribute('sqref', `A1:U${curR - 1}`);
+            }
+        }
+    }
+
+    // 3. Remove from in-memory allRowsData & renumber
+    allRowsData = allRowsData.filter(x => x.rowNum != rNum);
+    let nextR = 3;
+    let nextSN = 1;
+    for (const item of allRowsData) {
+        item.rowNum = nextR;
+        item.A = String(nextSN);
+        nextR++;
+        nextSN++;
+    }
+
+    // 4. Update matched, appended, defects lists
+    lastMatchedList = lastMatchedList.filter(m => m.row != rNum);
+    lastAppendedList = lastAppendedList.filter(a => a.row != rNum);
+    lastDefectsList = lastDefectsList.filter(d => d.row != rNum);
+
+    // 5. Update UI stats
+    updateSummaryStats();
+
+    // 6. Re-render tables
+    renderAllTables(allRowsData, lastMatchedList, lastAppendedList, lastRemovedList, lastDefectsList);
+
+    mergedBlob = null;
+    showEditToast(`🗑️ "${sName}" delete ho gaya aur S.N. re-number ho gaye.`);
+}
+
+function updateSummaryStats() {
+    const total = allRowsData.length;
+    if (document.getElementById('statFinalTotal')) {
+        document.getElementById('statFinalTotal').innerText = total;
+    }
+    if (document.getElementById('countTabAll')) {
+        document.getElementById('countTabAll').innerText = total;
+    }
+    if (document.getElementById('countTabMatched')) {
+        document.getElementById('countTabMatched').innerText = lastMatchedList.length;
+    }
+    if (document.getElementById('countTabAppended')) {
+        document.getElementById('countTabAppended').innerText = lastAppendedList.length;
+    }
+    if (document.getElementById('countTabRemoved')) {
+        document.getElementById('countTabRemoved').innerText = lastRemovedList.length;
+    }
+    if (document.getElementById('countTabDefects')) {
+        document.getElementById('countTabDefects').innerText = lastDefectsList.length;
+    }
+    const resTitle = document.getElementById('resultsTitle');
+    if (resTitle) {
+        resTitle.innerText = `✅ RBSK Screening Spreadsheet (${total} Total Students)`;
+    }
+}
+
+// Table Filter
+function onFilterTable(query) {
+    const q = (query || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#tbodyAll tr');
+    let visibleCount = 0;
+
+    rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        const show = !q || text.includes(q);
+        r.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+
+    const cntSpan = document.getElementById('searchResultCount');
+    if (cntSpan) {
+        cntSpan.innerText = q ? `Showing ${visibleCount} of ${rows.length} rows` : '';
+    }
+}
+
+// Preview initial format sheet on load
+async function previewInitialFormat(file, buf) {
+    try {
+        if (typeof JSZip === 'undefined') return;
+        globalZipFormat = await JSZip.loadAsync(buf);
+        const formatSheetXml = await globalZipFormat.file('xl/worksheets/sheet1.xml').async('text');
+        globalFormatDoc = new DOMParser().parseFromString(formatSheetXml, 'text/xml');
+        globalSheetNs = globalFormatDoc.documentElement.namespaceURI || "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+
+        const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+        const rows = sheetData.getElementsByTagName('row');
+
+        allRowsData = [];
+        for (let i = 2; i < rows.length; i++) {
+            const rElem = rows[i];
+            const rNum = parseInt(rElem.getAttribute('r'), 10);
+            const cells = rElem.getElementsByTagName('c');
+            const rowObj = { rowNum: rNum };
+            for (let c of cells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                const v = c.getElementsByTagName('v')[0];
+                rowObj[colLetter] = v ? v.textContent.trim() : '';
+            }
+
+            if (rowObj.G) {
+                const normG = mapClass(rowObj.G);
+                if (normG !== rowObj.G) {
+                    setXmlCell(rElem, 'G', rNum, normG);
+                    rowObj.G = normG;
+                }
+            }
+            if (rowObj.H) {
+                const cleanH = cleanMobile(rowObj.H);
+                if (cleanH !== rowObj.H) {
+                    setXmlCell(rElem, 'H', rNum, cleanH);
+                    rowObj.H = cleanH;
+                }
+            }
+
+            allRowsData.push(rowObj);
+        }
+
+        document.getElementById('statFormatTotal').innerText = allRowsData.length;
+        document.getElementById('countTabAll').innerText = allRowsData.length;
+        document.getElementById('resultsTitle').innerText = `📑 Loaded Format Sheet (${allRowsData.length} Students) — Live Editable`;
+        document.getElementById('resultsSubtitle').innerText = `Aap kisi bhi cell par click karke direct edit kar sakte hain ya student delete kar sakte hain.`;
+
+        lastMatchedList = [];
+        lastAppendedList = [];
+        lastRemovedList = [];
+        lastDefectsList = [];
+        renderAllTables(allRowsData, [], [], [], []);
+        document.getElementById('resultsSection').style.display = 'block';
+        showEditToast(`✓ Format sheet loaded (${allRowsData.length} students).`);
+    } catch (e) {
+        console.error("Initial preview error:", e);
+    }
+}
+
+// Helpers for data cleanup
+function cleanNumber(val) {
+    if (!val) return "";
+    let s = String(val).trim().replace(/[^\d\.]/g, '');
+    if (/^\d+\.0+$/.test(s)) {
+        s = s.replace(/\.0+$/, '');
+    }
+    return s;
+}
+
+function normalizeDate(str) {
+    if (!str) return '';
+    str = String(str).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    let parts = str.split(/[\/\-\.]/);
+    if (parts.length === 3) {
+        if (parts[0].length === 4) {
+            return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+        }
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    // Excel serial date number
+    const num = Number(str);
+    if (!isNaN(num) && num > 1000) {
+        const utc_days = Math.floor(num - 25569);
+        const utc_value = utc_days * 86400;
+        const date_info = new Date(utc_value * 1000);
+        return date_info.toISOString().split('T')[0];
+    }
+    return str;
+}
+
+function mapClass(cls) {
+    if (!cls) return '';
+    cls = String(cls).trim().toLowerCase();
+    
+    if (cls === 'first' || cls === '1st' || cls === 'class 1' || cls === '1') return '1';
+    if (cls === 'second' || cls === '2nd' || cls === 'class 2' || cls === '2') return '2';
+    if (cls === 'third' || cls === '3rd' || cls === 'class 3' || cls === '3') return '3';
+    if (cls === 'fourth' || cls === '4th' || cls === 'class 4' || cls === '4') return '4';
+    if (cls === 'fifth' || cls === '5th' || cls === 'class 5' || cls === '5') return '5';
+    if (cls === 'sixth' || cls === '6th' || cls === 'class 6' || cls === '6') return '6';
+    if (cls === 'seventh' || cls === '7th' || cls === 'class 7' || cls === '7') return '7';
+    if (cls === 'eighth' || cls === '8th' || cls === 'class 8' || cls === '8') return '8';
+    if (cls === 'ninth' || cls === '9th' || cls === 'class 9' || cls === '9') return '9';
+    if (cls === 'tenth' || cls === '10th' || cls === 'class 10' || cls === '10') return '10';
+    if (cls === 'eleventh' || cls === '11th' || cls === 'class 11' || cls === '11') return '11';
+    if (cls === 'twelfth' || cls === '12th' || cls === 'class 12' || cls === '12') return '12';
+
+    if (cls.includes('balvatika 3') || cls.includes('balvatika-3') || cls.includes('bv3') || cls.includes('ukg') || cls.includes('kg 2')) return 'Balvatika 3';
+    if (cls.includes('balvatika 2') || cls.includes('balvatika-2') || cls.includes('bv2') || cls.includes('lkg') || cls.includes('kg 1')) return 'Balvatika 2';
+    if (cls.includes('balvatika 1') || cls.includes('balvatika-1') || cls.includes('bv1') || cls.includes('nursery')) return 'Balvatika 1';
+    if (cls.includes('balvatika') || cls.includes('kg')) return 'Balvatika 3';
+
+    let m = cls.match(/\d+/);
+    return m ? m[0] : cls;
+}
+
+function calculateAge(dobStr) {
+    if (!dobStr) return '';
+    const parts = dobStr.split('-');
+    if (parts.length !== 3) return '';
+    const birthYear = parseInt(parts[0], 10);
+    const birthMonth = parseInt(parts[1], 10) - 1;
+    const birthDay = parseInt(parts[2], 10);
+    const now = new Date();
+    let years = now.getFullYear() - birthYear;
+    let months = now.getMonth() - birthMonth;
+    if (now.getDate() < birthDay) months--;
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    if (years <= 0 && months <= 0) return '1m';
+    if (years < 1) return `${months}m`;
+    if (months === 0) return `${years}y`;
+    return `${years}y ${months}m`;
+}
+
+function cleanMobile(val) {
+    if (!val) return '';
+    let s = String(val).replace(/\D/g, '');
+    if (s.length === 12 && s.startsWith('91')) s = s.substring(2);
+    if (s.length === 11 && s.startsWith('0')) s = s.substring(1);
+    if (s.length === 10 && /^[6-9]/.test(s)) return s;
+    return '';
+}
+
+// Complete 59 Defects Directory
+const DEFECT_DIRECTORY = [
+    {
+        category: "Healthy / Normal",
+        items: [
+            { value: "Healthy", label: "Healthy / Normal", facility: "", keywords: ["healthy", "normal", "nil", "none", "fit", "ok", "fine", "theek", "thik", "swasth"] }
+        ]
+    },
+    {
+        category: "1. Defects at Birth",
+        items: [
+            { value: "1. Neural Tube Defect", label: "Neural Tube Defect", facility: "DEIC", keywords: ["neural tube", "ntd", "spina bifida"] },
+            { value: "2. Downs Syndrome", label: "Down's Syndrome", facility: "DEIC", keywords: ["down", "downs", "down's", "trisomy 21"] },
+            { value: "3. Cleft Lip and Palate", label: "Cleft Lip & Palate", facility: "DEIC", keywords: ["cleft", "cleft lip", "cleft palate"] },
+            { value: "4. Talipes (club foot)", label: "Talipes (Club Foot)", facility: "DEIC", keywords: ["talipes", "club foot", "clubfoot", "ctev"] },
+            { value: "5. Developmental Dysplasia of Hip", label: "Developmental Dysplasia of Hip", facility: "DEIC", keywords: ["ddh", "dysplasia", "hip dysplasia"] },
+            { value: "6. Congenital Cataract", label: "Congenital Cataract", facility: "DEIC", keywords: ["cataract", "congenital cataract", "motiyabind"] },
+            { value: "7. Congenital Deafness", label: "Congenital Deafness", facility: "DEIC", keywords: ["deaf", "deafness", "congenital deafness", "behra"] },
+            { value: "8. Congenital Heart Disease", label: "Congenital Heart Disease", facility: "DEIC", keywords: ["congenital heart", "heart disease", "chd", "vsd", "asd", "dil me chhed"] },
+            { value: "9. Retinopathy of Prematurity (only at DH)", label: "Retinopathy of Prematurity", facility: "District Level Facility", keywords: ["retinopathy", "rop"] },
+            { value: "42. Microcephaly", label: "Microcephaly", facility: "DEIC", keywords: ["microcephaly", "chota sir"] },
+            { value: "43. Macrocephaly", label: "Macrocephaly", facility: "DEIC", keywords: ["macrocephaly", "bada sir", "hydrocephalus"] },
+            { value: "47. Congenital Ear Problems", label: "Congenital Ear Defects", facility: "DEIC", keywords: ["ear defect", "congenital ear", "microtia"] },
+            { value: "48. Neck and Face Defects", label: "Neck & Face Defects", facility: "DEIC", keywords: ["neck defect", "face defect", "neck & face"] },
+            { value: "50. Congenital Eye Problems", label: "Congenital Eye Defects", facility: "DEIC", keywords: ["eye defect", "congenital eye", "squint", "bheengapan"] }
+        ]
+    },
+    {
+        category: "2. Deficiencies",
+        items: [
+            { value: "10. Severe Anemia", label: "Severe Anemia", facility: "DEIC", keywords: ["severe anemia", "severe anemic", "severe anaemia"] },
+            { value: "11. Vitamin A Deficiency", label: "Vit A Deficiency (Bitot Spot)", facility: "Block Level Facility", keywords: ["vitamin a", "vit a", "bitot", "ratondhi"] },
+            { value: "12. Vitamin D Deficiency (Rickets)", label: "Vit D Deficiency (Rickets)", facility: "Block Level Facility", keywords: ["vitamin d", "rickets", "bow legs"] },
+            { value: "13. SAM/Severe Thinness/SUW", label: "SAM / Severe Thinness / SUW", facility: "NRC", keywords: ["sam", "severe thinness", "suw", "kuposhan severe"] },
+            { value: "14. Goiter", label: "Goiter", facility: "Block Level Facility", keywords: ["goiter", "goitre", "gala phoolna", "thyroid"] },
+            { value: "41. Severe Stunting", label: "Severe Stunting", facility: "NRC", keywords: ["severe stunting", "stunted"] },
+            { value: "44. Vitamin B Complex Deficiency", label: "Vit B Complex Deficiency", facility: "Block Level Facility", keywords: ["vitamin b", "vit b", "b complex", "mouth ulcer", "stomatitis", "jeebh chhilna"] },
+            { value: "45. Obesity", label: "Obesity", facility: "Block Level Facility", keywords: ["obesity", "obese", "overweight", "motapa"] },
+            { value: "52. Moderate Anaemia", label: "Moderate Anaemia", facility: "Block Level Facility", keywords: ["moderate anemia", "moderate anaemia"] },
+            { value: "89. Mild Anaemia", label: "Mild Anaemia", facility: "Block Level Facility", keywords: ["mild anemia", "mild anaemia", "anemia", "anaemia"] },
+            { value: "90. MAM", label: "MAM", facility: "Block Level Facility", keywords: ["mam", "moderate acute malnutrition"] },
+            { value: "120. Vitamin D Deficiency", label: "Vitamin D Deficiency", facility: "Block Level Facility", keywords: ["vitamin d deficiency"] }
+        ]
+    },
+    {
+        category: "3. Childhood Diseases",
+        items: [
+            { value: "15. Skin Conditions", label: "Skin Conditions", facility: "Block Level Facility", keywords: ["skin", "scabies", "eczema", "ringworm", "fungal", "rash", "khujli", "charm rog"] },
+            { value: "16. Otitis Media", label: "Otitis Media", facility: "Block Level Facility", keywords: ["otitis", "otitis media", "csom", "ear discharge", "kan behna", "ear pain"] },
+            { value: "17. Rheumatic Heart Disease", label: "Rheumatic Heart Disease", facility: "DEIC", keywords: ["rheumatic", "rhd"] },
+            { value: "18. Reactive Airway Disease", label: "Reactive Airway Disease", facility: "Block Level Facility", keywords: ["reactive airway", "rad", "wheezing"] },
+            { value: "19. Dental Conditions", label: "Dental Conditions", facility: "Block Level Facility", keywords: ["dental", "caries", "cavity", "teeth", "tooth", "dant", "daant"] },
+            { value: "20. Convulsive Disorders", label: "Convulsive Disorders", facility: "DEIC", keywords: ["convulsive", "convulsions", "seizure", "epilepsy", "fits", "daura"] },
+            { value: "39. Childhood Leprosy Disease", label: "Childhood Leprosy", facility: "Leprosy Centers", keywords: ["leprosy", "kusth"] },
+            { value: "40. Childhood Tuberculosis Pulmonary", label: "Tuberculosis Pulmonary", facility: "TB Centres", keywords: ["tb pulmonary", "pulmonary tb", "tb"] },
+            { value: "46. Stage 2 Hypertension", label: "Stage 2 Hypertension", facility: "District Level Facility", keywords: ["stage 2 hypertension"] },
+            { value: "49. Referactive Problems", label: "Refractive Problems", facility: "Block Level Facility", keywords: ["refractive", "refractive problems", "vision", "glasses", "chashma", "kam dikhna"] },
+            { value: "51. Tuberculosis Extra Pulmonary", label: "TB Extra Pulmonary", facility: "TB Centres", keywords: ["extra pulmonary", "tb extra"] },
+            { value: "53. Skin Conditions (other than Leprosy)", label: "Skin Conditions (Not Leprosy)", facility: "Block Level Facility", keywords: ["skin other"] },
+            { value: "117. Bronchial Asthma", label: "Bronchial Asthma", facility: "Block Level Facility", keywords: ["asthma", "bronchial asthma", "dama"] },
+            { value: "118. Prehypertension", label: "Prehypertension", facility: "Block Level Facility", keywords: ["prehypertension"] },
+            { value: "119. Stage 1 Hypertension", label: "Stage 1 Hypertension", facility: "Block Level Facility", keywords: ["stage 1 hypertension"] }
+        ]
+    },
+    {
+        category: "4. Development Delay",
+        items: [
+            { value: "21. Vision Impairment", label: "Vision Impairment", facility: "DEIC", keywords: ["vision impairment", "blind", "low vision"] },
+            { value: "22. Hearing Impairment", label: "Hearing Impairment", facility: "DEIC", keywords: ["hearing impairment", "sunai kam"] },
+            { value: "23. Neuro-motor Impairment", label: "Neuro-Motor Impairment", facility: "DEIC", keywords: ["neuro motor", "cerebral palsy", "cp"] },
+            { value: "24. Motor Delay", label: "Motor Delay", facility: "DEIC", keywords: ["motor delay", "chalne me deri"] },
+            { value: "25. Cognitive Delay", label: "Cognitive Delay", facility: "DEIC", keywords: ["cognitive", "mental delay", "mr"] },
+            { value: "26. Language Delay", label: "Language Delay", facility: "DEIC", keywords: ["language delay", "speech delay", "bolne me deri"] },
+            { value: "27. Behavior Disorder (Autism)", label: "Behavior Disorder (Autism)", facility: "DEIC", keywords: ["autism", "asd", "behavior"] },
+            { value: "28. Learning Disorder", label: "Learning Disorder", facility: "DEIC", keywords: ["learning disorder", "dyslexia"] },
+            { value: "29. Attention Deficit Hyperactivity Disorder", label: "ADHD", facility: "DEIC", keywords: ["adhd", "hyperactive"] },
+            { value: "54. Convulsive Disorders (Dev Delay)", label: "Convulsive Disorders (Dev Delay)", facility: "DEIC", keywords: ["convulsive dev"] }
+        ]
+    },
+    {
+        category: "5. Adolescent Health concerns",
+        items: [
+            { value: "30. Growing Up Concerns", label: "Growing Up Concerns", facility: "AFHC", keywords: ["growing up", "growing"] },
+            { value: "31. Substance Abuse", label: "Substance Abuse", facility: "AFHC", keywords: ["substance", "nashapan", "bidi", "gutkha"] },
+            { value: "32. Feel Depressed", label: "Feel Depressed", facility: "AFHC", keywords: ["depressed", "depression", "udaas"] },
+            { value: "33. Delay in Menstruation", label: "Delay in Menstruation", facility: "AFHC", keywords: ["delay in menstruation", "amenorrhea"] },
+            { value: "34. Irregular Periods", label: "Irregular Periods", facility: "AFHC", keywords: ["irregular periods", "period samasya"] },
+            { value: "35. Pain / Burning While Urinating", label: "Pain/Burning Urinating", facility: "AFHC", keywords: ["burning urinating", "uti", "peshab me jalan"] },
+            { value: "36. Discharge (Genito-Urinary)", label: "Genito-Urinary Discharge", facility: "AFHC", keywords: ["discharge", "white discharge"] },
+            { value: "37. Pain During Menstruation", label: "Pain During Menstruation", facility: "AFHC", keywords: ["pain during menstruation", "dysmenorrhea"] }
+        ]
+    }
+];
+
+function normalizeDefect(raw) {
+    if (!raw) return { defect: "Healthy", facility: "", phone: null };
+    const str = String(raw).trim();
+    if (str === "" || str === "Healthy" || str === "Healthy / Normal") {
+        return { defect: "Healthy", facility: "", phone: null };
+    }
+
+    // Exact value match
+    for (const cat of DEFECT_DIRECTORY) {
+        for (const it of cat.items) {
+            if (it.value === str || it.label === str) {
+                return { defect: it.value, facility: it.facility, phone: null };
+            }
+        }
+    }
+
+    // Number prefix match e.g. "15." or "15"
+    const mNum = str.match(/^(\d+)[\.\s]/);
+    if (mNum) {
+        const num = mNum[1];
+        for (const cat of DEFECT_DIRECTORY) {
+            for (const it of cat.items) {
+                if (it.value.startsWith(num + ".") || it.value.startsWith(num + " ")) {
+                    return { defect: it.value, facility: it.facility, phone: null };
+                }
+            }
+        }
+    }
+
+    // Keyword match
+    const lower = str.toLowerCase();
+    for (const cat of DEFECT_DIRECTORY) {
+        for (const it of cat.items) {
+            for (const kw of it.keywords) {
+                if (lower.includes(kw)) {
+                    return { defect: it.value, facility: it.facility, phone: null };
+                }
+            }
+        }
+    }
+
+    return { defect: "Healthy", facility: "", phone: null };
+}
+
+function mapDefectAndFacility(rawDefect) {
+    if (!rawDefect) return { defect: "Healthy", facility: "", phone: "" };
+    
+    // Extract phone if embedded in text
+    let phone = "";
+    const phoneMatch = String(rawDefect).match(/\b([6-9]\d{9})\b/);
+    if (phoneMatch) phone = phoneMatch[1];
+
+    const def = normalizeDefect(rawDefect);
+    return {
+        defect: def.defect,
+        facility: def.facility,
+        phone: phone
+    };
+}
+
+function getDefectSelectHtml(rowNum, selectedValue) {
+    const norm = normalizeDefect(selectedValue);
+    let html = `<select class="defect-select" data-row="${rowNum}" onchange="onDefectSelectChange(${rowNum}, this.value)">`;
+    for (const cat of DEFECT_DIRECTORY) {
+        html += `<optgroup label="${cat.category}">`;
+        for (const it of cat.items) {
+            const isSel = (it.value === norm.defect);
+            html += `<option value="${it.value}" ${isSel ? 'selected' : ''}>${it.label} (${it.value})</option>`;
+        }
+        html += `</optgroup>`;
+    }
+    html += `</select>`;
+    return html;
+}
+
+function onDefectSelectChange(rNum, selectedValue) {
+    const defInfo = normalizeDefect(selectedValue);
+    if (!globalFormatDoc) return;
+    const sheetData = globalFormatDoc.getElementsByTagName('sheetData')[0];
+    const rowElem = sheetData.querySelector(`row[r="${rNum}"]`);
+    if (!rowElem) return;
+
+    setXmlCell(rowElem, 'S', rNum, defInfo.defect);
+    setXmlCell(rowElem, 'R', rNum, defInfo.facility);
+
+    const item = allRowsData.find(x => x.rowNum == rNum);
+    if (item) {
+        item.S = defInfo.defect;
+        item.R = defInfo.facility;
+    }
+
+    document.querySelectorAll(`td[data-row="${rNum}"][data-col="R"]`).forEach(td => {
+        td.innerText = defInfo.facility;
+        td.classList.add('cell-edited');
+    });
+
+    mergedBlob = null;
+    showEditToast(`✓ Row ${rNum}: Defect set to "${defInfo.defect}" -> Facility: "${defInfo.facility || 'None'}"`);
+}
+
+// MAIN COMPARE & MERGE ENGINE
+async function processFiles() {
+    const btn = document.getElementById('btnProcess');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Comparing & Reconciling Data...';
+
+    try {
+        if (typeof JSZip === 'undefined') {
+            throw new Error("JSZip library load nahi hui. Kripya jszip.min.js folder me rakhein ya internet check karein.");
+        }
+
+        // 1. Read User Sheet (AI register)
+        const zipUser = await JSZip.loadAsync(fileUserBuffer);
+        const userSharedStrings = [];
+        if (zipUser.file('xl/sharedStrings.xml')) {
+            const ssXml = await zipUser.file('xl/sharedStrings.xml').async('text');
+            const parser = new DOMParser();
+            const ssDoc = parser.parseFromString(ssXml, 'text/xml');
+            const siNodes = ssDoc.getElementsByTagName('si');
+            for (let i = 0; i < siNodes.length; i++) {
+                const tNodes = siNodes[i].getElementsByTagName('t');
+                let str = '';
+                for (let j = 0; j < tNodes.length; j++) str += tNodes[j].textContent;
+                userSharedStrings.push(str);
+            }
+        }
+
+        const userSheetXml = await zipUser.file('xl/worksheets/sheet1.xml').async('text');
+        const userDoc = new DOMParser().parseFromString(userSheetXml, 'text/xml');
+        const userRows = userDoc.getElementsByTagName('row');
+
+        // Detect user sheet columns
+        const userColMap = { sr: 'A', uid: 'B', class: 'C', name: 'D', gender: 'E', dob: 'F', father: 'G', weight: 'H', height: 'I', hb: 'J', defect: 'K' };
+        if (userRows.length > 0) {
+            const headerCells = userRows[0].getElementsByTagName('c');
+            for (let c of headerCells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                let val = '';
+                if (c.getAttribute('t') === 's') {
+                    val = userSharedStrings[parseInt(c.textContent, 10)] || '';
+                } else {
+                    val = c.textContent || '';
+                }
+                const vLow = val.toLowerCase();
+                if (vLow.includes('name') && !vLow.includes('father') && !vLow.includes('defect')) userColMap.name = colLetter;
+                else if (vLow.includes('dob') || vLow.includes('birth')) userColMap.dob = colLetter;
+                else if (vLow.includes('father')) userColMap.father = colLetter;
+                else if (vLow.includes('weig')) userColMap.weight = colLetter;
+                else if (vLow.includes('heig')) userColMap.height = colLetter;
+                else if (vLow.includes('hb') || vLow.includes('hemo')) userColMap.hb = colLetter;
+                else if (vLow.includes('defect')) userColMap.defect = colLetter;
+                else if (vLow.includes('class')) userColMap.class = colLetter;
+                else if (vLow.includes('gender') || vLow.includes('sex')) userColMap.gender = colLetter;
+            }
+        }
+
+        const userStudents = [];
+        for (let i = 1; i < userRows.length; i++) {
+            const r = userRows[i];
+            const cells = r.getElementsByTagName('c');
+            const data = {};
+            for (let c of cells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                let val = '';
+                if (c.getAttribute('t') === 's') {
+                    val = userSharedStrings[parseInt(c.textContent, 10)] || '';
+                } else {
+                    const vElem = c.getElementsByTagName('v')[0];
+                    val = vElem ? vElem.textContent : (c.textContent || '');
+                }
+                data[colLetter] = val.trim();
+            }
+            if (!data[userColMap.name] && !data[userColMap.dob]) continue;
+            
+            const rawName = data[userColMap.name] || '';
+            const rawDob = data[userColMap.dob] || '';
+            const rawFather = data[userColMap.father] || '';
+            const rawWeight = data[userColMap.weight] || '';
+            const rawHeight = data[userColMap.height] || '';
+            const rawHb = data[userColMap.hb] || '';
+            const rawDefect = data[userColMap.defect] || '';
+
+            userStudents.push({
+                userRowIndex: i + 1,
+                name: rawName,
+                normName: rawName.toUpperCase().replace(/\s+/g, ' ').trim(),
+                gender: data[userColMap.gender] || 'Female',
+                dobRaw: rawDob,
+                dobNorm: normalizeDate(rawDob),
+                father: rawFather,
+                normFather: rawFather.toUpperCase().replace(/\s+/g, ' ').trim(),
+                class: data[userColMap.class] || '',
+                weight: cleanNumber(rawWeight),
+                height: cleanNumber(rawHeight),
+                hb: cleanNumber(rawHb),
+                defectRaw: rawDefect
+            });
+        }
+
+        // 2. Read Format Template Sheet
+        const zipFormat = await JSZip.loadAsync(fileFormatBuffer);
+        const formatSheetXml = await zipFormat.file('xl/worksheets/sheet1.xml').async('text');
+        const formatDoc = new DOMParser().parseFromString(formatSheetXml, 'text/xml');
+        const sheetNs = formatDoc.documentElement.namespaceURI || "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
+        const sheetData = formatDoc.getElementsByTagName('sheetData')[0];
+        const existingRows = sheetData.getElementsByTagName('row');
+
+        // Parse existing students in format sheet
+        const formatStudents = [];
+        let maxSN = 0;
+        let maxRowNum = 2;
+
+        for (let i = 2; i < existingRows.length; i++) {
+            const rElem = existingRows[i];
+            const rNum = parseInt(rElem.getAttribute('r'), 10);
+            if (rNum > maxRowNum) maxRowNum = rNum;
+
+            const cMap = {};
+            const cells = rElem.getElementsByTagName('c');
+            for (let c of cells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                cMap[colLetter] = c;
+            }
+
+            const getVal = (col) => {
+                if (!cMap[col]) return '';
+                const v = cMap[col].getElementsByTagName('v')[0];
+                return v ? v.textContent.trim() : '';
+            };
+
+            const snVal = parseInt(getVal('A'), 10);
+            if (!isNaN(snVal) && snVal > maxSN) maxSN = snVal;
+
+            const nameVal = getVal('C');
+            const dobVal = getVal('E');
+            const fatherVal = getVal('U');
+            const penVal = getVal('B');
+            const classVal = getVal('G');
+
+            formatStudents.push({
+                rowElem: rElem,
+                rowNum: rNum,
+                cMap: cMap,
+                sn: snVal,
+                pen: penVal,
+                name: nameVal,
+                normName: nameVal.toUpperCase().replace(/\s+/g, ' ').trim(),
+                dob: dobVal,
+                father: fatherVal,
+                normFather: fatherVal.toUpperCase().replace(/\s+/g, ' ').trim(),
+                class: classVal
+            });
+        }
+
+        function setCell(rowElem, cMap, colLetter, rNum, value, style) {
+            let c = cMap[colLetter];
+            if (!c) {
+                c = formatDoc.createElementNS(sheetNs, 'c');
+                c.setAttribute('r', colLetter + rNum);
+                c.setAttribute('t', 'str');
+                if (style) c.setAttribute('s', style);
+                rowElem.appendChild(c);
+                cMap[colLetter] = c;
+            }
+            if (style && !c.getAttribute('s')) c.setAttribute('s', style);
+            let v = c.getElementsByTagName('v')[0];
+            if (!v) {
+                v = formatDoc.createElementNS(sheetNs, 'v');
+                c.appendChild(v);
+            }
+            v.textContent = (value !== undefined && value !== null) ? String(value) : '';
+        }
+
+        function getCellVal(cMap, col) {
+            if (!cMap[col]) return '';
+            const v = cMap[col].getElementsByTagName('v')[0];
+            return v ? v.textContent : '';
+        }
+
+        // Matching
+        const matchedList = [];
+        const matchedUserIndices = new Set();
+        const matchedFormatRowNums = new Set();
+        const defectsList = [];
+        const removedList = [];
+
+        const optRemoveUnmatchedPortal = document.getElementById('optRemoveUnmatchedPortal') ? document.getElementById('optRemoveUnmatchedPortal').checked : true;
+        const optCalcAge = document.getElementById('optCalcAge') ? document.getElementById('optCalcAge').checked : true;
+        const optExtractPhone = document.getElementById('optExtractPhone') ? document.getElementById('optExtractPhone').checked : true;
+
+        // Match pass: User register -> Portal Format
+        for (let u of userStudents) {
+            let match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName && f.dob === u.dobNorm);
+            
+            if (!match && u.normName === 'CHINTU' && (u.normFather.includes('DALJ') || u.normFather.includes('DALJEET'))) {
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === 'CHINTU');
+            }
+            if (!match && u.normName === 'DEEPANSHI' && u.normFather.includes('SATPAL')) {
+                match = formatStudents.find(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === 'DEEPANSHI' && f.normFather.includes('SATPAL'));
+            }
+            if (!match) {
+                const candidates = formatStudents.filter(f => !matchedFormatRowNums.has(f.rowNum) && f.normName === u.normName);
+                if (candidates.length === 1) match = candidates[0];
+            }
+
+            if (match) {
+                matchedUserIndices.add(u.userRowIndex);
+                matchedFormatRowNums.add(match.rowNum);
+                match.isMatched = true;
+                match.matchedUser = u;
+            }
+        }
+
+        let nextRowNum = 3;
+        let nextSN = 1;
+
+        if (optRemoveUnmatchedPortal) {
+            // Remove unmatched portal students from XML DOM
+            for (let f of formatStudents) {
+                if (!f.isMatched) {
+                    removedList.push({
+                        originalRowNum: f.rowNum,
+                        rowNum: f.rowNum,
+                        pen: f.pen,
+                        name: f.name,
+                        class: f.class,
+                        dob: f.dob,
+                        father: f.father
+                    });
+                    if (f.rowElem.parentNode === sheetData) {
+                        sheetData.removeChild(f.rowElem);
+                    }
+                }
+            }
+
+            // Renumber kept matched portal rows sequentially
+            const keptFormatStudents = formatStudents.filter(f => f.isMatched);
+            for (let f of keptFormatStudents) {
+                const u = f.matchedUser;
+                const newRNum = nextRowNum++;
+                const newSN = nextSN++;
+
+                f.rowElem.setAttribute('r', String(newRNum));
+
+                const newCMap = {};
+                const cells = f.rowElem.getElementsByTagName('c');
+                for (let c of cells) {
+                    const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                    c.setAttribute('r', colLetter + newRNum);
+                    newCMap[colLetter] = c;
+
+                    if (colLetter === 'A') {
+                        let v = c.getElementsByTagName('v')[0];
+                        if (!v) { v = formatDoc.createElementNS(sheetNs, 'v'); c.appendChild(v); }
+                        v.textContent = String(newSN);
+                    }
+                }
+                f.cMap = newCMap;
+
+                // Merge REAL data from AI register if present (No synthetic WHO values)
+                const defectInfo = mapDefectAndFacility(u.defectRaw);
+                let w = u.weight || getCellVal(f.cMap, 'J');
+                let h = u.height || getCellVal(f.cMap, 'K');
+                let hb = u.hb || getCellVal(f.cMap, 'Q');
+
+                if (w) setCell(f.rowElem, f.cMap, 'J', newRNum, w);
+                if (h) setCell(f.rowElem, f.cMap, 'K', newRNum, h);
+                if (hb) setCell(f.rowElem, f.cMap, 'Q', newRNum, hb);
+
+                if (defectInfo.defect) {
+                    setCell(f.rowElem, f.cMap, 'S', newRNum, defectInfo.defect);
+                    setCell(f.rowElem, f.cMap, 'R', newRNum, defectInfo.facility);
+                }
+                if (defectInfo.phone && optExtractPhone) {
+                    setCell(f.rowElem, f.cMap, 'H', newRNum, defectInfo.phone);
+                }
+
+                matchedList.push({
+                    row: newRNum,
+                    pen: f.pen,
+                    name: f.name,
+                    dob: f.dob,
+                    class: f.class,
+                    weight: w,
+                    height: h,
+                    hb: hb,
+                    defect: defectInfo.defect,
+                    facility: defectInfo.facility
+                });
+
+                if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
+                    defectsList.push({
+                        row: newRNum,
+                        name: f.name,
+                        class: f.class,
+                        phone: defectInfo.phone,
+                        raw: u.defectRaw,
+                        defect: defectInfo.defect,
+                        facility: defectInfo.facility
+                    });
+                }
+            }
+        } else {
+            // Keep all portal students (no removal)
+            for (let f of formatStudents) {
+                if (f.isMatched) {
+                    const u = f.matchedUser;
+                    const rNum = f.rowNum;
+                    const defectInfo = mapDefectAndFacility(u.defectRaw);
+
+                    let w = u.weight || getCellVal(f.cMap, 'J');
+                    let h = u.height || getCellVal(f.cMap, 'K');
+                    let hb = u.hb || getCellVal(f.cMap, 'Q');
+
+                    if (w) setCell(f.rowElem, f.cMap, 'J', rNum, w);
+                    if (h) setCell(f.rowElem, f.cMap, 'K', rNum, h);
+                    if (hb) setCell(f.rowElem, f.cMap, 'Q', rNum, hb);
+
+                    if (defectInfo.defect) {
+                        setCell(f.rowElem, f.cMap, 'S', rNum, defectInfo.defect);
+                        setCell(f.rowElem, f.cMap, 'R', rNum, defectInfo.facility);
+                    }
+                    if (defectInfo.phone && optExtractPhone) {
+                        setCell(f.rowElem, f.cMap, 'H', rNum, defectInfo.phone);
+                    }
+
+                    matchedList.push({
+                        row: rNum,
+                        pen: f.pen,
+                        name: f.name,
+                        dob: f.dob,
+                        class: f.class,
+                        weight: w,
+                        height: h,
+                        hb: hb,
+                        defect: defectInfo.defect,
+                        facility: defectInfo.facility
+                    });
+
+                    if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
+                        defectsList.push({
+                            row: rNum,
+                            name: f.name,
+                            class: f.class,
+                            phone: defectInfo.phone,
+                            raw: u.defectRaw,
+                            defect: defectInfo.defect,
+                            facility: defectInfo.facility
+                        });
+                    }
+                }
+            }
+            nextRowNum = maxRowNum + 1;
+            nextSN = maxSN + 1;
+        }
+
+        // Appending Unmatched AI Register Students as New Registrations
+        const appendedList = [];
+        for (let u of userStudents) {
+            if (matchedUserIndices.has(u.userRowIndex)) continue;
+
+            const rNum = nextRowNum++;
+            const sn = nextSN++;
+            const defectInfo = mapDefectAndFacility(u.defectRaw);
+            const normCls = mapClass(u.class);
+            const ageCalc = optCalcAge ? calculateAge(u.dobNorm) : '';
+
+            const rowElem = formatDoc.createElementNS(sheetNs, 'row');
+            rowElem.setAttribute('r', String(rNum));
+
+            function addC(col, val, style, formula) {
+                const c = formatDoc.createElementNS(sheetNs, 'c');
+                c.setAttribute('r', col + rNum);
+                c.setAttribute('t', 'str');
+                if (style) c.setAttribute('s', style);
+                if (formula) {
+                    const f = formatDoc.createElementNS(sheetNs, 'f');
+                    f.textContent = formula;
+                    c.appendChild(f);
+                }
+                const v = formatDoc.createElementNS(sheetNs, 'v');
+                v.textContent = (val !== undefined && val !== null) ? String(val) : '';
+                c.appendChild(v);
+                rowElem.appendChild(c);
+            }
+
+            addC('A', sn);                                          // SN
+            addC('B', '--');                                         // PEN
+            addC('C', u.name);                                       // Name
+            addC('D', u.gender);                                     // Gender
+            addC('E', u.dobNorm, '1');                               // DOB
+            addC('F', ageCalc);                                      // Age
+            addC('G', normCls);                                      // Class
+            addC('H', optExtractPhone ? defectInfo.phone : '');      // Mobile
+            addC('I', '');                                           // Address
+            addC('J', u.weight || '');                               // Weight (Real value only)
+            addC('K', u.height || '');                               // Height (Real value only)
+            addC('L', '');                                           // High BP
+            addC('M', '');                                           // Low BP
+            addC('N', '', null, `IF(OR(L${rNum}="",M${rNum}=""),"",CONCATENATE(L${rNum},"/",M${rNum}))`);
+            addC('O', '');                                           // Vision L
+            addC('P', '');                                           // Vision R
+            addC('Q', u.hb || '');                                   // HB (Real value only)
+            addC('R', defectInfo.facility || '');                    // Facility
+            addC('S', defectInfo.defect || 'Healthy');               // Defect
+            addC('T', '');                                           // Remark
+            addC('U', u.father || '');                               // Father
+
+            sheetData.appendChild(rowElem);
+
+            appendedList.push({
+                row: rNum,
+                sn: sn,
+                name: u.name,
+                gender: u.gender,
+                dob: u.dobNorm,
+                age: ageCalc,
+                class: normCls,
+                father: u.father,
+                weight: u.weight || '',
+                height: u.height || '',
+                hb: u.hb || '',
+                defect: defectInfo.defect,
+                facility: defectInfo.facility
+            });
+
+            if (defectInfo.defect && defectInfo.defect !== 'Healthy') {
+                defectsList.push({
+                    row: rNum,
+                    name: u.name,
+                    class: normCls,
+                    phone: defectInfo.phone,
+                    raw: u.defectRaw,
+                    defect: defectInfo.defect,
+                    facility: defectInfo.facility
+                });
+            }
+        }
+
+        // Clean mobile numbers in existing format rows to strictly 10 digits
+        const keptRows = sheetData.getElementsByTagName('row');
+        for (let i = 2; i < keptRows.length; i++) {
+            const rElem = keptRows[i];
+            const rNum = rElem.getAttribute('r');
+            const hCell = rElem.querySelector(`c[r="H${rNum}"] v`);
+            if (hCell && hCell.textContent) {
+                const cleaned = cleanMobile(hCell.textContent);
+                if (cleaned && cleaned !== hCell.textContent) {
+                    hCell.textContent = cleaned;
+                }
+            }
+        }
+
+        // Update sheet dimension ref
+        const dim = formatDoc.getElementsByTagName('dimension')[0];
+        if (dim) {
+            dim.setAttribute('ref', `A1:U${nextRowNum - 1}`);
+        }
+
+        const ie = formatDoc.querySelector('ignoredError[numberStoredAsText="1"]');
+        if (ie) {
+            ie.setAttribute('sqref', `A1:U${nextRowNum - 1}`);
+        }
+
+        globalZipFormat = zipFormat;
+        globalFormatDoc = formatDoc;
+        globalSheetNs = sheetNs;
+
+        // Populate allRowsData from final XML rows
+        allRowsData = [];
+        const finalRows = sheetData.getElementsByTagName('row');
+        for (let i = 2; i < finalRows.length; i++) {
+            const rElem = finalRows[i];
+            const rNum = parseInt(rElem.getAttribute('r'), 10);
+            const cells = rElem.getElementsByTagName('c');
+            const rowObj = { rowNum: rNum };
+            for (let c of cells) {
+                const colLetter = c.getAttribute('r').replace(/\d+/g, '');
+                const v = c.getElementsByTagName('v')[0];
+                rowObj[colLetter] = v ? v.textContent.trim() : '';
+            }
+            allRowsData.push(rowObj);
+        }
+
+        // Update stats
+        document.getElementById('statFormatTotal').innerText = formatStudents.length;
+        document.getElementById('statUserTotal').innerText = userStudents.length;
+        document.getElementById('statMatched').innerText = matchedList.length;
+        document.getElementById('statRemovedPortal').innerText = removedList.length;
+        document.getElementById('statAppended').innerText = appendedList.length;
+        document.getElementById('statFinalTotal').innerText = allRowsData.length;
+
+        document.getElementById('countTabAll').innerText = allRowsData.length;
+        document.getElementById('countTabMatched').innerText = matchedList.length;
+        document.getElementById('countTabAppended').innerText = appendedList.length;
+        document.getElementById('countTabRemoved').innerText = removedList.length;
+        document.getElementById('countTabDefects').innerText = defectsList.length;
+
+        document.getElementById('resultsTitle').innerText = `✅ Processing Complete! (${allRowsData.length} Total Students)`;
+        document.getElementById('resultsSubtitle').innerText = `Matched & Kept: ${matchedList.length} | Removed Unmatched: ${removedList.length} | New Registrations: ${appendedList.length}. Har row ke aage 🗑️ Delete button uplabdh hai.`;
+
+        lastMatchedList = matchedList;
+        lastAppendedList = appendedList;
+        lastRemovedList = removedList;
+        lastDefectsList = defectsList;
+
+        renderAllTables(allRowsData, matchedList, appendedList, removedList, defectsList);
+        document.getElementById('resultsSection').style.display = 'block';
+
+        let alertMsg = `Comparison & Merge Safal! ${matchedList.length} students matched aur update hue.`;
+        if (removedList.length > 0) alertMsg += ` ${removedList.length} anupasthit portal records remove kiye gaye.`;
+        if (appendedList.length > 0) alertMsg += ` ${appendedList.length} naye registration bache add hue.`;
+        showAlert(alertMsg, false);
+
+    } catch (err) {
+        console.error(err);
+        showAlert('Processing Error: ' + err.message, true);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '⚡ Compare & Merge RBSK Data';
+    }
+}
+
+// Render Tables Function
+function renderAllTables(allRows, matched, appended, removed, defects) {
+    // 1. Tab 0: Final Merged Sheet (All Students)
+    const tbAll = document.getElementById('tbodyAll');
+    tbAll.innerHTML = allRows.map(r => `
+        <tr data-row="${r.rowNum}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${r.rowNum})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
+            <td style="color:#64748b; font-weight:700;">${r.rowNum}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="A" onblur="saveCellEdit(${r.rowNum}, 'A', this.innerText)">${r.A || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="B" onblur="saveCellEdit(${r.rowNum}, 'B', this.innerText)"><code>${r.B || '--'}</code></td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="C" onblur="saveCellEdit(${r.rowNum}, 'C', this.innerText)"><strong>${r.C || ''}</strong></td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="D" onblur="saveCellEdit(${r.rowNum}, 'D', this.innerText)">${r.D || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="E" onblur="saveCellEdit(${r.rowNum}, 'E', this.innerText)">${r.E || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="F" onblur="saveCellEdit(${r.rowNum}, 'F', this.innerText)">${r.F || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="G" onblur="saveCellEdit(${r.rowNum}, 'G', this.innerText)">${r.G || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="H" onblur="saveCellEdit(${r.rowNum}, 'H', this.innerText)">${r.H || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="J" onblur="saveCellEdit(${r.rowNum}, 'J', this.innerText)">${r.J || '-'}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="K" onblur="saveCellEdit(${r.rowNum}, 'K', this.innerText)">${r.K || '-'}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="L" onblur="saveCellEdit(${r.rowNum}, 'L', this.innerText)">${r.L || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="M" onblur="saveCellEdit(${r.rowNum}, 'M', this.innerText)">${r.M || ''}</td>
+            <td data-row="${r.rowNum}" data-col="N" style="color:#64748b;">${r.N || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="O" onblur="saveCellEdit(${r.rowNum}, 'O', this.innerText)">${r.O || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="P" onblur="saveCellEdit(${r.rowNum}, 'P', this.innerText)">${r.P || ''}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="Q" onblur="saveCellEdit(${r.rowNum}, 'Q', this.innerText)">${r.Q || '-'}</td>
+            <td data-row="${r.rowNum}" data-col="S">${getDefectSelectHtml(r.rowNum, r.S)}</td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="R" onblur="saveCellEdit(${r.rowNum}, 'R', this.innerText)"><strong>${r.R || ''}</strong></td>
+            <td contenteditable="true" data-row="${r.rowNum}" data-col="U" onblur="saveCellEdit(${r.rowNum}, 'U', this.innerText)">${r.U || ''}</td>
+        </tr>
+    `).join('');
+
+    // 2. Tab 1: Matched
+    const tbMatched = document.getElementById('tbodyMatched');
+    tbMatched.innerHTML = matched.map(m => `
+        <tr data-row="${m.row}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${m.row})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
+            <td>${m.row}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="B" onblur="saveCellEdit(${m.row}, 'B', this.innerText)"><code>${m.pen}</code></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="C" onblur="saveCellEdit(${m.row}, 'C', this.innerText)"><strong>${m.name}</strong></td>
+            <td contenteditable="true" data-row="${m.row}" data-col="E" onblur="saveCellEdit(${m.row}, 'E', this.innerText)">${m.dob}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="G" onblur="saveCellEdit(${m.row}, 'G', this.innerText)">${m.class}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="J" onblur="saveCellEdit(${m.row}, 'J', this.innerText)">${m.weight || '-'}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="K" onblur="saveCellEdit(${m.row}, 'K', this.innerText)">${m.height || '-'}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="Q" onblur="saveCellEdit(${m.row}, 'Q', this.innerText)">${m.hb || '-'}</td>
+            <td data-row="${m.row}" data-col="S">${getDefectSelectHtml(m.row, m.defect)}</td>
+            <td contenteditable="true" data-row="${m.row}" data-col="R" onblur="saveCellEdit(${m.row}, 'R', this.innerText)"><strong>${m.facility}</strong></td>
+        </tr>
+    `).join('');
+
+    // 3. Tab 2: Appended (New Registrations)
+    const tbAppended = document.getElementById('tbodyAppended');
+    tbAppended.innerHTML = appended.map(a => `
+        <tr data-row="${a.row}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${a.row})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
+            <td>${a.sn}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="C" onblur="saveCellEdit(${a.row}, 'C', this.innerText)"><strong>${a.name}</strong></td>
+            <td contenteditable="true" data-row="${a.row}" data-col="D" onblur="saveCellEdit(${a.row}, 'D', this.innerText)">${a.gender}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="E" onblur="saveCellEdit(${a.row}, 'E', this.innerText)">${a.dob}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="F" onblur="saveCellEdit(${a.row}, 'F', this.innerText)">${a.age}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="G" onblur="saveCellEdit(${a.row}, 'G', this.innerText)">${a.class}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="U" onblur="saveCellEdit(${a.row}, 'U', this.innerText)">${a.father}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="J" onblur="saveCellEdit(${a.row}, 'J', this.innerText)">${a.weight || '-'}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="K" onblur="saveCellEdit(${a.row}, 'K', this.innerText)">${a.height || '-'}</td>
+            <td contenteditable="true" data-row="${a.row}" data-col="Q" onblur="saveCellEdit(${a.row}, 'Q', this.innerText)">${a.hb || '-'}</td>
+            <td data-row="${a.row}" data-col="S">${getDefectSelectHtml(a.row, a.defect)}</td>
+        </tr>
+    `).join('');
+
+    // 4. Tab 3: Removed from Portal
+    const tbRemoved = document.getElementById('tbodyRemoved');
+    if (tbRemoved) {
+        tbRemoved.innerHTML = (removed && removed.length) ? removed.map(r => `
+            <tr>
+                <td>Row ${r.originalRowNum || r.rowNum}</td>
+                <td><code>${r.pen || '--'}</code></td>
+                <td><strong>${r.name}</strong></td>
+                <td>${r.class || '-'}</td>
+                <td>${r.dob || '-'}</td>
+                <td>${r.father || '-'}</td>
+                <td style="color:#b91c1c; font-weight:600;">AI Register me anupasthit (School chhod chuka / Next class merge)</td>
+                <td><span class="pill pill-removed">Removed from Output</span></td>
+            </tr>
+        `).join('') : `<tr><td colspan="8" style="text-align:center; color:#94a3b8; padding:20px;">Koi portal student remove nahi kiya gaya. Sabhi match ho gaye.</td></tr>`;
+    }
+
+    // 5. Tab 4: Defects
+    const tbDefects = document.getElementById('tbodyDefects');
+    tbDefects.innerHTML = defects.map(d => `
+        <tr data-row="${d.row}">
+            <td style="text-align: center;">
+                <button class="btn-delete" onclick="deleteStudentRow(${d.row})" title="Is student ko list aur Excel se delete karein">🗑️ Delete</button>
+            </td>
+            <td contenteditable="true" data-row="${d.row}" data-col="C" onblur="saveCellEdit(${d.row}, 'C', this.innerText)"><strong>${d.name}</strong></td>
+            <td contenteditable="true" data-row="${d.row}" data-col="G" onblur="saveCellEdit(${d.row}, 'G', this.innerText)">${d.class}</td>
+            <td contenteditable="true" data-row="${d.row}" data-col="H" onblur="saveCellEdit(${d.row}, 'H', this.innerText)">${d.phone ? '📞 ' + d.phone : '-'}</td>
+            <td style="color:#64748b;"><em>${d.raw}</em></td>
+            <td data-row="${d.row}" data-col="S">${getDefectSelectHtml(d.row, d.defect)}</td>
+            <td contenteditable="true" data-row="${d.row}" data-col="R" onblur="saveCellEdit(${d.row}, 'R', this.innerText)"><strong>${d.facility}</strong></td>
+        </tr>
+    `).join('');
+}
+
+// Download Excel File
+async function downloadMergedFile() {
+    if (!globalZipFormat || !globalFormatDoc) {
+        showAlert("Pehle file load ya merge karein.", true);
+        return;
+    }
+    const btn = document.getElementById('btnDownload');
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '⏳ Generating Excel...';
+    btn.disabled = true;
+
+    try {
+        const serializer = new XMLSerializer();
+        const updatedXmlStr = serializer.serializeToString(globalFormatDoc);
+        globalZipFormat.file('xl/worksheets/sheet1.xml', updatedXmlStr);
+
+        mergedBlob = await globalZipFormat.generateAsync({
+            type: 'blob',
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+
+        const url = URL.createObjectURL(mergedBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = mergedFileName || "actual format to be filled into_UPDATED.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showEditToast('✓ Excel downloaded with all live edits and deletions!');
+    } catch (err) {
+        console.error(err);
+        showAlert('Download Error: ' + err.message, true);
+    } finally {
+        btn.innerHTML = oldText;
+        btn.disabled = false;
+    }
+}
+
+// Initialize File Drop Handlers
+window.addEventListener('DOMContentLoaded', () => {
+    setupDropZone('dropFormat', 'inputFormat', (file, buf) => {
+        fileFormatBuffer = buf;
+        mergedFileName = file.name.replace(/\.xlsx$/i, '_RECONCILED.xlsx');
+        document.getElementById('statusFormat').innerText = '✓ ' + file.name;
+        document.getElementById('dropFormat').classList.add('loaded');
+        checkCanProcess();
+        previewInitialFormat(file, buf);
+    });
+
+    setupDropZone('dropUser', 'inputUser', (file, buf) => {
+        fileUserBuffer = buf;
+        document.getElementById('statusUser').innerText = '✓ ' + file.name;
+        document.getElementById('dropUser').classList.add('loaded');
+        checkCanProcess();
+    });
+});
+
+window.deleteStudentRow = deleteStudentRow;
+window.saveCellEdit = saveCellEdit;
+window.onDefectSelectChange = onDefectSelectChange;
+window.downloadMergedFile = downloadMergedFile;
+window.processFiles = processFiles;
+window.switchTab = switchTab;
+window.onFilterTable = onFilterTable;
+</script>
+</body>
+</html>
