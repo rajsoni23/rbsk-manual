@@ -300,6 +300,151 @@
     // Defect & Hb Controls
     const optDefectMode = document.getElementById("optDefectMode");
     const optSpecificDefect = document.getElementById("optSpecificDefect");
+    const specificDefectControls = document.getElementById("specificDefectControls");
+    const btnMultiDefectToggle = document.getElementById("btnMultiDefectToggle");
+    const multiDefectDropdown = document.getElementById("multiDefectDropdown");
+    const multiDefectSearch = document.getElementById("multiDefectSearch");
+    const multiDefectList = document.getElementById("multiDefectList");
+    const multiDefectBtnText = document.getElementById("multiDefectBtnText");
+    const multiDefectSelectedCount = document.getElementById("multiDefectSelectedCount");
+    const btnClearDefects = document.getElementById("btnClearDefects");
+    const btnCloseDefectDropdown = document.getElementById("btnCloseDefectDropdown");
+    const optDefectCount = document.getElementById("optDefectCount");
+    const defectMaxStudentsHint = document.getElementById("defectMaxStudentsHint");
+    const btnReshuffleDefects = document.getElementById("btnReshuffleDefects");
+    const selectedDefectChips = document.getElementById("selectedDefectChips");
+
+    // Multi-Defect State: Default 3 common RBSK school defects (Refractive Problems, Dental Conditions, Skin Conditions)
+    let selectedDefectKeys = ["refractiveProblems", "dental", "skin"];
+    let randomDefectAssignments = new Map(); // rowIndex -> defectKey
+
+    function renderMultiDefectList(filterText = "") {
+        if (!multiDefectList) return;
+        const term = (filterText || "").trim().toLowerCase();
+        let html = "";
+        RBSK_SCREENING_DEFECT_CATEGORIES.forEach((cat) => {
+            const matchingItems = cat.items.filter((it) =>
+                !term || it.label.toLowerCase().includes(term) || it.val.toLowerCase().includes(term)
+            );
+            if (matchingItems.length > 0) {
+                html += `<div class="multi-select-cat-header">${cat.category}</div>`;
+                matchingItems.forEach((it) => {
+                    const isChecked = selectedDefectKeys.includes(it.val);
+                    html += `
+                        <label class="multi-select-item ${isChecked ? "selected" : ""}" data-val="${it.val}">
+                            <input type="checkbox" value="${it.val}" ${isChecked ? "checked" : ""}>
+                            <span>${it.label}</span>
+                        </label>
+                    `;
+                });
+            }
+        });
+        if (!html) {
+            html = `<div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 12px;">No defects match "${filterText}"</div>`;
+        }
+        multiDefectList.innerHTML = html;
+
+        multiDefectList.querySelectorAll(".multi-select-item input[type='checkbox']").forEach((chk) => {
+            chk.addEventListener("change", (e) => {
+                const val = e.target.value;
+                if (e.target.checked) {
+                    if (!selectedDefectKeys.includes(val)) selectedDefectKeys.push(val);
+                } else {
+                    selectedDefectKeys = selectedDefectKeys.filter((k) => k !== val);
+                }
+                updateSelectedDefectsUI();
+                generateRandomDefectAssignments(true);
+                executeAutoFill();
+            });
+        });
+    }
+
+    function updateSelectedDefectsUI() {
+        const count = selectedDefectKeys.length;
+        if (multiDefectBtnText) {
+            multiDefectBtnText.textContent = count > 0 ? `🎯 ${count} Defect${count > 1 ? "s" : ""} Selected` : "🎯 Select Defects (0)";
+        }
+        if (multiDefectSelectedCount) {
+            multiDefectSelectedCount.textContent = `${count} selected`;
+        }
+
+        if (selectedDefectChips) {
+            selectedDefectChips.innerHTML = selectedDefectKeys.map((k) => {
+                const label = DEFECT_LABELS[k] || k;
+                return `
+                    <span class="selected-chip">
+                        <span>${label}</span>
+                        <span class="chip-remove" data-val="${k}" title="Remove">&times;</span>
+                    </span>
+                `;
+            }).join("");
+
+            selectedDefectChips.querySelectorAll(".chip-remove").forEach((rm) => {
+                rm.addEventListener("click", (e) => {
+                    const val = e.target.getAttribute("data-val");
+                    selectedDefectKeys = selectedDefectKeys.filter((k) => k !== val);
+                    updateSelectedDefectsUI();
+                    renderMultiDefectList(multiDefectSearch ? multiDefectSearch.value : "");
+                    generateRandomDefectAssignments(true);
+                    executeAutoFill();
+                });
+            });
+        }
+    }
+
+    function generateRandomDefectAssignments(forceNew = false) {
+        if (!optDefectMode || optDefectMode.value !== "specific") {
+            randomDefectAssignments.clear();
+            return;
+        }
+
+        const total = studentRowsData.length;
+        if (total === 0) {
+            randomDefectAssignments.clear();
+            return;
+        }
+
+        if (defectMaxStudentsHint) {
+            defectMaxStudentsHint.textContent = `/ ${total}`;
+        }
+
+        let targetCount = optDefectCount ? parseInt(optDefectCount.value, 10) : 10;
+        if (isNaN(targetCount) || targetCount < 0) targetCount = 0;
+        if (targetCount > total) targetCount = total;
+
+        if (selectedDefectKeys.length === 0 || targetCount === 0) {
+            randomDefectAssignments.clear();
+            return;
+        }
+
+        if (!forceNew && randomDefectAssignments.size === targetCount) {
+            return;
+        }
+
+        randomDefectAssignments.clear();
+
+        // Collect available student indices
+        const availableIndices = [];
+        for (let i = 0; i < total; i++) {
+            availableIndices.push(i);
+        }
+
+        // Fisher-Yates shuffle to pick targetCount unique random students
+        for (let i = availableIndices.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [availableIndices[i], availableIndices[j]] = [availableIndices[j], availableIndices[i]];
+        }
+
+        const chosenIndices = availableIndices.slice(0, targetCount);
+
+        // Randomly assign one of the user-selected defects to each picked student
+        chosenIndices.forEach((idx) => {
+            const rowIdx = studentRowsData[idx].rowIndex;
+            const randomDefect = selectedDefectKeys[Math.floor(Math.random() * selectedDefectKeys.length)];
+            randomDefectAssignments.set(rowIdx, randomDefect);
+        });
+    }
+
     const optSafeOnlyBlank = document.getElementById("optSafeOnlyBlank");
     const optDecimals = document.getElementById("optDecimals");
     const optHbRange = document.getElementById("optHbRange");
@@ -378,15 +523,78 @@
         // Defect mode listener
         if (optDefectMode) {
             optDefectMode.addEventListener("change", () => {
-                if (optSpecificDefect) {
-                    optSpecificDefect.style.display = optDefectMode.value === "specific" ? "inline-block" : "none";
+                const isSpecific = optDefectMode.value === "specific";
+                if (specificDefectControls) {
+                    specificDefectControls.style.display = isSpecific ? "inline-flex" : "none";
+                }
+                if (isSpecific) {
+                    updateSelectedDefectsUI();
+                    renderMultiDefectList(multiDefectSearch ? multiDefectSearch.value : "");
+                    generateRandomDefectAssignments(true);
+                } else {
+                    randomDefectAssignments.clear();
                 }
                 executeAutoFill();
             });
         }
 
-        if (optSpecificDefect) {
-            optSpecificDefect.addEventListener("change", executeAutoFill);
+        // Multi-Defect Dropdown Toggle & Popup Controls
+        if (btnMultiDefectToggle && multiDefectDropdown) {
+            btnMultiDefectToggle.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const isVisible = multiDefectDropdown.style.display === "flex";
+                multiDefectDropdown.style.display = isVisible ? "none" : "flex";
+                if (!isVisible) {
+                    renderMultiDefectList(multiDefectSearch ? multiDefectSearch.value : "");
+                    if (multiDefectSearch) multiDefectSearch.focus();
+                }
+            });
+
+            document.addEventListener("click", (e) => {
+                if (multiDefectDropdown && !multiDefectDropdown.contains(e.target) && !btnMultiDefectToggle.contains(e.target)) {
+                    multiDefectDropdown.style.display = "none";
+                }
+            });
+        }
+
+        if (multiDefectSearch) {
+            multiDefectSearch.addEventListener("input", (e) => {
+                renderMultiDefectList(e.target.value);
+            });
+        }
+
+        if (btnClearDefects) {
+            btnClearDefects.addEventListener("click", () => {
+                selectedDefectKeys = [];
+                updateSelectedDefectsUI();
+                renderMultiDefectList(multiDefectSearch ? multiDefectSearch.value : "");
+                generateRandomDefectAssignments(true);
+                executeAutoFill();
+            });
+        }
+
+        if (btnCloseDefectDropdown && multiDefectDropdown) {
+            btnCloseDefectDropdown.addEventListener("click", () => {
+                multiDefectDropdown.style.display = "none";
+            });
+        }
+
+        if (optDefectCount) {
+            optDefectCount.addEventListener("input", () => {
+                generateRandomDefectAssignments(true);
+                executeAutoFill();
+            });
+            optDefectCount.addEventListener("change", () => {
+                generateRandomDefectAssignments(true);
+                executeAutoFill();
+            });
+        }
+
+        if (btnReshuffleDefects) {
+            btnReshuffleDefects.addEventListener("click", () => {
+                generateRandomDefectAssignments(true);
+                executeAutoFill();
+            });
         }
 
         if (optSafeOnlyBlank) optSafeOnlyBlank.addEventListener("change", executeAutoFill);
@@ -491,6 +699,20 @@
                     if (schoolButtonsBar) schoolButtonsBar.style.display = "flex";
                     if (awcButtonsBar) awcButtonsBar.style.display = "none";
                 }
+
+                if (defectMaxStudentsHint) {
+                    defectMaxStudentsHint.textContent = `/ ${studentRowsData.length}`;
+                }
+                if (optDefectCount) {
+                    const currentVal = parseInt(optDefectCount.value, 10);
+                    if (isNaN(currentVal) || currentVal <= 0) {
+                        optDefectCount.value = Math.min(10, studentRowsData.length);
+                    } else if (currentVal > studentRowsData.length) {
+                        optDefectCount.value = studentRowsData.length;
+                    }
+                }
+                updateSelectedDefectsUI();
+                generateRandomDefectAssignments(true);
 
                 // Automatically run auto-fill on first load
                 executeAutoFill();
@@ -739,6 +961,10 @@
         let totalHbFilled = 0;
         let totalVisionFilled = 0;
 
+        if (defectMode === "specific") {
+            generateRandomDefectAssignments(false);
+        }
+
         studentRowsData.forEach((st) => {
             const studentInfo = {
                 name: st.name,
@@ -828,7 +1054,11 @@
                 } else if (defectMode === "healthy") {
                     finalDefectKey = "healthy";
                 } else if (defectMode === "specific") {
-                    finalDefectKey = specificDefectVal;
+                    if (randomDefectAssignments.has(st.rowIndex)) {
+                        finalDefectKey = randomDefectAssignments.get(st.rowIndex);
+                    } else {
+                        finalDefectKey = "healthy";
+                    }
                 }
             }
 
@@ -1365,6 +1595,7 @@
         originalFileName = "";
         rawGrid = [];
         studentRowsData = [];
+        randomDefectAssignments.clear();
         activeFilter = "";
         currentPage = 1;
 

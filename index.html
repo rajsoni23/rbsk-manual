@@ -114,80 +114,51 @@
                 <select class="select-input-sm" id="optDefectMode">
                     <option value="auto_hb" selected>Auto by Hb (Normal = Healthy, &lt;11.5 = Anaemia)</option>
                     <option value="healthy">All Healthy</option>
-                    <option value="specific">Pick Specific Defect...</option>
+                    <option value="specific">Pick Specific Defects (रैंडम वितरण)...</option>
                 </select>
-                <select class="select-input-sm" id="optSpecificDefect" style="display: none; border-color: #f97316;">
-                    <option value="healthy">Healthy</option>
-                    <optgroup label="1. Defects at Birth">
-                        <option value="neuralTubeDefect">1. Neural Tube Defect</option>
-                        <option value="downsSyndrome">2. Down's Syndrome</option>
-                        <option value="cleftLipPalate">3. Cleft Lip &amp; Palate</option>
-                        <option value="clubFoot">4. Talipes (Club Foot)</option>
-                        <option value="hipDysplasia">5. Developmental Dysplasia of Hip</option>
-                        <option value="congenitalCataract">6. Congenital Cataract</option>
-                        <option value="congenitalDeafness">7. Congenital Deafness</option>
-                        <option value="congenitalHeartDisease">8. Congenital Heart Disease</option>
-                        <option value="retinopathy">9. Retinopathy of Prematurity</option>
-                        <option value="microcephaly">42. Microcephaly</option>
-                        <option value="macrocephaly">43. Macrocephaly</option>
-                        <option value="congenitalEar">47. Congenital Ear Defects</option>
-                        <option value="neckFaceDefects">48. Neck &amp; Face Defects</option>
-                        <option value="congenitalEye">50. Congenital Eye Defects</option>
-                    </optgroup>
-                    <optgroup label="2. Deficiencies">
-                        <option value="severeAnemia">10. Severe Anemia</option>
-                        <option value="vitaminA">11. Vit A Deficiency (Bitot Spot)</option>
-                        <option value="vitaminD">12. Vit D Deficiency (Rickets)</option>
-                        <option value="sam">13. SAM / Severe Thinness / SUW</option>
-                        <option value="goiter">14. Goiter</option>
-                        <option value="severeStunting">41. Severe Stunting</option>
-                        <option value="vitaminB">44. Vit B Complex Deficiency</option>
-                        <option value="obesity">45. Obesity</option>
-                        <option value="moderateAnaemia">52. Moderate Anaemia</option>
-                        <option value="mildAnaemia">89. Mild Anaemia</option>
-                        <option value="mam">90. MAM</option>
-                        <option value="vitaminD120">120. Vitamin D Deficiency</option>
-                    </optgroup>
-                    <optgroup label="3. Childhood Diseases">
-                        <option value="skin">15. Skin Conditions</option>
-                        <option value="otitis">16. Otitis Media</option>
-                        <option value="rheumaticHeart">17. Rheumatic Heart Disease</option>
-                        <option value="reactiveAirway">18. Reactive Airway Disease</option>
-                        <option value="dental">19. Dental Conditions</option>
-                        <option value="convulsiveDisorders">20. Convulsive Disorders</option>
-                        <option value="childhoodLeprosy">39. Childhood Leprosy</option>
-                        <option value="tbPulmonary">40. Tuberculosis Pulmonary</option>
-                        <option value="stage2Hypertension">46. Stage 2 Hypertension</option>
-                        <option value="refractiveProblems">49. Refractive Problems</option>
-                        <option value="tbExtraPulmonary">140. TB Extra Pulmonary</option>
-                        <option value="skinNotLeprosy">150. Skin Conditions (Not Leprosy)</option>
-                        <option value="bronchialAsthma">180. Bronchial Asthma</option>
-                        <option value="prehypertension">460. Prehypertension</option>
-                        <option value="stage1Hypertension">461. Stage 1 Hypertension</option>
-                    </optgroup>
-                    <optgroup label="4. Development Delay">
-                        <option value="vision">21. Vision Impairment</option>
-                        <option value="hearingImpairment">22. Hearing Impairment</option>
-                        <option value="neuroMotor">23. Neuro-Motor Impairment</option>
-                        <option value="motorDelay">24. Motor Delay</option>
-                        <option value="cognitiveDelay">25. Cognitive Delay</option>
-                        <option value="languageDelay">26. Language Delay</option>
-                        <option value="autism">27. Behavior Disorder (Autism)</option>
-                        <option value="learningDisorder">28. Learning Disorder</option>
-                        <option value="adhd">29. ADHD</option>
-                        <option value="convulsiveDevelopmental">51. Convulsive Disorders (Dev Delay)</option>
-                    </optgroup>
-                    <optgroup label="5. Adolescent Health concerns">
-                        <option value="growingUpConcerns">31. Growing Up Concerns</option>
-                        <option value="substanceAbuse">32. Substance Abuse</option>
-                        <option value="feelDepressed">33. Feel Depressed</option>
-                        <option value="delayMenstruation">34. Delay in Menstruation</option>
-                        <option value="irregularPeriods">35. Irregular Periods</option>
-                        <option value="painUrination">36. Pain/Burning Urinating</option>
-                        <option value="genitorUrinaryDischarge">37. Genito-Urinary Discharge</option>
-                        <option value="painMenstruation">38. Pain During Menstruation</option>
-                    </optgroup>
-                </select>
+
+                <!-- Multi Specific Defect Controls -->
+                <div class="specific-defect-controls" id="specificDefectControls" style="display: none;">
+                    <!-- Multi-Select Trigger Button -->
+                    <div class="multi-select-container">
+                        <button type="button" class="select-input-sm multi-select-trigger" id="btnMultiDefectToggle" title="Click to select multiple defects">
+                            <span>🎯</span>
+                            <span id="multiDefectBtnText">Select Defects (3)</span>
+                            <span style="font-size: 10px; color: #94a3b8;">▼</span>
+                        </button>
+
+                        <!-- Dropdown Popup -->
+                        <div class="multi-select-dropdown" id="multiDefectDropdown" style="display: none;">
+                            <div class="multi-select-header">
+                                <input type="text" id="multiDefectSearch" class="multi-select-search" placeholder="🔍 Search defect (e.g. dental, vision)...">
+                                <div class="multi-select-actions">
+                                    <span id="multiDefectSelectedCount" class="selected-badge">3 selected</span>
+                                    <button type="button" id="btnClearDefects" class="link-btn">Clear All</button>
+                                    <button type="button" id="btnCloseDefectDropdown" class="done-btn">Done ✓</button>
+                                </div>
+                            </div>
+                            <div class="multi-select-body" id="multiDefectList">
+                                <!-- Populated dynamically from RBSK_SCREENING_DEFECT_CATEGORIES -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Count Box -->
+                    <div class="defect-count-box">
+                        <label for="optDefectCount" style="font-size: 11px; font-weight: 700; color: #c2410c; white-space: nowrap;">
+                            <span>छात्र संख्या (Count):</span>
+                        </label>
+                        <input type="number" id="optDefectCount" min="1" value="10" class="select-input-sm" style="width: 65px; padding: 2px 6px; text-align: center; font-weight: 800; color: #ea580c; border: 1.5px solid #f97316; border-radius: 4px; background: #ffffff;" title="Enter number of students to apply defects to (e.g. 10 or 50)">
+                        <span id="defectMaxStudentsHint" style="font-size: 11px; color: #78716c; font-weight: 600; white-space: nowrap;">/ 0</span>
+                        <button type="button" id="btnReshuffleDefects" class="btn-shuffle" title="Re-randomize defects among students">
+                            <span>🎲</span>
+                            <span>Shuffle</span>
+                        </button>
+                    </div>
+
+                    <!-- Selected Defect Chips Display -->
+                    <div id="selectedDefectChips" class="selected-defect-chips"></div>
+                </div>
             </div>
         </div>
 
